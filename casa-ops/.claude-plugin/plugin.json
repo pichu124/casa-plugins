@@ -1,0 +1,8 @@
+{
+  "name": "casa-ops",
+  "version": "0.1.0",
+  "description": "Bối cảnh và quy trình riêng của Casa dei Bambini (mầm non, Hà Nội): báo cáo lead hằng tuần, gợi ý nội dung từ chủ đề phụ huynh hỏi, rà soát chất lượng bộ hỏi đáp của bot Messenger.",
+  "author": {
+    "name": "Casa dei Bambini"
+  }
+}

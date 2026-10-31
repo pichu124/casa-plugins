@@ -5,8 +5,8 @@ A people operations plugin primarily designed for [Cowork](https://claude.com/pr
 ## Installation
 
 ```bash
-claude plugin marketplace add anthropics/knowledge-work-plugins
-claude plugin install human-resources@knowledge-work-plugins
+claude plugin marketplace add pichu124/casa-plugins
+claude plugin install human-resources@casa-plugins
 ```
 
 ## Commands

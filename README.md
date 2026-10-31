@@ -1,80 +1,96 @@
-# Knowledge Work Plugins
+# casa-plugins
 
-Plugins that turn Claude into a specialist for your role, team, and company. Built for [Claude Cowork](https://claude.com/product/cowork), also compatible with [Claude Code](https://claude.com/product/claude-code).
+Kho plugin Claude nội bộ của **Casa dei Bambini**, hệ thống trường mầm non ở Hà Nội gồm 3 cơ sở: Quốc tế Chùa Láng, Quốc tế Mỹ Đình và Song ngữ Kim Mã.
 
-## Why Plugins
+Kho này sao từ [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins), giấy phép Apache 2.0 (xem [LICENSE](LICENSE)). Những thay đổi so với bản gốc: bỏ các plugin không phù hợp với trường, bỏ toàn bộ plugin bên ngoài và các workflow phục vụ chúng, thêm plugin `casa-ops`.
 
-Cowork lets you set the goal and Claude delivers finished, professional work. Plugins let you go further: tell Claude how you like work done, which tools and data to pull from, how to handle critical workflows, and what slash commands to expose — so your team gets better and more consistent outcomes.
+## Plugin
 
-Each plugin bundles the skills, connectors, slash commands, and sub-agents for a specific job function. Out of the box, they give Claude a strong starting point for helping anyone in that role. The real power comes when you customize them for your company — your tools, your terminology, your processes — so Claude works like it was built for your team.
+| Plugin | Dùng cho | Ghi chú |
+|---|---|---|
+| **[casa-ops](./casa-ops)** | Bối cảnh Casa, báo cáo lead tuần, gợi ý nội dung từ câu phụ huynh hỏi, rà soát chất lượng bộ hỏi đáp của bot | Của Casa. Đọc bối cảnh ở đây trước khi dùng plugin khác |
+| [productivity](./productivity) | Quản lý việc, lịch, ghi nhớ bối cảnh công việc | Bản gốc |
+| [marketing](./marketing) | Soạn nội dung, lên chiến dịch, báo cáo hiệu quả | Bản gốc |
+| [sales](./sales) | Chăm sóc lead: chuẩn bị cuộc gọi, soạn tin theo dõi, rà pipeline | Bản gốc |
+| [customer-support](./customer-support) | Soạn trả lời, xử lý khiếu nại, viết bài hỏi đáp | Bản gốc |
+| [operations](./operations) | Quy trình, báo cáo vận hành, nhà cung cấp | Bản gốc |
+| [human-resources](./human-resources) | Tuyển dụng, đánh giá, chính sách nhân sự | Bản gốc. Các nội dung luật lao động theo Mỹ cần đối chiếu với luật Việt Nam |
+| [pdf-viewer](./pdf-viewer) | Xem, ghi chú, ký PDF (hợp đồng, đơn nhập học) | Bản gốc |
+| [cowork-plugin-management](./cowork-plugin-management) | Tạo và chỉnh plugin | Bản gốc |
 
-## Plugin Marketplace
+Các plugin gốc viết theo chuẩn Mỹ. Khi làm việc cho Casa, dùng tiếng Việt, tiền VND, quy định Việt Nam và giọng văn với phụ huynh như mô tả trong [`casa-ops/references/boi-canh-casa.md`](casa-ops/references/boi-canh-casa.md).
 
-We're open-sourcing 11 plugins built and inspired by our own work:
+## Cài đặt (làm một lần)
 
-| Plugin | How it helps | Connectors |
-|--------|-------------|------------|
-| **[productivity](./productivity)** | Manage tasks, calendars, daily workflows, and personal context so you spend less time repeating yourself. | Slack, Notion, Asana, Linear, Jira, Monday, ClickUp, Microsoft 365 |
-| **[sales](./sales)** | Research prospects, prep for calls, review your pipeline, draft outreach, and build competitive battlecards. | Slack, HubSpot, Close, Clay, ZoomInfo, Notion, Jira, Fireflies, Microsoft 365 |
-| **[customer-support](./customer-support)** | Triage tickets, draft responses, package escalations, research customer context, and turn resolved issues into knowledge base articles. | Slack, Intercom, HubSpot, Guru, Jira, Notion, Microsoft 365 |
-| **[product-management](./product-management)** | Write specs, plan roadmaps, synthesize user research, keep stakeholders updated, and track the competitive landscape. | Slack, Linear, Asana, Monday, ClickUp, Jira, Notion, Figma, Amplitude, Pendo, Intercom, Fireflies |
-| **[marketing](./marketing)** | Draft content, plan campaigns, enforce brand voice, brief on competitors, and report on performance across channels. | Slack, Canva, Figma, HubSpot, Amplitude, Notion, Ahrefs, SimilarWeb, Klaviyo |
-| **[legal](./legal)** | Review contracts, triage NDAs, navigate compliance, assess risk, prep for meetings, and draft templated responses. | Slack, Box, Egnyte, Jira, Microsoft 365 |
-| **[finance](./finance)** | Prep journal entries, reconcile accounts, generate financial statements, analyze variances, manage close, and support audits. | Snowflake, Databricks, BigQuery, Slack, Microsoft 365 |
-| **[data](./data)** | Query, visualize, and interpret datasets — write SQL, run statistical analysis, build dashboards, and validate your work before sharing. | Snowflake, Databricks, BigQuery, Definite, Hex, Amplitude, Jira |
-| **[enterprise-search](./enterprise-search)** | Find anything across email, chat, docs, and wikis — one query across all your company's tools. | Slack, Notion, Guru, Jira, Asana, Microsoft 365 |
-| **[bio-research](./bio-research)** | Connect to preclinical research tools and databases (literature search, genomics analysis, target prioritization) to accelerate early-stage life sciences R&D. | PubMed, BioRender, bioRxiv, ClinicalTrials.gov, ChEMBL, Synapse, Wiley, Owkin, Open Targets, Benchling |
-| **[cowork-plugin-management](./cowork-plugin-management)** | Create new plugins or customize existing ones for your organization's specific tools and workflows. | — |
+Plugin được cài từ nhánh `main`, nên chỉ dùng được những gì đã gộp vào `main`.
 
-Install these directly from Cowork, browse the full collection here on GitHub, or build your own.
+### 1. Thêm kho plugin
 
-## Getting Started
+**Cowork / claude.ai:** vào phần quản lý plugin, thêm marketplace từ GitHub và chọn repo `pichu124/casa-plugins`, rồi bật các plugin cần dùng. Repo để riêng tư, nên tài khoản GitHub phải kết nối với Claude rồi mới thêm được.
 
-### Cowork
-
-Install plugins from [claude.com/plugins](https://claude.com/plugins/).
-
-### Claude Code
+**Claude Code (máy tính):**
 
 ```bash
-# Add the marketplace first
-claude plugin marketplace add anthropics/knowledge-work-plugins
-
-# Then install a specific plugin
-claude plugin install sales@knowledge-work-plugins
+claude plugin marketplace add pichu124/casa-plugins
+claude plugin install casa-ops@casa-plugins
+claude plugin install sales@casa-plugins   # các plugin khác cài tương tự
 ```
 
-Once installed, plugins activate automatically. Skills fire when relevant, and slash commands are available in your session (e.g., `/sales:call-prep`, `/data:write-query`).
+### 2. Kết nối Google Sheets và Google Drive
 
-## How Plugins Work
+Vào **Cài đặt → Connectors** trên claude.ai, đăng nhập bằng tài khoản Google có quyền xem Sheet lead. Chưa kết nối thì có thể xuất Sheet ra `.xlsx` hoặc `.csv` rồi tải lên cho Claude.
 
-Every plugin follows the same structure:
+## Cách dùng
+
+Có hai cách gọi:
+
+- **Hỏi bằng tiếng Việt bình thường.** Claude tự chọn skill phù hợp, ví dụ "Tuần rồi có bao nhiêu lead?".
+- **Gọi đích danh** bằng `/tên-plugin:tên-skill`, ví dụ `/casa-ops:bao-cao-tuan`.
+
+### casa-ops
+
+| Skill | Gọi | Ví dụ |
+|---|---|---|
+| Báo cáo tuần | `/casa-ops:bao-cao-tuan` | "Báo cáo lead tuần trước", "So sánh lead tuần này với tuần trước" |
+| Chủ đề → nội dung | `/casa-ops:chu-de-noi-dung` | "30 ngày qua phụ huynh hỏi gì nhiều nhất? Gợi ý bài đăng cho Mỹ Đình" |
+| Rà soát hỏi đáp (hằng tháng) | `/casa-ops:ra-soat-hoi-dap` | "Rà soát bộ hỏi đáp của bot tháng 10: có cặp nào trùng, mâu thuẫn hay sai giọng văn không?" |
+
+Lần đầu dùng, gửi link Google Sheet lead cho Claude. Ba skill này hiện mới là khung: chạy được và tính đúng các chỉ số đã thống nhất, nhưng cách trình bày chưa cố định. Báo cáo tự chạy lúc 8h sáng thứ Hai sẽ được cài sau.
+
+### Các plugin gốc
+
+Các plugin này viết theo kiểu doanh nghiệp Mỹ. Khi dùng, nên nói thêm "theo bối cảnh Casa", để Claude lấy cơ sở, học phí và giọng văn xưng "em", gọi "Ba/Mẹ" từ `casa-ops`.
+
+| Plugin | Skill hay dùng | Ví dụ |
+|---|---|---|
+| sales | `draft-outreach`, `call-prep`, `lead-triage`, `pipeline-review` | "Soạn tin Zalo hỏi thăm Mẹ bé An sau buổi tham quan" · "Chuẩn bị gọi cho phụ huynh đang băn khoăn học phí Mỹ Đình" |
+| marketing | `content-creation`, `campaign-plan`, `performance-report` | "Lên kế hoạch quảng cáo tuyển sinh tháng 12 cho Kim Mã" |
+| customer-support | `draft-response`, `customer-escalation`, `kb-article` | "Soạn trả lời phụ huynh phàn nàn bé bị trầy ở lớp" |
+| productivity | `start`, `task-management`, `memory-management` | "Hôm nay tôi cần làm gì?" · "Nhớ giúp: cơ sở Kim Mã nghỉ ngày 20/11" |
+| operations | `process-doc`, `status-report`, `vendor-review` | "Viết quy trình đón trả bé muộn sau 17h30" |
+| human-resources | `interview-prep`, `onboarding`, `draft-offer` | "Câu hỏi phỏng vấn giáo viên mầm non có bằng cao đẳng sư phạm" |
+| pdf-viewer | `view-pdf` | "Mở hợp đồng nhập học này và đánh dấu điều khoản bảo lưu" |
+| cowork-plugin-management | `cowork-plugin-customizer`, `create-cowork-plugin` | Dùng để chỉnh hoặc tạo plugin mới |
+
+Với human-resources, phần lương, hợp đồng và luật lao động viết theo luật Mỹ, cần đối chiếu với Bộ luật Lao động Việt Nam trước khi dùng.
+
+### Nguyên tắc khi dùng
+
+- Plugin chỉ đọc dữ liệu và soạn bản nháp. Không tự nhắn phụ huynh, không nhắc tư vấn viên vì bot Messenger đã làm phần này.
+- Báo cáo chỉ ghi tên kèm 4 số cuối SĐT.
+- Nội dung Claude soạn để gửi phụ huynh, người dùng đọc lại trước khi gửi.
+
+## Cấu trúc một plugin
 
 ```
-plugin-name/
-├── .claude-plugin/plugin.json   # Manifest
-├── .mcp.json                    # Tool connections
-├── commands/                    # Slash commands you invoke explicitly
-└── skills/                      # Domain knowledge Claude draws on automatically
+ten-plugin/
+├── .claude-plugin/plugin.json   # Khai báo plugin
+├── .mcp.json                    # Connector (MCP server)
+├── commands/                    # Lệnh gọi trực tiếp (nếu có)
+└── skills/                      # Kiến thức và quy trình Claude tự dùng khi phù hợp
 ```
 
-- **Skills** encode the domain expertise, best practices, and step-by-step workflows Claude needs to give you useful help. Claude draws on them automatically when relevant.
-- **Commands** are explicit actions you trigger (e.g., `/finance:reconciliation`, `/product-management:write-spec`).
-- **Connectors** wire Claude to the external tools your role depends on — CRMs, project trackers, data warehouses, design tools, and more — via [MCP servers](https://modelcontextprotocol.io/).
+## Quy tắc
 
-Every component is file-based — markdown and JSON, no code, no infrastructure, no build steps.
-
-## Making Them Yours
-
-These plugins are generic starting points. They become much more useful when you customize them for how your company actually works:
-
-- **Swap connectors** — Edit `.mcp.json` to point at your specific tool stack.
-- **Add company context** — Drop your terminology, org structure, and processes into skill files so Claude understands your world.
-- **Adjust workflows** — Modify skill instructions to match how your team actually does things, not how a textbook says to.
-- **Build new plugins** — Use the `cowork-plugin-management` plugin or follow the structure above to create plugins for roles and workflows we haven't covered yet.
-
-As your team builds and shares plugins, Claude becomes a cross-functional expert. The context you define gets baked into every relevant interaction, so leaders and admins can spend less time enforcing processes and more time improving them.
-
-## Contributing
-
-Plugins are just markdown files. Fork the repo, make your changes, and submit a PR.
+- Sửa trên nhánh riêng và mở Pull Request. Không push thẳng lên `main`.
+- Không đưa dữ liệu thật của phụ huynh và trẻ (tên, SĐT, tin nhắn) vào repo, commit hay PR.
