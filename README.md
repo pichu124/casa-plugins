@@ -8,7 +8,7 @@ Kho này sao từ [anthropics/knowledge-work-plugins](https://github.com/anthrop
 
 | Plugin | Dùng cho | Ghi chú |
 |---|---|---|
-| **[casa-ops](./casa-ops)** | Bối cảnh Casa, báo cáo lead tuần, gợi ý nội dung từ câu phụ huynh hỏi, rà soát hỏi đáp của bot | Của Casa. Đọc bối cảnh ở đây trước khi dùng plugin khác |
+| **[casa-ops](./casa-ops)** | Bối cảnh Casa, báo cáo lead tuần, gợi ý nội dung từ câu phụ huynh hỏi, rà soát chất lượng bộ hỏi đáp của bot | Của Casa. Đọc bối cảnh ở đây trước khi dùng plugin khác |
 | [productivity](./productivity) | Quản lý việc, lịch, ghi nhớ bối cảnh công việc | Bản gốc |
 | [marketing](./marketing) | Soạn nội dung, lên chiến dịch, báo cáo hiệu quả | Bản gốc |
 | [sales](./sales) | Chăm sóc lead: chuẩn bị cuộc gọi, soạn tin theo dõi, rà pipeline | Bản gốc |
@@ -53,7 +53,7 @@ Có hai cách gọi:
 |---|---|---|
 | Báo cáo tuần | `/casa-ops:bao-cao-tuan` | "Báo cáo lead tuần trước", "So sánh lead tuần này với tuần trước" |
 | Chủ đề → nội dung | `/casa-ops:chu-de-noi-dung` | "30 ngày qua phụ huynh hỏi gì nhiều nhất? Gợi ý bài đăng cho Mỹ Đình" |
-| Rà soát hỏi đáp | `/casa-ops:ra-soat-hoi-dap` | "Hai tuần qua bot phải chuyển tư vấn viên những câu nào? Soạn câu trả lời mới để trường duyệt" |
+| Rà soát hỏi đáp (hằng tháng) | `/casa-ops:ra-soat-hoi-dap` | "Rà soát bộ hỏi đáp của bot tháng 10: có cặp nào trùng, mâu thuẫn hay sai giọng văn không?" |
 
 Lần đầu dùng, gửi link Google Sheet lead cho Claude. Ba skill này hiện mới là khung: chạy được và tính đúng các chỉ số đã thống nhất, nhưng cách trình bày chưa cố định. Báo cáo tự chạy lúc 8h sáng thứ Hai sẽ được cài sau.
 

@@ -10,7 +10,7 @@ Plugin riêng của **Casa dei Bambini**, hệ thống mầm non ở Hà Nội (
 | [`references/du-lieu-lead.md`](references/du-lieu-lead.md) | Cấu trúc Sheet lead của bot (tab Leads, Chủ đề), cách chuẩn hóa, phân việc với bot, dữ liệu chăm sóc lead dự kiến |
 | `skills/bao-cao-tuan` | Báo cáo lead hằng tuần (8h sáng thứ Hai) |
 | `skills/chu-de-noi-dung` | Top chủ đề phụ huynh hỏi → gợi ý nội dung và quảng cáo |
-| `skills/ra-soat-hoi-dap` | Câu bot phải chuyển tư vấn viên → soạn cặp hỏi đáp mới để trường duyệt |
+| `skills/ra-soat-hoi-dap` | Rà soát chất lượng bộ hỏi đáp của bot hằng tháng: gộp trùng, đánh dấu mâu thuẫn, sửa giọng văn, tìm câu đáng thành thông tin chung |
 
 Cả 3 skill đang ở dạng **khung** (đợt 1) và sẽ hoàn thiện ở đợt 2.
 

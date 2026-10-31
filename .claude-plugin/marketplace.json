@@ -8,7 +8,7 @@
       "name": "casa-ops",
       "displayName": "Casa Ops",
       "source": "./casa-ops",
-      "description": "Bối cảnh và quy trình riêng của Casa dei Bambini: báo cáo lead tuần, gợi ý nội dung từ chủ đề phụ huynh hỏi, rà soát câu hỏi bot chưa trả lời được."
+      "description": "Bối cảnh và quy trình riêng của Casa dei Bambini: báo cáo lead tuần, gợi ý nội dung từ chủ đề phụ huynh hỏi, rà soát chất lượng bộ hỏi đáp của bot."
     },
     {
       "name": "productivity",
