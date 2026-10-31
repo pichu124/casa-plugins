@@ -1,0 +1,26 @@
+name: Test casa-ops
+
+# Chạy test các script của plugin casa-ops (dữ liệu giả, không tốn lượt dùng Claude).
+# Bộ eval hành vi (casa-ops/evals) chạy tay vì tốn lượt dùng: xem casa-ops/evals/README.md.
+
+on:
+  pull_request:
+    paths:
+      - 'casa-ops/**'
+      - '.github/workflows/test-casa-ops.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test bao-cao-tuan
+        run: python3 -m unittest discover -s casa-ops/skills/bao-cao-tuan/tests -v
