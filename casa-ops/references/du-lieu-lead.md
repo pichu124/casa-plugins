@@ -58,8 +58,11 @@ Danh sách chủ đề cố định (`app/topics.py` của bot): Học phí, Ưu
 
 ### Chuẩn hóa khi tổng hợp
 
-- **Cơ sở**: đưa về `Chùa Láng` / `Mỹ Đình` / `Kim Mã` / `Chưa rõ`. "Hongkong", "HK", "Huỳnh Thúc Kháng" là Chùa Láng. "FLC", "Phạm Hùng" là Mỹ Đình. "Vạn Phúc", "song ngữ" là Kim Mã. Chỉ ghi "quốc tế" mà không rõ cơ sở thì xếp vào `Quốc tế – chưa rõ cơ sở`.
-- **Nhóm tuổi**: `15 tháng – <2 tuổi`, `2 – <3 tuổi`, `3 – <5 tuổi`, `5 – 6 tuổi`, `Ngoài độ tuổi`, `Chưa rõ`. Nhóm này bám theo mốc 3 tuổi (bắt đầu học Cambridge) và mốc 5 tuổi (mức học phí khác). Cần hiểu được cả "18 tháng", "1 tuổi rưỡi", "dưới 2 tuổi", "sinh năm 2022". Chỉ có năm sinh thì tính theo ngày chạy báo cáo.
+- **Cơ sở**: đưa về `Chùa Láng` / `Mỹ Đình` / `Kim Mã` / `Chưa rõ`. "Hongkong", "HK", "Huỳnh Thúc Kháng" là Chùa Láng. "FLC", "Phạm Hùng" là Mỹ Đình. "Vạn Phúc", "Ngọc Hà", "song ngữ" là Kim Mã. Chỉ ghi "quốc tế" mà không rõ cơ sở thì xếp vào `Quốc tế – chưa rõ cơ sở`. Nhắc nhiều cơ sở cùng lúc thì là `Chưa rõ`.
+- **Nhóm tuổi**: `15 tháng – <2 tuổi`, `2 – <3 tuổi`, `3 – <5 tuổi`, `5 – 6 tuổi`, `Ngoài độ tuổi`, `Chưa rõ`. Nhóm này bám theo mốc 3 tuổi (bắt đầu học Cambridge) và mốc 5 tuổi (mức học phí khác).
+  - Đổi chữ phụ huynh viết ra khoảng tuổi có thể (theo tháng), rồi lấy **điểm giữa**. Ví dụ "2 tuổi" là 24 – 36 tháng, điểm giữa 30 tháng; "1 tuổi" có điểm giữa 18 tháng nên vào nhóm 15 tháng – <2 tuổi; "dưới 2 tuổi" coi là 12 – 24 tháng.
+  - Hiểu được: "18 tháng", "2t", "hai tuổi", "1 tuổi rưỡi", "2 tuổi 8 tháng", "3-4 tuổi", "dưới 2 tuổi", "sinh năm 2022", "sinh tháng 3/2023". Có năm sinh thì tính đến ngày chạy báo cáo.
+  - Điểm giữa dưới 15 tháng hoặc từ 84 tháng (7 tuổi) trở lên là `Ngoài độ tuổi`. "6 tuổi" vẫn thuộc nhóm 5 – 6 tuổi, vì trường nhận bé tới 6 tuổi.
 - Chữ không chắc chắn thì xếp `Chưa rõ`, không đoán.
 
 ## 2. Phân việc với bot (không làm trùng)
