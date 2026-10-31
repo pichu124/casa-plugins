@@ -12,7 +12,9 @@ Plugin riêng của **Casa dei Bambini**, hệ thống mầm non ở Hà Nội (
 | `skills/chu-de-noi-dung` | Top chủ đề phụ huynh hỏi → gợi ý nội dung và quảng cáo |
 | `skills/ra-soat-hoi-dap` | Rà soát chất lượng bộ hỏi đáp của bot hằng tháng: gộp trùng, đánh dấu mâu thuẫn, sửa giọng văn, tìm câu đáng thành thông tin chung |
 
-`bao-cao-tuan` đã có script tính toán (`scripts/bao_cao_tuan.py`) và test bằng dữ liệu giả; còn chờ khảo sát để chốt kênh gửi và lịch chạy tự động. `chu-de-noi-dung` và `ra-soat-hoi-dap` vẫn ở dạng **khung**.
+- `bao-cao-tuan` và `chu-de-noi-dung` đã có script tính toán và test bằng dữ liệu giả. Còn chờ khảo sát để chốt kênh gửi, kênh đăng và lịch chạy tự động.
+- `ra-soat-hoi-dap` vẫn ở dạng **khung** (ưu tiên thấp nhất).
+- Hàm dùng chung (chuẩn hóa cơ sở, tuổi bé, ẩn SĐT) nằm ở `scripts/casa_chung.py`.
 
 Bộ kiểm tra hành vi của skill nằm ở [`evals/`](evals/README.md).
 

@@ -24,3 +24,5 @@ jobs:
           python-version: '3.12'
       - name: Test bao-cao-tuan
         run: python3 -m unittest discover -s casa-ops/skills/bao-cao-tuan/tests -v
+      - name: Test chu-de-noi-dung
+        run: python3 -m unittest discover -s casa-ops/skills/chu-de-noi-dung/tests -v

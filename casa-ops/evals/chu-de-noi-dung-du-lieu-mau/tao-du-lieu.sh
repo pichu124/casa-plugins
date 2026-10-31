@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Tạo chu_de.csv (dữ liệu giả) trong thư mục làm việc của lần chạy.
+# Nội dung phải giống hệt skills/chu-de-noi-dung/tests/chu_de_mau.csv (test kiểm tra điều này).
+set -euo pipefail
+cat > chu_de.csv <<'CSV'
+Thời gian,Customer ID,Quảng cáo,Cơ sở/hệ,Tuổi bé,Chủ đề,Chuyển tư vấn viên,Câu hỏi
+2026-10-03 00:00:00,GIA-P14,,Chùa Láng,4 tuổi,Ăn uống/thực đơn,Không,Thực đơn ở trường các con ăn gì ạ
+2026-10-05 09:00:00,GIA-P1,QC Học phí,Mỹ Đình,3 tuổi,Học phí,Không,Học phí lớp 3 tuổi bao nhiêu ạ
+2026-10-05 09:05:00,GIA-P1,QC Học phí,Mỹ Đình,3 tuổi,"Học phí, Ưu đãi",Không,Hiện trường có ưu đãi gì không em
+2026-10-08 20:00:00,GIA-P2,QC Học phí,FLC,2 tuổi,Học phí,Có,Có đóng theo tháng được không em? Số chị [SĐT]
+2026-10-10 10:00:00,GIA-P3,QC Cambridge T10,Chùa Láng,4 tuổi,"Chương trình/phương pháp, Tiếng Anh/GV nước ngoài",Không,Chương trình Cambridge các con học thế nào ạ
+2026-10-12 11:00:00,GIA-P4,QC Cambridge T10,Hongkong,5 tuổi,Tiếng Anh/GV nước ngoài,Không,Cô nước ngoài dạy cả ngày hả em
+2026-10-15 08:00:00,GIA-P5,,Kim Mã,18 tháng,Thích nghi/tâm lý bé,Có,Bé nhà chị hay khóc khi đi học thì sao em
+2026-10-15 08:10:00,GIA-P5,,Kim Mã,18 tháng,Giờ học/đón trả/trông muộn,Không,Mấy giờ thì đón con được ạ
+2026-10-18 21:00:00,GIA-P6,QC Học phí,Mỹ Đình,3 tuổi,"Học phí, So sánh trường khác",Có,Sao học phí cao hơn trường gần nhà chị vậy
+2026-10-20 14:00:00,GIA-P7,QC Cambridge T10,Mỹ Đình,4 tuổi,Học phí,Không,Học phí chương trình Cambridge thế nào em
+2026-10-22 09:30:00,GIA-P8,,song ngữ,2 tuổi,Cơ sở vật chất,Có,Cơ sở có sân chơi ngoài trời không em
+2026-10-25 19:00:00,GIA-P9,QC Học phí,Chùa Láng,3 tuổi,Học phí,Không,Học phí bao nhiêu em gọi chị 0900000501 nhé
+2026-10-28 10:00:00,GIA-P10,QC Cambridge T10,Mỹ Đình,3 tuổi,Chương trình/phương pháp,Không,Montessori với Cambridge kết hợp sao em
+2026-10-30 16:00:00,GIA-P11,,Kim Mã,2 tuổi,An toàn/sức khoẻ/camera,Có,Trường có camera cho phụ huynh xem không
+2026-11-01 09:00:00,GIA-P12,QC Học phí,Mỹ Đình,5 tuổi,Học phí,Không,Lớp 5 tuổi học phí bao nhiêu ạ
+2026-11-01 09:10:00,GIA-P12,QC Học phí,Mỹ Đình,5 tuổi,Khác,Có,Chị hỏi chút việc riêng
+2026-11-02 00:30:00,GIA-P13,QC Học phí,Mỹ Đình,3 tuổi,Học phí,Không,Học phí ạ
+2026-09-10 10:00:00,GIA-Q1,QC Học phí,Mỹ Đình,3 tuổi,Học phí,Không,Học phí sao em
+2026-09-15 10:00:00,GIA-Q2,,Chùa Láng,4 tuổi,Tiếng Anh/GV nước ngoài,Không,Có cô nước ngoài không
+2026-09-20 10:00:00,GIA-Q3,QC Học phí,Kim Mã,2 tuổi,Học phí,Không,Học phí hệ song ngữ
+2026-09-25 10:00:00,GIA-Q4,,Kim Mã,3 tuổi,Cơ sở vật chất,Có,Cơ sở Kim Mã rộng không
+2026-10-02 23:59:59,GIA-Q5,,Mỹ Đình,4 tuổi,Xe đưa đón,Không,Có xe đưa đón không em
+2026-10-06 10:00:00,GIA-P15,,Mỹ Đình,3 tuổi,,Không,Dạ vâng
+,GIA-P16,,Mỹ Đình,3 tuổi,Học phí,Không,Học phí
+CSV
