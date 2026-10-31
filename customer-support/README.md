@@ -5,8 +5,8 @@ A customer support plugin primarily designed for [Cowork](https://claude.com/pro
 ## Installation
 
 ```
-claude plugin marketplace add anthropics/knowledge-work-plugins
-claude plugin install customer-support@knowledge-work-plugins
+claude plugin marketplace add pichu124/casa-plugins
+claude plugin install customer-support@casa-plugins
 ```
 
 ## What It Does

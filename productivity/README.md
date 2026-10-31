@@ -5,8 +5,8 @@ A productivity plugin primarily designed for [Cowork](https://claude.com/product
 ## Installation
 
 ```
-claude plugin marketplace add anthropics/knowledge-work-plugins
-claude plugin install productivity@knowledge-work-plugins
+claude plugin marketplace add pichu124/casa-plugins
+claude plugin install productivity@casa-plugins
 ```
 
 ## What It Does

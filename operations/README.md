@@ -5,8 +5,8 @@ A business operations plugin primarily designed for [Cowork](https://claude.com/
 ## Installation
 
 ```bash
-claude plugin marketplace add anthropics/knowledge-work-plugins
-claude plugin install operations@knowledge-work-plugins
+claude plugin marketplace add pichu124/casa-plugins
+claude plugin install operations@casa-plugins
 ```
 
 ## Commands
