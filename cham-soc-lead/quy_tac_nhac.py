@@ -159,7 +159,7 @@ SALE_MAU = [
 
 DANH_MUC_MAU = (
     [["Cơ sở", x] for x in ["Chùa Láng", "Mỹ Đình", "Kim Mã"]]
-    + [["Nguồn", x] for x in ["Facebook Messenger", "Facebook", "Zalo", "Website", "Giới thiệu", "Đến trực tiếp", "Sự kiện", "Khác"]]
+    + [["Nguồn", x] for x in ["Facebook Messenger", "Facebook", "Zalo", "Gọi hotline", "Website", "Tự tìm hiểu", "Giới thiệu", "Đến trực tiếp", "Sự kiện", "Khác"]]
     + [["Mối quan tâm", x] for x in ["Học phí", "Chương trình", "Giờ học", "Đưa đón", "Ăn uống", "Cơ sở vật chất", "Giáo viên", "Tiếng Anh", "Khác"]]
     + [["Lý do từ chối", x] for x in ["Học phí", "Xa nhà", "Chọn trường khác", "Chưa có nhu cầu", "Khác"]]
     + [["Lý do chất lượng", x] for x in [

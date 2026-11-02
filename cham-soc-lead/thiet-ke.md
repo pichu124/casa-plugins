@@ -26,7 +26,13 @@ Các tab của app được thêm vào **cùng file Google Sheet mà bot Messeng
 
 **Lead từ Messenger** không tự sang app. Trong app có danh sách "Messenger chưa nhận" (phụ huynh đã để SĐT cho bot mà chưa có hồ sơ). Sale hoặc chủ bấm **"Nhận lead này"**, app tạo hàng mới trong `Hồ sơ lead` với tên, tuổi bé, SĐT, quảng cáo và Customer ID lấy từ tab của bot. Customer ID dùng để nối hai bên và tránh nhận trùng.
 
-Lead từ nguồn khác (Zalo, giới thiệu, đến trực tiếp, sự kiện, website) thì sale bấm **"Thêm lead"** và nhập tay.
+Lead từ nguồn khác (Zalo, gọi hotline, tự tìm hiểu, giới thiệu, đến trực tiếp, sự kiện, website) thì sale bấm **"Thêm lead"** và nhập tay, chọn đúng **Nguồn**. Các lead này nằm chung tab `Hồ sơ lead` với lead từ Messenger, nên được nhắc việc và được tính vào `Thống kê` như nhau.
+
+**Nhập tay ở đâu cho đúng:**
+- Cách nên dùng: nút **Thêm lead** trong app. App tự điền Mã lead, Ngày nhận, Sale phụ trách và chỉ cho chọn giá trị có trong danh sách.
+- Gõ thẳng vào tab `Hồ sơ lead` trên máy tính cũng được, miễn là: thêm ở **hàng trống cuối bảng** (không chèn giữa, không thêm hay đổi thứ tự cột); **Mã lead** không trùng (vd `T` + ngày giờ: `T2611021530`); **Ngày nhận** dạng ngày giờ; **Sale phụ trách** là email có trong tab `Sale`; **Cơ sở**, **Nguồn** chọn đúng chữ trong tab `Danh mục`.
+- **Không bao giờ gõ vào tab `Leads` của bot.** Tab đó chỉ dành cho lead Messenger do bot ghi; thêm tay vào đó thì báo cáo tuần đếm nhầm thành lead Messenger, và app hiểu nhầm là lead chưa nhận.
+- Muốn có thêm nguồn (vd "TikTok", "Tờ rơi"): thêm một hàng loại "Nguồn" ở tab `Danh mục`, app tự có lựa chọn mới.
 
 ## 3. Các cột
 
