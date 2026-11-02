@@ -79,7 +79,9 @@ Chủ đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **T�
 
 ## Bước 4. Lát cắt dữ liệu (Slices)
 
-**Data** → bảng → **Slices** → **New slice**:
+**Data** → rê chuột lên tên bảng → **+** → **Create a new slice** (bỏ qua các gợi ý có sẵn).
+
+Ô **Row filter condition** mặc định là ô "Describe the expression in your own words" (mô tả bằng lời cho AI). Dán công thức thẳng vào đó thì **không được lưu**. Bấm vào ô, gõ dấu `=` trước rồi dán công thức ngay sau; ô chuyển sang chữ kiểu code là đúng. Kiểm tra bằng **Preview data** ở góc trên phải slice.
 
 | Slice | Bảng | Điều kiện (Row filter condition) |
 |---|---|---|
