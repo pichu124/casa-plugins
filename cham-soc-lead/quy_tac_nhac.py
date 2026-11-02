@@ -83,6 +83,51 @@ def muc_khan(han: date | None, hom_nay: date) -> str:
     return "Sắp tới"
 
 
+# ---------------------------------------------------------------- thống kê theo tháng
+
+BUOC_PHEU = ["Lead mới", "Đã tư vấn", "Đã tham quan", "Đã đặt cọc", "Đã nhập học"]
+TAT_CA = "Tất cả"
+
+
+def buoc_dat_duoc(tinh_trang_cac_lan: list[str]) -> set[str]:
+    """Các bước phễu một lead đã đạt, theo mọi lần chăm sóc của lead (tính tới hiện tại).
+
+    Đã tư vấn: có ít nhất một lần liên hệ được (tình trạng khác "Chưa liên lạc được").
+    Đã tham quan / đặt cọc / nhập học: từng có tình trạng đó hoặc một bước sau nó.
+    """
+    tt = set(tinh_trang_cac_lan)
+    buoc = {"Lead mới"}
+    if tt - {CHUA_LIEN_LAC}:
+        buoc.add("Đã tư vấn")
+    if tt & {DA_THAM_QUAN, DAT_COC, NHAP_HOC}:
+        buoc.add("Đã tham quan")
+    if tt & {DAT_COC, NHAP_HOC}:
+        buoc.add("Đã đặt cọc")
+    if NHAP_HOC in tt:
+        buoc.add("Đã nhập học")
+    return buoc
+
+
+def thong_ke_thang(ho_so: list[dict], cham_soc: list[dict], thang: str, co_so: str = TAT_CA) -> dict[str, int]:
+    """Phễu của các lead **nhận trong tháng** `thang` ("YYYY-MM"), theo cơ sở (hoặc "Tất cả").
+
+    `ho_so`, `cham_soc`: các hàng của tab `Hồ sơ lead` và `Chăm sóc` (dict theo tiêu đề cột).
+    Một lead nhận tháng 10 mà tháng 11 mới nhập học vẫn được tính cho tháng 10 (tính theo tháng nhận lead).
+    """
+    lan_theo_lead: dict[str, list[str]] = {}
+    for c in cham_soc:
+        lan_theo_lead.setdefault(c["Mã lead"], []).append(c["Tình trạng"])
+    dem = {b: 0 for b in BUOC_PHEU}
+    for h in ho_so:
+        if not h["Ngày nhận"].startswith(thang):
+            continue
+        if co_so != TAT_CA and h["Cơ sở"] != co_so:
+            continue
+        for b in buoc_dat_duoc(lan_theo_lead.get(h["Mã lead"], [])):
+            dem[b] += 1
+    return dem
+
+
 # ---------------------------------------------------------------- dữ liệu mẫu (giả)
 
 COT_HO_SO = [

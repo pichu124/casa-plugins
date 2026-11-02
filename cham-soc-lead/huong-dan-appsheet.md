@@ -13,7 +13,7 @@ Tên nút trong AppSheet là tiếng Anh, ghi đúng như trên màn hình. Giao
    - Ở tab `Sale`, xoá hàng `chu@example.com`, rồi đổi **Vai trò** của hàng mang email của bạn thành `Chủ`.
    - Khi đó bạn là sale phụ trách lead Hoa Thử và Đào Thử, và thấy thêm các màn hình của chủ.
 
-Sheet có 6 tab: `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, và `Leads` (bản giả của tab bot ghi).
+Sheet có 7 tab: `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` (chỉ có công thức, tự tính theo tháng), và `Leads` (bản giả của tab bot ghi).
 
 ## Bước 1. Tạo app
 
@@ -23,10 +23,11 @@ Sheet có 6 tab: `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hì
 
 ## Bước 2. Thêm các bảng
 
-Vào **Data** (biểu tượng cơ sở dữ liệu bên trái) → **+** (Add new data) → chọn cùng file Sheet → chọn lần lượt tab `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Leads`.
+Vào **Data** (biểu tượng cơ sở dữ liệu bên trái) → **+** (Add new data) → chọn cùng file Sheet → chọn lần lượt tab `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê`, `Leads`.
 
 - Bảng `Leads`: đổi tên hiển thị thành `Messenger`. Trong **Table settings**, mục **Are updates allowed?** chọn **Read-Only**. App không được sửa tab của bot.
 - Bảng `Danh mục`, `Cấu hình`: chọn **Read-Only** (chủ sửa trực tiếp trên Sheet).
+- Bảng `Thống kê`: **Read-Only**; cột `Mã` là **Key**; cột Tỷ lệ… chọn Type **Percent**.
 
 ## Bước 3. Cột của từng bảng
 
@@ -42,6 +43,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Chất lượng lead`: Enum `Tốt`, `Trung bình`, `Kém`.
 - `Lý do chất lượng`: Enum, Valid If `SELECT(Danh mục[Giá trị], [Loại] = "Lý do chất lượng")`; **Show If** `IN([Chất lượng lead], LIST("Trung bình", "Kém"))`.
 - `Customer ID`: bỏ tick **Show**.
+- `Tên phụ huynh`, `Tên bé`, `SĐT`: tick **Search** (để ô tìm kiếm tìm được theo các cột này). Bỏ tick Search ở các cột còn lại cho kết quả gọn.
 - `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ".
 
 **`Chăm sóc`**
@@ -62,6 +64,15 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 
 Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như bảng ở thiet-ke.md mục 4. Thêm theo thứ tự trong bảng, vì cột sau dùng cột trước.
 
+## Bước 4a. Nút chọn tháng và cơ sở cho chủ (User settings)
+
+**Settings** → **User settings** (cài đặt riêng của từng người dùng):
+
+- Bật một ô tùy chỉnh, đặt tên `Tháng`: Type **Enum**; **Valid If** `SORT(UNIQUE(Thống kê[Tháng]), TRUE)`; **Initial value** `TEXT(TODAY(), "YYYY-MM")`.
+- Ô thứ hai `Cơ sở`: Type **Enum**; Valid If `UNIQUE(Thống kê[Cơ sở])`; Initial value `"Tất cả"`.
+
+Người dùng đổi tháng, cơ sở trong menu **Settings** của app; mọi màn hình báo cáo đổi theo.
+
 ## Bước 4. Lát cắt dữ liệu (Slices)
 
 **Data** → bảng → **Slices** → **New slice**:
@@ -74,6 +85,8 @@ Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như 
 | Rất quan tâm chưa chốt | Hồ sơ lead | `AND([Mức quan tâm hiện tại] = "Rất quan tâm", NOT([Đã kết thúc]), [Tình trạng hiện tại] <> "Đã đặt cọc")` |
 | Đề xuất tạm dừng | Hồ sơ lead | `[Đề xuất tạm dừng]` |
 | Messenger chưa nhận | Messenger | `AND(ISNOTBLANK([SĐT]), NOT(IN([Customer ID], Hồ sơ lead[Customer ID])), [Giai đoạn] <> "Không quan tâm")` |
+| Tháng đang chọn | Thống kê | `AND([Tháng] = USERSETTINGS("Tháng"), [Cơ sở] = USERSETTINGS("Cơ sở"))` |
+| Lead tháng đang chọn | Hồ sơ lead | `AND(TEXT([Ngày nhận], "YYYY-MM") = USERSETTINGS("Tháng"), OR(USERSETTINGS("Cơ sở") = "Tất cả", [Cơ sở] = USERSETTINGS("Cơ sở")))` |
 
 ## Bước 5. Màn hình (Views)
 
@@ -83,13 +96,16 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 |---|---|---|---|---|
 | Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Đặt làm **Starting view** (Settings → Views → General) |
 | Của tôi | Lead của tôi | Deck | next | Group by `Mức khẩn` |
-| Tất cả | Hồ sơ lead | Deck | next | Có ô tìm kiếm sẵn |
+| Tìm phụ huynh | Hồ sơ lead | Deck | next | Toàn bộ lead của trường. Ô tìm kiếm có sẵn ở góc trên; Group by `Cơ sở`. Khi phụ huynh tự gọi tới: gõ tên hoặc vài số cuối SĐT, mở ra, ghi nhận |
 | Messenger | Messenger chưa nhận | Table | menu | |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | |
 | Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | |
 | Đề xuất tạm dừng | Đề xuất tạm dừng | Table | menu | |
-| Phễu | Hồ sơ lead | Chart (Histogram hoặc Pie) | menu | Cột `Tình trạng hiện tại` |
+| Báo cáo tháng | Tháng đang chọn | Detail | menu | Hiện Tháng, Cơ sở, Lead mới, Lead mới tháng trước, rồi từng bước kèm tỷ lệ. Thêm cột ảo nếu muốn % so với bước trước, vd `IF([Đã tư vấn] = 0, 0, [Đã tham quan] / [Đã tư vấn])` |
+| Lead của tháng | Lead tháng đang chọn | Table | menu | Danh sách lead của tháng và cơ sở đang chọn, cột Tình trạng hiện tại, Nguồn, Sale phụ trách |
+| Các tháng | Thống kê | Table | menu | Group by `Tháng`; so sánh các tháng, các cơ sở |
+| Lead theo tháng | Thống kê | Chart (Column) | menu | Trục ngang `Tháng`, giá trị `Lead mới`, chỉ dòng "Tất cả" (dùng một slice `[Cơ sở] = "Tất cả"`) |
 | Theo nguồn | Hồ sơ lead | Chart | menu | Cột `Nguồn`; thêm một chart nữa cho `Chất lượng lead` |
 | Lý do từ chối | Chăm sóc | Chart | menu | Cột `Lý do từ chối` |
 
@@ -155,7 +171,8 @@ Email không ghi SĐT.
 Mở app (nút **Preview** bên phải, hoặc mở link app trên điện thoại). Với Sheet mẫu tạo ngày 02/11/2026 và `sale1@example.com` đã đổi thành email của bạn (bước 0), kết quả đúng là:
 
 - [ ] Màn hình **Hôm nay** có **Hoa Thử** (hẹn gọi lại hôm nay) và **Đào Thử** (quá hạn, chữ đỏ).
-- [ ] **Tất cả** có 8 lead. Tìm "Minh" ra Minh Thử.
+- [ ] **Tìm phụ huynh** có 8 lead. Gõ "Minh" ra Minh Thử; gõ "0604" ra Hằng Thử (lead của Sale 4). Mở Hằng Thử, ghi nhận một lần: lưu được, và lần đó mang email của bạn.
+- [ ] Settings chọn Tháng **2026-10**, Cơ sở **Tất cả** → **Báo cáo tháng**: Lead mới 7, Đã tư vấn 7, Đã tham quan 1, Đã đặt cọc 1, Đã nhập học 0, Tỷ lệ tham quan 14%. Đổi Cơ sở sang **Mỹ Đình**: 2, 2, 1, 1, 0. Chọn Tháng **2026-11**, Tất cả: Lead mới 1, Lead mới tháng trước 7.
 - [ ] Mở **Thu Thử**: Tình trạng hiện tại "Đang cân nhắc", Lần thứ 4, nằm trong **Đề xuất tạm dừng**.
 - [ ] Mở **Lan Thử**: hạn liên hệ 03/11/2026 (xác nhận lịch tham quan ngày 04/11).
 - [ ] Mở **Hoa Thử** → **Ghi nhận lần chăm sóc** → bấm Gọi điện, Đang cân nhắc, Quan tâm bình thường → Lưu. Đây là lần chăm sóc thứ 3 của Hoa Thử (chưa có mốc tiến triển nào), nên áp dụng L3: hạn liên hệ thành **hôm nay + 7 ngày**, và Hoa Thử rời màn hình Hôm nay. Trên Sheet, tab `Chăm sóc` có hàng mới với `Lần thứ` = 3.
@@ -169,7 +186,7 @@ Nếu một bước sai, so công thức với thiet-ke.md mục 4. `quy_tac_nha
 
 Chỉ làm sau khi thử xong với 1 – 2 sale:
 
-1. Mở file Sheet thật của bot. Sao chép 5 tab `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình` từ Sheet mẫu sang (chuột phải tên tab → **Sao chép vào** → chọn file thật). Đổi tên các tab sao chép cho bỏ chữ "Bản sao của". **Không** sao chép tab `Leads` mẫu: file thật đã có tab `Leads` của bot.
+1. Mở file Sheet thật của bot. Sao chép 6 tab `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` từ Sheet mẫu sang (chuột phải tên tab → **Sao chép vào** → chọn file thật). Đổi tên các tab sao chép cho bỏ chữ "Bản sao của". **Không** sao chép tab `Leads` mẫu: file thật đã có tab `Leads` của bot.
 2. Trong file thật, xoá dữ liệu giả ở `Hồ sơ lead` và `Chăm sóc` (giữ hàng tiêu đề), điền email thật của 6 sale và chủ vào `Sale`.
 3. Trong AppSheet: **Data** → từng bảng → **Source** → đổi sang file thật (cùng tên tab). Bấm **Regenerate structure** nếu được hỏi, kiểm tra lại kiểu cột.
 4. **Không** đổi gì ở tab `Leads` của bot.

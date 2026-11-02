@@ -77,6 +77,27 @@ class HanLienHe(unittest.TestCase):
         self.assertEqual(q.muc_khan(None, hom_nay), "")
 
 
+class ThongKeThang(unittest.TestCase):
+    def test_buoc_dat_duoc(self):
+        self.assertEqual(q.buoc_dat_duoc([]), {"Lead mới"})
+        self.assertEqual(q.buoc_dat_duoc([q.CHUA_LIEN_LAC]), {"Lead mới"})
+        self.assertEqual(q.buoc_dat_duoc([q.CHUA_LIEN_LAC, q.CAN_NHAC]), {"Lead mới", "Đã tư vấn"})
+        # Nhảy thẳng tới đặt cọc vẫn tính là đã tham quan (bước trước).
+        self.assertEqual(q.buoc_dat_duoc([q.DAT_COC]), {"Lead mới", "Đã tư vấn", "Đã tham quan", "Đã đặt cọc"})
+        self.assertEqual(len(q.buoc_dat_duoc([q.NHAP_HOC])), 5)
+        # Mới hẹn tham quan thì chưa tính là đã tham quan.
+        self.assertNotIn("Đã tham quan", q.buoc_dat_duoc([q.DA_HEN]))
+
+    def test_mau_thang_10(self):
+        goc = Path(__file__).resolve().parent / "mau"
+        h = list(csv.DictReader(open(goc / "ho-so-lead.csv", encoding="utf-8")))
+        c = list(csv.DictReader(open(goc / "cham-soc.csv", encoding="utf-8")))
+        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10").values()), [7, 7, 1, 1, 0])
+        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Chùa Láng").values()), [3, 3, 0, 0, 0])
+        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Mỹ Đình").values()), [2, 2, 1, 1, 0])
+        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-11").values()), [1, 0, 0, 0, 0])
+
+
 class DuLieuMau(unittest.TestCase):
     def test_mau_trong_repo_khop_quy_tac(self):
         """CSV mẫu trong repo phải đúng bằng bản tạo lại từ quy tắc hiện tại (ngày gốc 02/11/2026)."""

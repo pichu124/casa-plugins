@@ -13,7 +13,7 @@ Dựa trên "Mô tả yêu cầu phần mềm quản lý và chăm sóc lead ph�
 Các tab của app được thêm vào **cùng file Google Sheet mà bot Messenger đang ghi** (file có tab `Leads` và `Chủ đề`), để một file có đủ mọi thứ.
 
 - Tab **`Leads` của bot giữ nguyên**: app chỉ **đọc**, không sửa, không thêm cột. Script của bot ghi lại cả cột A đến P của một hàng mỗi lần có sự kiện, và dừng ghi nếu có người chiếm cột bot cần dùng sau này (`docs/google-sheet-leads.md` của repo bot, mục 5).
-- App có 5 tab riêng, đặt tên khác hẳn tab của bot để khỏi nhầm:
+- App có 6 tab riêng, đặt tên khác hẳn tab của bot để khỏi nhầm:
 
 | Tab | Mỗi hàng là | Ai ghi |
 |---|---|---|
@@ -22,6 +22,7 @@ Các tab của app được thêm vào **cùng file Google Sheet mà bot Messeng
 | `Sale` | Một người dùng app | Chủ |
 | `Danh mục` | Một lựa chọn trong danh sách (cơ sở, nguồn, lý do…) | Chủ |
 | `Cấu hình` | Một con số trong quy tắc nhắc | Chủ |
+| `Thống kê` | Một tháng của một cơ sở (hoặc "Tất cả"): phễu và tỷ lệ chuyển đổi | Công thức trong Sheet, tự tính |
 
 **Lead từ Messenger** không tự sang app. Trong app có danh sách "Messenger chưa nhận" (phụ huynh đã để SĐT cho bot mà chưa có hồ sơ). Sale hoặc chủ bấm **"Nhận lead này"**, app tạo hàng mới trong `Hồ sơ lead` với tên, tuổi bé, SĐT, quảng cáo và Customer ID lấy từ tab của bot. Customer ID dùng để nối hai bên và tránh nhận trùng.
 
@@ -86,6 +87,27 @@ Form chỉ có **3 chỗ bắt buộc phải bấm**: Phương thức, Tình tr�
 
 - `Danh mục`: cột **Loại** và **Giá trị**. Chủ thêm, bớt lựa chọn ngay trên Sheet, không cần sửa app.
 - `Cấu hình`: cột **Khóa**, **Giá trị**, **Ý nghĩa**. Mặc định: L1 = 1, L2 = 3, L3 = 7 (ngày), Bỏ quên = 3 (ngày), Hạn đặt cọc = 7 (ngày). Đổi số ở đây là app nhắc theo số mới (file yêu cầu ghi "số ngày có thể chỉnh sửa").
+
+### `Thống kê`
+
+Tab này **chỉ có công thức** (ở hàng 2), tự sinh mỗi tháng × mỗi cơ sở một hàng, từ tháng có lead đầu tiên tới tháng hiện tại, tháng mới nhất trên cùng. Chủ mở Sheet xem được ngay; trong app là bảng chỉ đọc.
+
+| Cột | Ý nghĩa |
+|---|---|
+| Tháng | `YYYY-MM` |
+| Cơ sở | "Tất cả" hoặc tên cơ sở trong `Danh mục` |
+| Mã | Tháng · Cơ sở, làm **Key** trong AppSheet |
+| Lead mới | Số lead có **Ngày nhận** trong tháng |
+| Đã tư vấn | Trong số đó, lead đã liên hệ được ít nhất một lần (có lần chăm sóc khác "Chưa liên lạc được") |
+| Đã tham quan | Lead từng có tình trạng Đã tham quan, Đã đặt cọc hoặc Đã nhập học |
+| Đã đặt cọc | Lead từng có tình trạng Đã đặt cọc hoặc Đã nhập học |
+| Đã nhập học | Lead từng có tình trạng Đã nhập học |
+| Tỷ lệ tư vấn / tham quan / đặt cọc / nhập học | Mỗi bước chia cho Lead mới |
+| Lead mới tháng trước | Để so sánh |
+
+**Tính theo tháng nhận lead**: lead về tháng 10 mà tháng 11 mới nhập học thì vẫn được tính vào tháng 10. Vì vậy số của tháng gần nhất còn tăng dần trong vài tuần sau, khi phụ huynh đi tham quan, đặt cọc. Cách tính này cho biết lead của tháng nào chuyển đổi tốt, và so được tháng với tháng.
+
+Công thức nằm ở `mau/thong-ke-cong-thuc.md`. Hàm `thong_ke_thang` trong `quy_tac_nhac.py` tính đúng các con số này để đối chiếu.
 
 ## 4. Quy tắc nhắc
 
@@ -192,16 +214,18 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 ### Sale
 
 1. **Hôm nay cần liên hệ** (màn hình mở đầu): lead của tôi có Mức khẩn là Quá hạn hoặc Hôm nay, xếp theo Hạn liên hệ (cũ nhất trước). Quá hạn tô đỏ.
-2. **Lead**: hai thẻ **Của tôi** và **Tất cả**, ô tìm theo tên bé, tên phụ huynh, SĐT. Mọi sale đều xem được mọi lead để tư vấn khi phụ huynh tự nhắn tới. Nhắc việc chỉ dành cho sale phụ trách.
-3. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc; nút **Ghi nhận lần chăm sóc**.
-4. **Form ghi nhận**: các lựa chọn ở mục 3, nút bấm thay vì gõ chữ.
-5. **Thêm lead** và **Messenger chưa nhận** (nút "Nhận lead này").
+2. **Tìm phụ huynh** (khi phụ huynh tự gọi hoặc nhắn tới): ô tìm trên **toàn bộ lead của trường**, gõ vài chữ của tên phụ huynh, tên bé hoặc vài số cuối SĐT. Mở ra là bấm **Ghi nhận lần chăm sóc** được ngay, kể cả lead của sale khác (lần chăm sóc ghi tên người ghi; nhắc việc vẫn gửi sale phụ trách). Không thấy thì bấm **Thêm lead** ngay trên màn hình đó.
+3. **Của tôi**: mọi lead mình phụ trách, lọc nhanh theo Mức khẩn, Cơ sở, Tình trạng hiện tại.
+4. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc; nút **Ghi nhận lần chăm sóc**.
+5. **Form ghi nhận**: các lựa chọn ở mục 3, nút bấm thay vì gõ chữ.
+6. **Thêm lead** và **Messenger chưa nhận** (nút "Nhận lead này").
 
 ### Chủ (chỉ hiện với Vai trò = Chủ)
 
+- **Báo cáo tháng**: hai nút chọn **Tháng** và **Cơ sở** (mặc định tháng hiện tại, Tất cả). Hiện phễu Lead mới → Đã tư vấn → Đã tham quan → Đặt cọc → Nhập học, mỗi bước kèm số, % so với lead mới, % so với bước trước, và số lead mới so với tháng trước. Bấm vào để xem danh sách lead của tháng đó. Chọn tháng cũ để nhìn lại.
+- **So sánh các tháng / các cơ sở**: bảng tab `Thống kê`, nhóm theo tháng, kèm biểu đồ lead mới theo tháng.
 - **Theo sale**: mỗi sale đang giữ bao nhiêu lead, đã liên hệ hôm nay bao nhiêu, quá hạn bao nhiêu, tỷ lệ chốt, số lần chăm sóc.
 - **Bỏ quên**, **Rất quan tâm chưa chốt**, **Đề xuất tạm dừng**.
-- **Phễu**: đếm lead theo Tình trạng hiện tại (Mới → … → Đã nhập học).
 - **Biểu đồ**: lead theo nguồn, theo cơ sở; lý do từ chối; chất lượng lead theo nguồn.
 - **Phân lead**: sửa Sale phụ trách ngay trong chi tiết lead.
 
@@ -230,5 +254,5 @@ Khi app chạy, plugin `casa-ops` (skill `bao-cao-tuan`) đọc thêm tab `Hồ 
 
 1. Dựng app trên **Sheet mẫu** (dữ liệu giả), theo [huong-dan-appsheet.md](huong-dan-appsheet.md).
 2. Thử với 1 – 2 sale trong một tuần, sửa theo phản hồi.
-3. Thêm 5 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
+3. Thêm 6 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
 4. Mở cho cả 6 sale.

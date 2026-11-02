@@ -71,7 +71,7 @@ Bot đã tự nhắc tư vấn viên trên Telegram: thẻ lead chưa trả lờ
 
 ## 3. Ứng dụng chăm sóc lead (AppSheet, đang dựng)
 
-App giúp sale ghi kết quả chăm sóc và giúp chủ xem tổng hợp, làm bằng AppSheet trên cùng file Sheet của bot. **Tên tab, tên cột và quy tắc nhắc chính thức nằm ở `cham-soc-lead/thiet-ke.md`** (thư mục gốc của repo `casa-plugins`): tab `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`. App chỉ đọc tab `Leads` của bot. Phần dưới là tóm tắt.
+App giúp sale ghi kết quả chăm sóc và giúp chủ xem tổng hợp, làm bằng AppSheet trên cùng file Sheet của bot. **Tên tab, tên cột và quy tắc nhắc chính thức nằm ở `cham-soc-lead/thiet-ke.md`** (thư mục gốc của repo `casa-plugins`): tab `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê`. App chỉ đọc tab `Leads` của bot. Phần dưới là tóm tắt.
 
 **Thông tin lead (thêm so với bot):** Nguồn khách hàng (Facebook, Zalo, giới thiệu, đến trực tiếp, sự kiện), Chiến dịch / nội dung quảng cáo, Sale phụ trách, Ngày nhận lead, Ghi chú điều phụ huynh quan tâm.
 
