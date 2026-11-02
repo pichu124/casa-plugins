@@ -81,7 +81,7 @@ Chủ đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **T�
 
 **Data** → rê chuột lên tên bảng → **+** → **Create a new slice** (bỏ qua các gợi ý có sẵn).
 
-Ô **Row filter condition** mặc định là ô "Describe the expression in your own words" (mô tả bằng lời cho AI). Dán công thức thẳng vào đó thì **không được lưu**. Bấm vào ô, gõ dấu `=` trước rồi dán công thức ngay sau; ô chuyển sang chữ kiểu code là đúng. Kiểm tra bằng **Preview data** ở góc trên phải slice.
+Ô **Row filter condition** mặc định là ô "Describe the expression in your own words" (mô tả bằng lời cho AI). Dán công thức thẳng vào đó thì **không được lưu**. Bấm vào ô, gõ dấu `=` trước rồi dán công thức ngay sau; ô chuyển sang chữ kiểu code là đúng. **Preview data** ở góc trên phải slice chỉ đọc dữ liệu thô trong Sheet, không tính cột ảo: slice lọc theo cột ảo (Bỏ quên, Rất quan tâm chưa chốt…) sẽ ra 0 dòng ở đó dù đúng. Kiểm tra các slice này bằng nút **Test** trong Expression Assistant, hoặc trong app sau bước 5.
 
 | Slice | Bảng | Điều kiện (Row filter condition) |
 |---|---|---|
