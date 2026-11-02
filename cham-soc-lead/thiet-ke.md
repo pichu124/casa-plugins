@@ -195,7 +195,7 @@ IFS(
 )
 ```
 
-Không đặt tên cột vào trong tham số đầu của `LOOKUP` (vd `LOOKUP(CONCATENATE("L", [Lần thứ]), …)`): AppSheet đọc cột đó trên hàng của bảng được tra, nên ra rỗng. Vì vậy công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra chữ cố định.
+Công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra chữ cố định (đã chạy đúng trong AppSheet). Đặt tên cột vào trong `LOOKUP` có thể bị AppSheet đọc trên hàng của bảng được tra, nên tránh.
 
 **`Hồ sơ lead`**, các cột ảo. `[Related Chăm sócs]` là danh sách lần chăm sóc AppSheet tự tạo khi `Chăm sóc` có cột Ref tới `Hồ sơ lead`; tên có thể hơi khác, xem trong mục **Columns**.
 
