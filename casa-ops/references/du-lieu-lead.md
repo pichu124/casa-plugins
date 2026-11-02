@@ -69,9 +69,9 @@ Danh sách chủ đề cố định (`app/topics.py` của bot): Học phí, Ưu
 
 Bot đã tự nhắc tư vấn viên trên Telegram: thẻ lead chưa trả lời và bản tổng hợp lúc 9h hằng ngày. Plugin **không** gửi nhắc việc, không nhắn Telegram, không nhắn phụ huynh. Plugin chỉ làm báo cáo và phân tích cho chủ/quản lý, cùng bản nháp để người duyệt.
 
-## 3. Hệ thống chăm sóc lead (đang lên kế hoạch)
+## 3. Ứng dụng chăm sóc lead (AppSheet, đang dựng)
 
-Trường đang mô tả yêu cầu cho một ứng dụng giúp sale ghi kết quả chăm sóc và giúp chủ xem tổng hợp. Dữ liệu gốc vẫn nằm trên Google Sheet. Khi ứng dụng chạy, Sheet sẽ có thêm các dữ liệu sau và skill báo cáo mở rộng theo. Tên cột thật chốt khi ứng dụng xong.
+App giúp sale ghi kết quả chăm sóc và giúp chủ xem tổng hợp, làm bằng AppSheet trên cùng file Sheet của bot. **Tên tab, tên cột và quy tắc nhắc chính thức nằm ở `cham-soc-lead/thiet-ke.md`** (thư mục gốc của repo `casa-plugins`): tab `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê`. App chỉ đọc tab `Leads` của bot. Phần dưới là tóm tắt.
 
 **Thông tin lead (thêm so với bot):** Nguồn khách hàng (Facebook, Zalo, giới thiệu, đến trực tiếp, sự kiện), Chiến dịch / nội dung quảng cáo, Sale phụ trách, Ngày nhận lead, Ghi chú điều phụ huynh quan tâm.
 
