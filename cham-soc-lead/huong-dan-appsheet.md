@@ -208,7 +208,7 @@ Hai bot này chạy trên máy chủ của AppSheet; bật **Bypass Security Fil
 
 ## Bước 9. Người dùng và quyền
 
-1. **Security** → **Require Sign-In**: bật. **Domain authentication**: chỉ người trong tên miền của trường.
+1. **Security** → **Require sign-in**: bật, provider Google, **Allow all signed-in users** tắt (chỉ người trong danh sách Manage users). **Domain Authentication** để **tắt**: mục này cần gói Enterprise, gói Core của trường không dùng được; danh sách người dùng đã đủ chặn người lạ.
 2. Chỉ cho email trong tab `Sale` dùng: ở **Settings → Users** (hoặc nút **Share**), thêm 6 email sale và email chủ.
 3. **Sale chỉ thấy lead của mình**: **Security** → **Security filters**, đặt cho từng bảng (với "ai là chủ" là công thức ở thiet-ke.md mục 4):
    - `Hồ sơ lead`: `OR(<ai là chủ>, [Sale phụ trách] = USEREMAIL())`
