@@ -45,6 +45,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Customer ID`: bỏ tick **Show**.
 - `Tên phụ huynh`, `Tên bé`, `SĐT`: tick **Search** (để ô tìm kiếm tìm được theo các cột này). Bỏ tick Search ở các cột còn lại cho kết quả gọn.
 - `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ".
+- `Chủ nhắc lúc`: Type **DateTime**; **Editable** tắt (chỉ nút Nhắc sale ghi vào); Show If `ISNOTBLANK([Chủ nhắc lúc])`; Display name `Chủ đã nhắc lúc`.
 
 **`Chăm sóc`**
 - `Mã`: Key, Initial value `UNIQUEID()`, ẩn.
@@ -99,8 +100,8 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | Tìm phụ huynh | Hồ sơ lead | Deck | next | Toàn bộ lead của trường. Ô tìm kiếm có sẵn ở góc trên; Group by `Cơ sở`. Khi phụ huynh tự gọi tới: gõ tên hoặc vài số cuối SĐT, mở ra, ghi nhận |
 | Messenger | Messenger chưa nhận | Table | menu | |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
-| Bỏ quên | Bỏ quên | Table | menu | |
-| Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | |
+| Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
+| Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | Group by `Sale phụ trách`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Tình trạng hiện tại, Hạn liên hệ, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Đề xuất tạm dừng | Đề xuất tạm dừng | Table | menu | |
 | Báo cáo tháng | Tháng đang chọn | Detail | menu | Hiện Tháng, Cơ sở, Lead mới, Lead mới tháng trước, rồi từng bước kèm tỷ lệ. Thêm cột ảo nếu muốn % so với bước trước, vd `IF([Đã tư vấn] = 0, 0, [Đã tham quan] / [Đã tư vấn])` |
 | Lead của tháng | Lead tháng đang chọn | Table | menu | Danh sách lead của tháng và cơ sở đang chọn, cột Tình trạng hiện tại, Nguồn, Sale phụ trách |
@@ -127,6 +128,8 @@ Vào **Actions** (biểu tượng tia chớp) → **+ New action**:
    - Ghi chú `CONCATENATE("Bot ghi cơ sở: ", [Cơ sở/hệ], ". Tin cuối: ", [Tin cuối của phụ huynh])` (đổi tên cột nếu AppSheet đã đổi ở bước 3)
 
    Only if `NOT(IN([Customer ID], Hồ sơ lead[Customer ID]))`. Position **Prominent**.
+
+4. **Nhắc sale** (bảng `Hồ sơ lead`): Do this **Data: set the values of some columns in this row**; đặt `Chủ nhắc lúc` = `NOW()`; Position **Inline** (gắn vào cột Tên phụ huynh) hoặc **Prominent**; **Only if** là công thức "ai là chủ". Bật **Needs confirmation**, nội dung `Gửi email nhắc sale phụ trách lead này?`.
 
 AppSheet tự có nút Gọi và SMS cho cột kiểu Phone.
 
@@ -159,6 +162,23 @@ Mở app Casa Chăm sóc lead để ghi nhận sau mỗi lần liên hệ.
 
 Email không ghi SĐT.
 
+### Email khi chủ nhắc sale
+
+**Automation** → **+ New bot** → tên `Chủ nhắc sale`:
+
+1. **Event**: **Data change**, bảng `Hồ sơ lead`, loại **Updates only**; **Condition** `[_THISROW_BEFORE].[Chủ nhắc lúc] <> [_THISROW_AFTER].[Chủ nhắc lúc]`.
+2. **Process** → **Send an email**: To `[Sale phụ trách].[Email]`; Subject `Chủ nhắc: liên hệ <<[Tên phụ huynh]>>`; Body:
+
+```
+Chào <<[Sale phụ trách].[Tên]>>,
+
+Chủ nhắc bạn liên hệ phụ huynh <<[Tên phụ huynh]>> (bé <<[Tên bé]>>, cơ sở <<[Cơ sở]>>).
+Tình trạng: <<[Mức khẩn]>>. Lần cuối: <<[Lần cuối tóm tắt]>>.
+
+Mở lead trong app: <<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>
+Sau khi liên hệ, nhớ bấm "Ghi nhận lần chăm sóc".
+```
+
 ## Bước 9. Người dùng và quyền
 
 1. **Security** → **Require Sign-In**: bật. **Domain authentication**: chỉ người trong tên miền của trường.
@@ -179,6 +199,7 @@ Mở app (nút **Preview** bên phải, hoặc mở link app trên điện tho�
 - [ ] **Messenger**: có **Cúc Thử** và **Nga Thử** (có SĐT, chưa nhận); không có Lan Thử (đã có hồ sơ) và khách chưa rõ tên (chưa có SĐT). Bấm **Nhận lead này** cho Cúc Thử: hồ sơ mới xuất hiện trong **Của tôi**, Cúc Thử biến mất khỏi danh sách Messenger.
 - [ ] **Theo sale**: Sale 6 đang giữ 1 lead; bạn (sale1) quá hạn 1 lead.
 - [ ] Thêm một lần chăm sóc "Từ chối": app bắt chọn Lý do từ chối, không hỏi Mức quan tâm.
+- [ ] **Bỏ quên** (màn của chủ): có đúng 3 lead: Đào Thử (của bạn, quá hạn 14 ngày), Minh Thử (Sale 5, quá hạn 3 ngày), Thu Thử (Sale 6, đã nhắc 3 lần, 9 ngày không cập nhật), nhóm theo sale. Lan Thử và Hoa Thử **không** có (đã có lịch hẹn); mỗi dòng có "Lần cuối" như "29/10 · Đang cân nhắc · Hỏi thực đơn…". Bấm **Nhắc sale** ở Đào Thử: cột Chủ nhắc lúc có giờ hiện tại, và email của bạn nhận được thư "Chủ nhắc: liên hệ Đào Thử".
 
 Nếu một bước sai, so công thức với thiet-ke.md mục 4. `quy_tac_nhac.py` tính được kết quả đúng cho mọi trường hợp để đối chiếu.
 

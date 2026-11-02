@@ -133,6 +133,7 @@ def thong_ke_thang(ho_so: list[dict], cham_soc: list[dict], thang: str, co_so: s
 COT_HO_SO = [
     "Mã lead", "Ngày nhận", "Tên phụ huynh", "Tên bé", "Tuổi bé", "SĐT", "Cơ sở", "Nguồn", "Chiến dịch",
     "PH quan tâm", "Sale phụ trách", "Customer ID", "Chất lượng lead", "Lý do chất lượng", "Ghi chú", "Tạm dừng",
+    "Chủ nhắc lúc",
 ]
 COT_CHAM_SOC = [
     "Mã", "Mã lead", "Thời gian", "Sale", "Phương thức", "Tình trạng", "Mức quan tâm", "Phản hồi",
@@ -223,7 +224,7 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         [d(10, 9), "SĐT mới", "Lan Thử", "GIA-M1", "0900000601", "Bé Na", "3 tuổi", "Mỹ Đình", "", "", "", "QC Cambridge T10", "Đã có SĐT", "0900000601", d(10, 8), d(10, 9)],
     ]
     bang = {
-        "ho-so-lead.csv": (COT_HO_SO, [r + ["FALSE"] for r in ho_so]),
+        "ho-so-lead.csv": (COT_HO_SO, [r + ["FALSE", ""] for r in ho_so]),
         "cham-soc.csv": (COT_CHAM_SOC, cham_soc),
         "sale.csv": (COT_SALE, SALE_MAU),
         "danh-muc.csv": (COT_DANH_MUC, DANH_MUC_MAU),

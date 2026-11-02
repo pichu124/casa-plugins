@@ -58,6 +58,7 @@ Tên cột là tên tiêu đề trên Sheet. Kiểu là kiểu cần chọn tron
 | Lý do chất lượng | Enum | `Danh mục` loại "Lý do chất lượng". Chỉ hiện khi Trung bình hoặc Kém |
 | Ghi chú | LongText | |
 | Tạm dừng | Yes/No | Chỉ chủ đổi. Bật thì ngừng nhắc |
+| Chủ nhắc lúc | DateTime | Nút **Nhắc sale** của chủ ghi giờ vào đây; app gửi email nhắc sale phụ trách (mục 6). Sale thấy dòng "Chủ đã nhắc lúc…" trong chi tiết lead |
 
 ### `Chăm sóc`
 
@@ -133,7 +134,7 @@ Theo thứ tự ưu tiên:
 
 **Mức khẩn** của lead: hạn trước hôm nay là **Quá hạn** (đỏ), hạn hôm nay là **Hôm nay** (cam), sau hôm nay là **Sắp tới**.
 
-**Bỏ quên** (cho chủ): lead chưa kết thúc, không tạm dừng, và quá hạn hoặc quá 3 ngày không có cập nhật (`Cấu hình` › Bỏ quên).
+**Bỏ quên** (cho chủ): lead chưa kết thúc, không tạm dừng, và **quá hạn**, hoặc **quá 3 ngày không có cập nhật mà không có ngày hẹn tiếp theo** (`Cấu hình` › Bỏ quên). Lead đã có lịch hẹn sắp tới (hẹn gọi lại, hẹn tham quan) thì chưa tính là bỏ quên dù lâu chưa cập nhật, vì sale đang chờ đúng ngày.
 
 `quy_tac_nhac.py` là bản Python của đúng các quy tắc này, có test. Sửa quy tắc thì sửa cả công thức AppSheet dưới đây lẫn file Python.
 
@@ -194,8 +195,10 @@ IFS(
 | Mức khẩn | Text | `IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")` |
 | Ngày không cập nhật | Decimal | `HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24` |
 | Đã kết thúc | Yes/No | `IN([Tình trạng hiện tại], LIST("Từ chối", "Đã nhập học"))` |
-| Bỏ quên | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), OR([Mức khẩn] = "Quá hạn", [Ngày không cập nhật] > LOOKUP("Bỏ quên", "Cấu hình", "Khóa", "Giá trị")))` |
+| Bỏ quên | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), OR([Mức khẩn] = "Quá hạn", AND(ISBLANK([Hạn liên hệ]), [Ngày không cập nhật] > LOOKUP("Bỏ quên", "Cấu hình", "Khóa", "Giá trị"))))` |
 | Đề xuất tạm dừng | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), ISNOTBLANK([Lần cuối]), ISBLANK([Hạn liên hệ]))` |
+| Số ngày quá hạn | Number | `IF([Mức khẩn] = "Quá hạn", HOUR(TODAY() - [Hạn liên hệ]) / 24, 0)` |
+| Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], " · ", [Lần cuối].[Phản hồi]))` |
 
 **`Sale`**, các cột ảo cho màn hình của chủ:
 
@@ -231,7 +234,8 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 - **Báo cáo tháng**: hai nút chọn **Tháng** và **Cơ sở** (mặc định tháng hiện tại, Tất cả). Hiện phễu Lead mới → Đã tư vấn → Đã tham quan → Đặt cọc → Nhập học, mỗi bước kèm số, % so với lead mới, % so với bước trước, và số lead mới so với tháng trước. Bấm vào để xem danh sách lead của tháng đó. Chọn tháng cũ để nhìn lại.
 - **So sánh các tháng / các cơ sở**: bảng tab `Thống kê`, nhóm theo tháng, kèm biểu đồ lead mới theo tháng.
 - **Theo sale**: mỗi sale đang giữ bao nhiêu lead, đã liên hệ hôm nay bao nhiêu, quá hạn bao nhiêu, tỷ lệ chốt, số lần chăm sóc.
-- **Bỏ quên**, **Rất quan tâm chưa chốt**, **Đề xuất tạm dừng**.
+- **Bỏ quên** và **Rất quan tâm chưa chốt**: danh sách chi tiết, **nhóm theo sale phụ trách** để chủ biết nhắc ai. Mỗi lead hiện tên phụ huynh, bé, cơ sở, sale phụ trách, số ngày quá hạn hoặc số ngày chưa cập nhật, và **lần cuối** (ngày · tình trạng · phản hồi). Nút **Nhắc sale** gửi email nhắc cho sale phụ trách và ghi lại thời điểm đã nhắc, để lần sau chủ biết mình đã nhắc chưa.
+- **Đề xuất tạm dừng**: lead đã nhắc 3 lần chưa chốt; chủ quyết định tạm dừng hay giao lại.
 - **Biểu đồ**: lead theo nguồn, theo cơ sở; lý do từ chối; chất lượng lead theo nguồn.
 - **Phân lead**: sửa Sale phụ trách ngay trong chi tiết lead.
 
@@ -242,6 +246,8 @@ Phân tích sâu hơn (chất lượng theo chiến dịch, hiệu quả từng 
 - **Trong app**: màn hình mở đầu luôn là danh sách hôm nay, quá hạn tô đỏ.
 - **Email 7h30 sáng** mỗi ngày (AppSheet Automation): gửi mỗi sale số lead cần liên hệ hôm nay và quá hạn, kèm tên phụ huynh. Không ghi SĐT trong email.
 - **Zalo**: chưa làm. Gửi tin Zalo tự động phải qua Zalo OA và dịch vụ tin nhắn trả phí của Zalo; để sau khi app chạy ổn.
+
+- **Chủ nhắc sale**: chủ bấm **Nhắc sale** ở danh sách bỏ quên hoặc rất quan tâm chưa chốt → app gửi ngay email cho sale phụ trách: tên phụ huynh, bé, cơ sở, quá hạn bao lâu, lần cuối liên hệ, kèm link mở lead trong app. Không ghi SĐT trong email.
 
 **Không nhắc trùng với bot.** Bot nhắc tư vấn viên trên Telegram khi có tin nhắn **mới** chưa ai trả lời và gửi bản tổng hợp lúc 9h. App nhắc **gọi lại** những phụ huynh đã nhận vào hồ sơ. Quy ước: sale bấm "Nhận lead này" trong app thì reply `/xong` vào thẻ của phụ huynh đó trên Telegram, để bot ghi "Đã liên hệ" và thôi nhắc.
 
