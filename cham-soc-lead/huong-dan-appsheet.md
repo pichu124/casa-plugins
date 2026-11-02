@@ -19,7 +19,7 @@ Sheet có 8 tab: `Tổng hợp lead` (bảng cho chủ, chỉ có công thức),
 
 1. Vào **appsheet.com** → **Create** → **App** → **Start with existing data**.
 2. Tên app: `Casa Chăm sóc lead`. Category: để mặc định. **Choose your data** → chọn bản sao Sheet ở bước 0.
-3. AppSheet tự tạo app từ tab đầu tiên (`Hồ sơ lead`). Chờ nó dựng xong.
+3. AppSheet tự tạo app từ **tab đầu tiên** của Sheet. Trước khi tạo, kéo tab `Hồ sơ lead` lên đầu (bản sao có thể để `Tổng hợp lead` đứng đầu; tab đó chỉ có công thức, không dùng làm bảng). Chờ app dựng xong.
 
 ## Bước 2. Thêm các bảng
 
@@ -44,7 +44,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Lý do chất lượng`: Enum, Valid If `SELECT(Danh mục[Giá trị], [Loại] = "Lý do chất lượng")`; **Show If** `IN([Chất lượng lead], LIST("Trung bình", "Kém"))`.
 - `Customer ID`: bỏ tick **Show**.
 - `Tên phụ huynh`, `Tên bé`, `SĐT`: tick **Search** (để ô tìm kiếm tìm được theo các cột này). Bỏ tick Search ở các cột còn lại cho kết quả gọn.
-- `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ".
+- `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ"; **Initial value** `FALSE`; **không** tick Require (sale không sửa được ô này, nếu bắt buộc thì sale không lưu được lead mới).
 - `Chủ nhắc lúc`: Type **DateTime**; **Editable** tắt (chỉ nút Nhắc sale ghi vào); Show If `ISNOTBLANK([Chủ nhắc lúc])`; Display name `Chủ đã nhắc lúc`.
 
 **`Chăm sóc`**
@@ -59,9 +59,11 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Lần thứ`, `Hạn liên hệ tiếp`: điền **App formula** từ thiet-ke.md mục 4; bỏ tick Show trong form (vẫn hiện ở trang chi tiết nếu muốn).
 - **Thêm cột ảo** `Mốc gần nhất` (nút **Add virtual column**), Type Ref → `Chăm sóc`, công thức ở thiet-ke.md. Làm cột này **trước** khi nhập công thức `Lần thứ`.
 
-**`Sale`**: `Email` là Key, Type Email; `Vai trò` Enum `Sale`, `Chủ`; `Đang làm` Yes/No.
+**`Sale`**: `Email` là Key, Type Email (bỏ Key ở `_RowNumber`); `Tên` là Label; `Vai trò` Enum `Sale`, `Chủ`; `Đang làm` Yes/No.
 
-**`Messenger`** (tab `Leads`): Key là `Customer ID`. Nếu AppSheet báo tên cột có dấu `/` (như `Cơ sở/hệ`) không hợp lệ, nó sẽ tự đổi tên hiển thị; ghi lại tên mới để dùng ở bước 6.
+**`Messenger`** (tab `Leads`): Key là `Customer ID` (AppSheet hay tự chọn `Thời gian`, phải đổi); Label là `Tên Facebook`; `SĐT` đổi Type thành **Phone** (AppSheet đoán Number, làm mất số 0 đầu); bỏ Require ở `Thời gian`, `SĐT`. Nếu AppSheet báo tên cột có dấu `/` (như `Cơ sở/hệ`) không hợp lệ, nó sẽ tự đổi tên hiển thị; ghi lại tên mới để dùng ở bước 6.
+
+Mỗi bảng chỉ để **một** cột tick Label (AppSheet có khi tick sẵn nhiều cột). Ngày trong app hiển thị theo ngôn ngữ của trình duyệt hoặc điện thoại (máy tiếng Anh hiện 10/19/2026, máy tiếng Việt hiện 19/10/2026); không có ô chỉnh trong AppSheet. Đừng đổi **Data locale** của bảng nếu ngày đang đọc đúng.
 
 Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như bảng ở thiet-ke.md mục 4. Thêm theo thứ tự trong bảng, vì cột sau dùng cột trước.
 

@@ -216,7 +216,7 @@ IFS(
 | Quá hạn | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Mức khẩn] = "Quá hạn")))` |
 | Tổng lead | `COUNT(SELECT(Hồ sơ lead[Mã lead], [Sale phụ trách] = [_THISROW].[Email]))` |
 | Đã nhập học | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Tình trạng hiện tại] = "Đã nhập học")))` |
-| Tỷ lệ chốt | `IF([Tổng lead] = 0, 0, [Đã nhập học] / [Tổng lead])`, kiểu Percent |
+| Tỷ lệ chốt | `IF([Tổng lead] = 0, 0, DECIMAL([Đã nhập học]) / [Tổng lead])`, kiểu Percent. Phải có `DECIMAL`: AppSheet chia hai số nguyên thì làm tròn xuống (1/4 ra 0) |
 | Số lần chăm sóc | `COUNT(SELECT(Chăm sóc[Mã], [Sale] = [_THISROW].[Email]))` |
 
 **Ai là chủ** (dùng trong điều kiện hiện màn hình, quyền sửa):
