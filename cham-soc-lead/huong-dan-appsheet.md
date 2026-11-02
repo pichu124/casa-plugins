@@ -46,7 +46,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Customer ID`: bỏ tick **Show**.
 - `Tên phụ huynh`, `Tên bé`, `SĐT`: tick **Search** (để ô tìm kiếm tìm được theo các cột này). Bỏ tick Search ở các cột còn lại cho kết quả gọn.
 - `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ"; **Initial value** `FALSE`; **không** tick Require (sale không sửa được ô này, nếu bắt buộc thì sale không lưu được lead mới).
-- `Chủ nhắc lúc`: Type **DateTime**; **Editable** tắt (chỉ nút Nhắc sale ghi vào); Show If `ISNOTBLANK([Chủ nhắc lúc])`; Display name `Chủ đã nhắc lúc`.
+- `Chủ nhắc lúc`: Type **DateTime**; **Initial value để trống** (nếu AppSheet tự điền `NOW()`, mọi lead mới đều bị coi là chủ vừa nhắc và gửi email nhắc nhầm); **Editable** tắt (chỉ nút Nhắc sale ghi vào); Show If `ISNOTBLANK([Chủ nhắc lúc])`; Display name `Chủ đã nhắc lúc`.
 
 **`Chăm sóc`**
 - `Mã`: Key, Initial value `UNIQUEID()`, ẩn.
