@@ -73,7 +73,7 @@ Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như 
 - Ô thứ hai `Cơ sở`: Type **Enum**; Valid If `UNIQUE(Thống kê[Cơ sở])`; Initial value `"Tất cả"`.
 - Ô thứ ba `Sale`: Type **Enum**; Valid If `LIST("Tất cả") + SELECT(Sale[Tên], [Vai trò] = "Sale")`; Initial value `"Tất cả"`.
 
-Người dùng (cả sale lẫn chủ) đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **Tất cả lead** và các màn báo cáo đổi theo.
+Chủ đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **Tất cả lead** và các màn báo cáo đổi theo. (Sale cũng thấy các ô này nhưng chỉ có dữ liệu của mình, nên không ảnh hưởng.)
 
 ## Bước 4. Lát cắt dữ liệu (Slices)
 
@@ -98,13 +98,13 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | View | Dữ liệu | Kiểu | Vị trí | Ghi chú |
 |---|---|---|---|---|
 | Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Đặt làm **Starting view** (Settings → Views → General) |
-| Của tôi | Lead của tôi | Deck | next | Group by `Mức khẩn` |
-| Messenger | Messenger chưa nhận | Table | menu | |
+| Của tôi | Lead của tôi | Deck | next | Group by `Mức khẩn`. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
+| Messenger | Messenger chưa nhận | Table | menu | **Chỉ chủ** (Show if như các view của chủ) |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | Group by `Sale phụ trách`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Tình trạng hiện tại, Hạn liên hệ, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Đề xuất tạm dừng | Đề xuất tạm dừng | Table | menu | |
-| Tất cả lead | Lead theo bộ lọc | Deck | next | **Dùng chung cho sale và chủ** (không đặt Show if). Ô tìm kiếm có sẵn ở góc trên; lọc Cơ sở, Sale bằng User settings (bước 4a). Hiện Tên phụ huynh, Tên bé, Cơ sở, Sale phụ trách, Mức khẩn, Tình trạng hiện tại. Bấm vào mở trang chi tiết có dòng thời gian tư vấn (xem dưới) |
+| Tất cả lead | Lead theo bộ lọc | Deck | menu | **Chỉ chủ** (Show if là công thức "ai là chủ"). Ô tìm kiếm có sẵn ở góc trên; lọc Cơ sở, Sale bằng User settings (bước 4a). Hiện Tên phụ huynh, Tên bé, Cơ sở, Sale phụ trách, Mức khẩn, Tình trạng hiện tại. Bấm vào mở trang chi tiết có dòng thời gian tư vấn (xem dưới) |
 | Báo cáo tháng | Tháng đang chọn | Detail | menu | Hiện Tháng, Cơ sở, Lead mới, Lead mới tháng trước, rồi từng bước kèm tỷ lệ. Thêm cột ảo nếu muốn % so với bước trước, vd `IF([Đã tư vấn] = 0, 0, [Đã tham quan] / [Đã tư vấn])` |
 | Lead của tháng | Lead tháng đang chọn | Table | menu | Danh sách lead của tháng và cơ sở đang chọn, cột Tình trạng hiện tại, Nguồn, Sale phụ trách |
 | Các tháng | Thống kê | Table | menu | Group by `Tháng`; so sánh các tháng, các cơ sở |
@@ -124,12 +124,16 @@ Vào **Actions** (biểu tượng tia chớp) → **+ New action**:
 
 1. **Mở Zalo** (bảng `Hồ sơ lead`): Do this **External: go to a website**; Target `CONCATENATE("https://zalo.me/", SUBSTITUTE([SĐT], " ", ""))`; Position **Prominent**.
 2. **Ghi nhận lần chăm sóc** (bảng `Hồ sơ lead`): Do this **App: go to another view within this app**; Target `LINKTOFORM("Chăm sóc_Form", "Mã lead", [Mã lead])`; Position **Prominent**.
-3. **Nhận lead này** (bảng `Messenger`): Do this **Data: add a new row to another table using values from this row**; Table `Hồ sơ lead`; đặt giá trị:
-   - Mã lead `UNIQUEID()`; Ngày nhận `NOW()`; Tên phụ huynh `[Tên Facebook]`; Tên bé `[Tên bé]`; Tuổi bé `[Tuổi bé]`; SĐT `[SĐT]`
-   - Nguồn `"Facebook Messenger"`; Chiến dịch `[Quảng cáo]`; Sale phụ trách `USEREMAIL()`; Customer ID `[Customer ID]`; Tạm dừng `FALSE`
-   - Ghi chú `CONCATENATE("Bot ghi cơ sở: ", [Cơ sở/hệ], ". Tin cuối: ", [Tin cuối của phụ huynh])` (đổi tên cột nếu AppSheet đã đổi ở bước 3)
+3. **Giao lead** (bảng `Messenger`, chỉ chủ): Do this **App: go to another view within this app**; Target:
 
-   Only if `NOT(IN([Customer ID], Hồ sơ lead[Customer ID]))`. Position **Prominent**.
+   ```
+   LINKTOFORM("Hồ sơ lead_Form",
+     "Tên phụ huynh", [Tên Facebook], "Tên bé", [Tên bé], "Tuổi bé", [Tuổi bé], "SĐT", [SĐT],
+     "Nguồn", "Facebook Messenger", "Chiến dịch", [Quảng cáo], "Customer ID", [Customer ID],
+     "Ghi chú", CONCATENATE("Bot ghi cơ sở: ", [Cơ sở/hệ], ". Tin cuối: ", [Tin cuối của phụ huynh]))
+   ```
+
+   (đổi tên cột nếu AppSheet đã đổi ở bước 3). Form mở ra đã điền sẵn; chủ chọn **Sale phụ trách** và **Cơ sở** rồi lưu. Only if `AND(<công thức ai là chủ>, NOT(IN([Customer ID], Hồ sơ lead[Customer ID])))`. Position **Prominent**.
 
 4. **Nhắc sale** (bảng `Hồ sơ lead`): Do this **Data: set the values of some columns in this row**; đặt `Chủ nhắc lúc` = `NOW()`; Position **Inline** (gắn vào cột Tên phụ huynh) hoặc **Prominent**; **Only if** là công thức "ai là chủ". Bật **Needs confirmation**, nội dung `Gửi email nhắc sale phụ trách lead này?`.
 
@@ -181,24 +185,40 @@ Mở lead trong app: <<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>
 Sau khi liên hệ, nhớ bấm "Ghi nhận lần chăm sóc".
 ```
 
+### Email báo chủ khi có lead trùng, báo sale khi được giao lead
+
+**Automation** → **+ New bot** → `Lead trùng`: Event **Data change**, bảng `Hồ sơ lead`, **Adds only**; Condition `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Mã lead] <> [_THISROW].[Mã lead]))) > 0`. Task **Send an email** tới các email có Vai trò "Chủ": To `SELECT(Sale[Email], [Vai trò] = "Chủ")`; Subject `Lead trùng SĐT: <<[Tên phụ huynh]>>`; Body nêu lead mới (tên, sale phụ trách) và các lead cũ cùng SĐT: `<<Start: SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Mã lead] <> [_THISROW].[Mã lead]))>><<[Tên phụ huynh]>> · <<[Sale phụ trách].[Tên]>> · <<[Tình trạng hiện tại]>><<End>>`.
+
+**Automation** → **+ New bot** → `Được giao lead`: Event **Data change**, bảng `Hồ sơ lead`, **Adds and updates**; Condition `OR(ISBLANK([_THISROW_BEFORE].[Mã lead]), [_THISROW_BEFORE].[Sale phụ trách] <> [_THISROW_AFTER].[Sale phụ trách])` và người làm thay đổi là chủ: `LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"`. Task **Send an email** To `[Sale phụ trách].[Email]`, Subject `Bạn được giao lead mới: <<[Tên phụ huynh]>>`, kèm link `<<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>`.
+
+Hai bot này chạy trên máy chủ của AppSheet. Cần kiểm tra ở bước 10 rằng bot `Lead trùng` thấy được lead của mọi sale (không bị security filter của người bấm lưu che mất).
+
 ## Bước 9. Người dùng và quyền
 
 1. **Security** → **Require Sign-In**: bật. **Domain authentication**: chỉ người trong tên miền của trường.
-2. Chỉ cho email trong tab `Sale` dùng: **Security** → **Security filters** không cần; thay vào đó ở **Settings → Users**, thêm 6 email sale (hoặc chia sẻ app cho nhóm Google của sale).
-3. Bảng `Chăm sóc` → **Are updates allowed?** để **Adds and Updates** (không cho xoá). Cột `Phản hồi`, `Tình trạng`… có **Editable If** `OR([Sale] = USEREMAIL(), <công thức ai là chủ>)`.
-4. Bảng `Hồ sơ lead` → **Adds and Updates** (không cho xoá; lead không còn theo thì chủ bật Tạm dừng).
+2. Chỉ cho email trong tab `Sale` dùng: ở **Settings → Users** (hoặc nút **Share**), thêm 6 email sale và email chủ.
+3. **Sale chỉ thấy lead của mình**: **Security** → **Security filters**, đặt cho từng bảng (với "ai là chủ" là công thức ở thiet-ke.md mục 4):
+   - `Hồ sơ lead`: `OR(<ai là chủ>, [Sale phụ trách] = USEREMAIL())`
+   - `Chăm sóc`: `OR(<ai là chủ>, [Mã lead].[Sale phụ trách] = USEREMAIL())`
+   - `Messenger` (tab Leads của bot) và `Thống kê`: `<ai là chủ>` (sale không tải về)
+   - `Sale`, `Danh mục`, `Cấu hình`: không đặt (ai cũng cần).
+
+   Security filter chặn cả dữ liệu tải về máy, không chỉ ẩn trên màn hình. Lưu ý: filter của `Chăm sóc` tham chiếu bảng khác, nên `Hồ sơ lead` phải được tải trước; AppSheet tự lo việc này.
+4. Bảng `Chăm sóc` → **Are updates allowed?** để **Adds and Updates** (không cho xoá). Cột `Phản hồi`, `Tình trạng`… có **Editable If** `OR([Sale] = USEREMAIL(), <công thức ai là chủ>)`.
+5. Bảng `Hồ sơ lead` → **Adds and Updates** (không cho xoá; lead không còn theo thì chủ bật Tạm dừng).
 
 ## Bước 10. Thử với dữ liệu mẫu
 
 Mở app (nút **Preview** bên phải, hoặc mở link app trên điện thoại). Với Sheet mẫu tạo ngày 02/11/2026 và `sale1@example.com` đã đổi thành email của bạn (bước 0), kết quả đúng là:
 
 - [ ] Màn hình **Hôm nay** có **Hoa Thử** (hẹn gọi lại hôm nay) và **Đào Thử** (quá hạn, chữ đỏ).
-- [ ] **Tất cả lead** có 8 lead. Gõ "Minh" vào ô tìm ra Minh Thử; gõ "0604" ra Hằng Thử (lead của Sale 4). Mở Hằng Thử, ghi nhận một lần: lưu được, và lần đó mang email của bạn.
+- [ ] Với vai trò **Chủ**: **Tất cả lead** có 8 lead; gõ "Minh" ra Minh Thử, gõ "0604" ra Hằng Thử.
+- [ ] Thử vai trò **Sale**: ở tab `Sale`, tạm đổi Vai trò của email bạn thành `Sale`, mở lại app (Sync). **Của tôi** chỉ còn Hoa Thử và Đào Thử; menu không còn Tất cả lead, Messenger, Báo cáo. Gõ "0604" vào ô tìm: không ra gì (Hằng Thử là lead của Sale 4). Thêm lead mới với SĐT `0900000604`: lưu được, và email chủ (thư của bạn khi đổi lại Vai trò Chủ, hoặc email chủ thật) nhận "Lead trùng SĐT". Đổi Vai trò về `Chủ` sau khi thử.
 - [ ] Settings chọn Tháng **2026-10**, Cơ sở **Tất cả** → **Báo cáo tháng**: Lead mới 7, Đã tư vấn 7, Đã tham quan 1, Đã đặt cọc 1, Đã nhập học 0, Tỷ lệ tham quan 14%. Đổi Cơ sở sang **Mỹ Đình**: 2, 2, 1, 1, 0. Chọn Tháng **2026-11**, Tất cả: Lead mới 1, Lead mới tháng trước 7.
 - [ ] Mở **Thu Thử**: Tình trạng hiện tại "Đang cân nhắc", Lần thứ 4, nằm trong **Đề xuất tạm dừng**.
 - [ ] Mở **Lan Thử**: hạn liên hệ 03/11/2026 (xác nhận lịch tham quan ngày 04/11).
 - [ ] Mở **Hoa Thử** → **Ghi nhận lần chăm sóc** → bấm Gọi điện, Đang cân nhắc, Quan tâm bình thường → Lưu. Đây là lần chăm sóc thứ 3 của Hoa Thử (chưa có mốc tiến triển nào), nên áp dụng L3: hạn liên hệ thành **hôm nay + 7 ngày**, và Hoa Thử rời màn hình Hôm nay. Trên Sheet, tab `Chăm sóc` có hàng mới với `Lần thứ` = 3.
-- [ ] **Messenger**: có **Cúc Thử** và **Nga Thử** (có SĐT, chưa nhận); không có Lan Thử (đã có hồ sơ) và khách chưa rõ tên (chưa có SĐT). Bấm **Nhận lead này** cho Cúc Thử: hồ sơ mới xuất hiện trong **Của tôi**, Cúc Thử biến mất khỏi danh sách Messenger.
+- [ ] **Messenger** (chủ): có **Cúc Thử** và **Nga Thử** (có SĐT, chưa nhận); không có Lan Thử (đã có hồ sơ) và khách chưa rõ tên (chưa có SĐT). Bấm **Giao lead** cho Cúc Thử: form mở ra đã điền tên, tuổi, SĐT; chọn Sale phụ trách là Sale 3, lưu. Cúc Thử biến mất khỏi danh sách Messenger và có trong Tất cả lead với sale là Sale 3.
 - [ ] **Theo sale**: Sale 6 đang giữ 1 lead; bạn (sale1) quá hạn 1 lead.
 - [ ] Thêm một lần chăm sóc "Từ chối": app bắt chọn Lý do từ chối, không hỏi Mức quan tâm.
 - [ ] **Tất cả lead** với bộ lọc: Settings chọn Cơ sở **Mỹ Đình**, Sale **Tất cả** → ra Quang Thử, Hằng Thử, Lan Thử. Bấm Lan Thử → dòng thời gian 3 lần: 27/10 Đã hẹn tham quan (trên cùng), 24/10 Đang cân nhắc, 23/10 Đang cân nhắc. Chọn thêm Sale **Sale 1** → danh sách trống.

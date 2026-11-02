@@ -25,7 +25,7 @@ Các tab của app được thêm vào **cùng file Google Sheet mà bot Messeng
 | `Thống kê` | Một tháng của một cơ sở (hoặc "Tất cả"): phễu và tỷ lệ chuyển đổi | Công thức trong Sheet, tự tính |
 | `Tổng hợp lead` | Mọi lead đang có, lọc theo cơ sở, sale, tình trạng, mức khẩn, kèm quá trình tư vấn | Công thức trong Sheet, cho chủ xem trên máy tính |
 
-**Lead từ Messenger** không tự sang app. Trong app có danh sách "Messenger chưa nhận" (phụ huynh đã để SĐT cho bot mà chưa có hồ sơ). Sale hoặc chủ bấm **"Nhận lead này"**, app tạo hàng mới trong `Hồ sơ lead` với tên, tuổi bé, SĐT, quảng cáo và Customer ID lấy từ tab của bot. Customer ID dùng để nối hai bên và tránh nhận trùng.
+**Lead từ Messenger** không tự sang app. Trong app có danh sách "Messenger chưa nhận" (phụ huynh đã để SĐT cho bot mà chưa có hồ sơ), **chỉ chủ thấy**. Chủ bấm **"Giao lead"**: app mở form thêm lead đã điền sẵn tên, tuổi bé, SĐT, quảng cáo và Customer ID lấy từ tab của bot; chủ chọn **Sale phụ trách** rồi lưu. Customer ID dùng để nối hai bên và tránh nhận trùng.
 
 Lead từ nguồn khác (Zalo, gọi hotline, tự tìm hiểu, giới thiệu, đến trực tiếp, sự kiện, website) thì sale bấm **"Thêm lead"** và nhập tay, chọn đúng **Nguồn**. Các lead này nằm chung tab `Hồ sơ lead` với lead từ Messenger, nên được nhắc việc và được tính vào `Thống kê` như nhau.
 
@@ -230,16 +230,15 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 ### Sale
 
 1. **Hôm nay cần liên hệ** (màn hình mở đầu): lead của tôi có Mức khẩn là Quá hạn hoặc Hôm nay, xếp theo Hạn liên hệ (cũ nhất trước). Quá hạn tô đỏ.
-2. **Tất cả lead** (màn dùng chung với chủ): mọi lead của trường, có **ô tìm kiếm** (tên phụ huynh, tên bé, vài số cuối SĐT) và hai nút lọc **Cơ sở**, **Sale**. Khi phụ huynh tự gọi hoặc nhắn tới, sale gõ tìm, mở ra là bấm **Ghi nhận lần chăm sóc** được ngay, kể cả lead của sale khác (lần chăm sóc ghi tên người ghi; nhắc việc vẫn gửi sale phụ trách). Không thấy thì bấm **Thêm lead** ngay trên màn hình đó.
-3. **Của tôi**: mọi lead mình phụ trách, lọc nhanh theo Mức khẩn, Cơ sở, Tình trạng hiện tại.
-4. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc; nút **Ghi nhận lần chăm sóc**.
-5. **Form ghi nhận**: các lựa chọn ở mục 3, nút bấm thay vì gõ chữ.
-6. **Thêm lead** và **Messenger chưa nhận** (nút "Nhận lead này").
+2. **Của tôi**: **chỉ lead mình phụ trách** (sale không thấy lead của người khác), có **ô tìm kiếm** (tên phụ huynh, tên bé, vài số cuối SĐT), nhóm theo Mức khẩn. Khi phụ huynh tự gọi hoặc nhắn tới, sale gõ tìm, mở ra là bấm **Ghi nhận lần chăm sóc**. Không thấy thì bấm **Thêm lead**: nếu SĐT đó đã có trong hệ thống (do sale khác phụ trách), app báo chủ để chủ quyết định giao cho ai (mục 6).
+3. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc; nút **Ghi nhận lần chăm sóc**.
+4. **Form ghi nhận**: các lựa chọn ở mục 3, nút bấm thay vì gõ chữ.
+5. **Thêm lead** (lead tự tìm được: Zalo, hotline, đến trực tiếp…). Sale phụ trách tự điền là chính mình.
 
 ### Chủ (chỉ hiện với Vai trò = Chủ)
 
 - **Báo cáo tháng**: hai nút chọn **Tháng** và **Cơ sở** (mặc định tháng hiện tại, Tất cả). Hiện phễu Lead mới → Đã tư vấn → Đã tham quan → Đặt cọc → Nhập học, mỗi bước kèm số, % so với lead mới, % so với bước trước, và số lead mới so với tháng trước. Bấm vào để xem danh sách lead của tháng đó. Chọn tháng cũ để nhìn lại.
-- **Tất cả lead**: cùng màn với sale (ô tìm kiếm, lọc **Cơ sở**, **Sale**). Bấm vào một lead là thấy chi tiết và **dòng thời gian các lần tư vấn** (mới nhất trên cùng: ngày, sale, phương thức, tình trạng, mức quan tâm, phản hồi), kèm nút Nhắc sale. Trên máy tính, tab `Tổng hợp lead` của Sheet cho cùng thông tin.
+- **Tất cả lead** (chỉ chủ): mọi lead của trường, có ô tìm kiếm, lọc **Cơ sở**, **Sale**. Bấm vào một lead là thấy chi tiết và **dòng thời gian các lần tư vấn** (mới nhất trên cùng: ngày, sale, phương thức, tình trạng, mức quan tâm, phản hồi), kèm nút Nhắc sale. Trên máy tính, tab `Tổng hợp lead` của Sheet cho cùng thông tin.
 - **So sánh các tháng / các cơ sở**: bảng tab `Thống kê`, nhóm theo tháng, kèm biểu đồ lead mới theo tháng.
 - **Theo sale**: mỗi sale đang giữ bao nhiêu lead, đã liên hệ hôm nay bao nhiêu, quá hạn bao nhiêu, tỷ lệ chốt, số lần chăm sóc.
 - **Bỏ quên** và **Rất quan tâm chưa chốt**: danh sách chi tiết, **nhóm theo sale phụ trách** để chủ biết nhắc ai. Mỗi lead hiện tên phụ huynh, bé, cơ sở, sale phụ trách, số ngày quá hạn hoặc số ngày chưa cập nhật, và **lần cuối** (ngày · tình trạng · phản hồi). Nút **Nhắc sale** gửi email nhắc cho sale phụ trách và ghi lại thời điểm đã nhắc, để lần sau chủ biết mình đã nhắc chưa.
@@ -257,12 +256,18 @@ Phân tích sâu hơn (chất lượng theo chiến dịch, hiệu quả từng 
 
 - **Chủ nhắc sale**: chủ bấm **Nhắc sale** ở danh sách bỏ quên hoặc rất quan tâm chưa chốt → app gửi ngay email cho sale phụ trách: tên phụ huynh, bé, cơ sở, quá hạn bao lâu, lần cuối liên hệ, kèm link mở lead trong app. Không ghi SĐT trong email.
 
-**Không nhắc trùng với bot.** Bot nhắc tư vấn viên trên Telegram khi có tin nhắn **mới** chưa ai trả lời và gửi bản tổng hợp lúc 9h. App nhắc **gọi lại** những phụ huynh đã nhận vào hồ sơ. Quy ước: sale bấm "Nhận lead này" trong app thì reply `/xong` vào thẻ của phụ huynh đó trên Telegram, để bot ghi "Đã liên hệ" và thôi nhắc.
+- **Lead trùng**: khi một lead mới được thêm mà SĐT đã có ở lead khác, app gửi email cho chủ (tên hai lead, hai sale phụ trách) để chủ gộp hoặc giao lại. Cần vì sale không thấy lead của nhau nên có thể thêm trùng.
+- **Giao lead Messenger**: chủ thấy danh sách "Messenger chưa nhận" và giao cho sale. Sale được giao nhận email "Bạn được giao lead mới".
+
+**Không nhắc trùng với bot.** Bot nhắc tư vấn viên trên Telegram khi có tin nhắn **mới** chưa ai trả lời và gửi bản tổng hợp lúc 9h. App nhắc **gọi lại** những phụ huynh đã nhận vào hồ sơ. Quy ước: sau khi chủ giao lead Messenger trong app, người tư vấn reply `/xong` vào thẻ của phụ huynh đó trên Telegram, để bot ghi "Đã liên hệ" và thôi nhắc.
 
 ## 7. Quyền
 
 - Chỉ email có trong tab `Sale` (và **Đang làm** bật) đăng nhập được.
-- Mọi người xem được mọi lead. Sửa lần chăm sóc: người ghi hoặc chủ. Đổi Sale phụ trách và Tạm dừng: chỉ chủ.
+- **Sale chỉ xem và sửa lead mình phụ trách** cùng các lần chăm sóc của lead đó. Làm bằng **security filter** của AppSheet: dữ liệu của người khác không được tải về điện thoại sale (không chỉ ẩn trên màn hình).
+- **Chủ xem mọi lead**, phân lead (đổi Sale phụ trách), tạm dừng, giao lead Messenger, xem báo cáo. Sale không tải được tab `Leads` của bot và tab `Thống kê`.
+- Khi chủ chuyển lead sang sale khác, lead (kèm lịch sử chăm sóc) biến mất khỏi app của sale cũ và hiện ở app của sale mới.
+- Sửa lần chăm sóc: người ghi hoặc chủ.
 - Tab `Leads` của bot: chỉ đọc trong app.
 - Sheet chứa dữ liệu cá nhân của phụ huynh và trẻ: chỉ chia sẻ cho người cần dùng.
 
