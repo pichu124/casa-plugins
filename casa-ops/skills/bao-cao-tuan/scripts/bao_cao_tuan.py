@@ -10,6 +10,7 @@ Chỉ dùng thư viện chuẩn của Python. Mọi giờ là giờ Việt Nam, 
 Ví dụ:
     python3 bao_cao_tuan.py leads.csv
     python3 bao_cao_tuan.py leads.csv --tuan 2026-10-28 --now "2026-11-02 08:00"
+    python3 bao_cao_tuan.py leads.csv --format ngan   # tóm tắt để dán Zalo/email
     python3 bao_cao_tuan.py leads.csv --format json
 """
 
@@ -394,6 +395,28 @@ def markdown(bc: dict) -> str:
     return "\n".join(out) + "\n"
 
 
+def ban_ngan(bc: dict, toi_da_ten: int = 5) -> str:
+    """Bản tóm tắt chữ thường (không bảng, không Markdown) để dán vào nhóm Zalo hay thân email."""
+    t, tr, ss = bc["tuan"], bc["tuan_truoc"], bc["so_sanh"]
+    co_so = ", ".join(f"{c} {n}" for c, n in t["theo_co_so"].items() if n)
+    qc = "; ".join(f"{ten}: {q['lead']}, {q['co_sdt']} có SĐT" for ten, q in t["theo_quang_cao"].items())
+    ds = bc["cho_lien_he_qua_48h"]
+    dong = [
+        f"BÁO CÁO LEAD TUẦN {ngay(t['bat_dau'])} – {ngay(t['ket_thuc'])}",
+        f"- Lead mới: {t['lead_moi']}, tuần trước {tr['lead_moi']}, chênh {mo_ta_chenh(ss['lead_moi'])}",
+        f"- Có SĐT → đã hẹn: {pt(t['ty_le_sdt_hen'])} ({t['da_hen']}/{t['co_sdt']}); "
+        f"muốn hẹn chưa chốt: {t['muon_hen_chua_chot']}",
+        f"- Theo cơ sở: {co_so or 'chưa có'}",
+        f"- Từ quảng cáo: {t['lead_tu_quang_cao']}" + (f" ({qc})" if qc else ""),
+        f"- Có SĐT quá {GIO_CHO_TOI_DA} giờ chưa liên hệ: {len(ds)}",
+    ]
+    for x in ds[:toi_da_ten]:
+        dong.append(f"  • {x['ten']} ({x['sdt_4_so']}), {x['co_so']}, chờ {x['gio_cho']} giờ")
+    if len(ds) > toi_da_ten:
+        dong.append(f"  • … và {len(ds) - toi_da_ten} người nữa (xem báo cáo đầy đủ)")
+    return "\n".join(dong) + "\n"
+
+
 # ---------------------------------------------------------------- chạy
 
 
@@ -402,7 +425,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("file", type=Path, help="CSV hoặc XLSX xuất từ tab Leads")
     p.add_argument("--tuan", help="Một ngày bất kỳ trong tuần cần báo cáo (YYYY-MM-DD). Mặc định: tuần trước.")
     p.add_argument("--now", help="Giờ chạy báo cáo, giờ Việt Nam (YYYY-MM-DD HH:MM). Mặc định: bây giờ.")
-    p.add_argument("--format", choices=["markdown", "json"], default="markdown")
+    p.add_argument(
+        "--format",
+        choices=["markdown", "ngan", "json"],
+        default="markdown",
+        help="markdown: báo cáo đầy đủ; ngan: tóm tắt chữ thường để dán Zalo/email; json: số liệu",
+    )
     a = p.parse_args(argv)
 
     bay_gio = doc_gio(a.now) if a.now else gio_viet_nam()
@@ -420,6 +448,8 @@ def main(argv: list[str] | None = None) -> int:
     bc = lap_bao_cao(du_lieu, bat_dau, bay_gio)
     if a.format == "json":
         print(json.dumps(bc, ensure_ascii=False, indent=2))
+    elif a.format == "ngan":
+        print(ban_ngan(bc), end="")
     else:
         print(markdown(bc), end="")
     return 0

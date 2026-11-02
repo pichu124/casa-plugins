@@ -20,6 +20,14 @@ Nguồn: tài liệu "Tóm tắt về Casa" của trường và tài liệu nộ
 
 Báo cáo gọi tắt là **Chùa Láng**, **Mỹ Đình**, **Kim Mã**. Bot và phụ huynh có thể gọi Chùa Láng là "Hongkong" hay "HK", gọi Mỹ Đình là "FLC".
 
+### Pháp nhân và cách làm việc
+
+- Pháp nhân: Công ty Cổ phần Giáo dục Quốc tế Meridian. Website: https://casadeibambini.edu.vn/
+- Khoảng 31 – 100 nhân sự. **6 người** dùng các plugin này, phần lớn kiêm nhiệm nhiều việc và **không có người phụ trách kỹ thuật**: hướng dẫn phải ngắn, từng bước, không bắt gõ lệnh; kết quả phải dễ đọc, dễ theo dõi.
+- Công cụ (khảo sát 02/11/2026): Google Sheets làm CRM; Google Drive; Gmail và email tên miền riêng; **Zalo** để trao đổi nội bộ; MISA và Excel cho kế toán. Chưa dùng công cụ tự động hóa nào.
+- Kênh truyền thông: **Website, Facebook, Zalo OA**.
+- Việc tốn thời gian nhất: sau khi tư vấn phải tự nhập vào Sheet và tự nhớ để chăm sóc lại phụ huynh. Trường muốn hỗ trợ ở: trả lời lead mới, chăm sóc lại (follow-up), làm báo giá và hợp đồng.
+
 ## 2. Chương trình theo độ tuổi
 
 | Nhóm tuổi | Chương trình |

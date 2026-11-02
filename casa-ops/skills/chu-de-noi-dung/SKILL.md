@@ -55,9 +55,23 @@ Viết 3 – 5 nhận xét ngắn, mỗi nhận xét dựa trên một con số 
 Với **3 – 5 chủ đề đứng đầu** (trừ "Khác"), mỗi chủ đề:
 
 - **Phụ huynh thật sự lo gì**: một câu, dựa trên câu hỏi mẫu.
-- **1 – 2 ý bài đăng**: định dạng (bài viết, ảnh nhiều tấm, video ngắn, livestream hỏi đáp), thông điệp chính, điểm mạnh của Casa liên quan, gợi ý hình ảnh, lời mời cuối bài.
+- **1 – 2 ý bài đăng**, mỗi ý ghi rõ **kênh** (Facebook, Zalo OA hoặc Website, xem bảng dưới), định dạng, thông điệp chính, điểm mạnh của Casa liên quan, gợi ý hình ảnh, lời mời cuối bài. Một chủ đề nên có mặt trên cả ba kênh, mỗi kênh một cách viết.
 - **1 ý quảng cáo**: nhắm cơ sở và độ tuổi nào (theo số liệu bước 3), câu mở đầu, nội dung chính, lời mời.
 - Viết thử câu mở đầu hoặc đoạn ngắn **theo đúng giọng văn của Casa** (bối cảnh mục 5): xưng "em" hoặc "Casa", gọi "Ba/Mẹ", nhẹ nhàng, không dùng từ sale.
+
+### Theo kênh
+
+Trường đăng trên **Facebook, Zalo OA và Website** (khảo sát 02/11/2026).
+
+| Kênh | Định dạng hợp | Cách viết | Lời mời |
+|---|---|---|---|
+| Facebook (fanpage) | Bài viết kèm ảnh thật, album nhiều ảnh, video ngắn (reels), livestream hỏi đáp | Mở bằng câu hỏi phụ huynh hay hỏi; 3 – 6 đoạn ngắn; vài emoji nhẹ như 🌿 | Nhắn tin page để được tư vấn (bot Messenger sẽ tiếp), hoặc đặt lịch tham quan |
+| Zalo OA | Bài viết trên OA; tin nhắn gửi người quan tâm OA | Ngắn hơn Facebook, đi thẳng vào thông tin; tin nhắn gửi đi chỉ 2 – 4 câu | Nhắn OA hoặc để lại SĐT/Zalo để tư vấn viên gọi lại |
+| Website (casadeibambini.edu.vn) | Bài viết dạng hỏi đáp, cẩm nang cho phụ huynh | Tiêu đề chính là câu phụ huynh hay hỏi (dễ tìm trên Google); trả lời đầy đủ hơn, có mục nhỏ | Đăng ký tham quan, liên hệ |
+
+- Gửi tin hàng loạt qua Zalo OA có giới hạn và quy định riêng của Zalo: chỉ gợi ý nội dung tin, việc gửi cho ai và khi nào để trường quyết theo quy định hiện hành.
+- Bài website tái dùng được: câu trả lời tốt trên website có thể làm nguồn cho cặp hỏi đáp của bot (đưa vào qua skill `ra-soat-hoi-dap`).
+- Trường chưa xác định ngân sách quảng cáo, nên ý quảng cáo dừng ở mức ý tưởng (đối tượng, thông điệp, câu mở đầu), không tính chi phí.
 
 ### Gợi ý theo chủ đề
 
@@ -92,8 +106,8 @@ Thêm: Casa Talk Show, Casa Tranh Tài, sinh hoạt House và các ngoại khóa
 - Test của script, chạy bằng dữ liệu giả `tests/chu_de_mau.csv`: `python3 -m unittest discover -s casa-ops/skills/chu-de-noi-dung/tests -v`.
 - Bộ kiểm tra hành vi của skill nằm ở `casa-ops/evals/` (xem README ở đó).
 
-## Việc còn lại (chờ khảo sát)
+## Việc còn lại
 
-- Kênh đăng (Facebook, Zalo OA, TikTok…), số bài mỗi tuần và mẫu lịch nội dung.
-- Nối với số liệu quảng cáo (chi phí, lượt hiển thị, chi phí mỗi lead) nếu trường có connector Facebook Ads.
-- Ai duyệt nội dung trước khi đăng.
+- Số bài mỗi tuần và mẫu lịch nội dung: chưa có trong khảo sát, mặc định gợi ý theo 3 – 5 chủ đề đầu, người dùng muốn lịch theo tuần thì làm theo yêu cầu.
+- Nối với số liệu quảng cáo (chi phí, chi phí mỗi lead) khi trường xác định ngân sách và có connector Facebook Ads.
+- Ai duyệt nội dung trước khi đăng: chưa có trong khảo sát.

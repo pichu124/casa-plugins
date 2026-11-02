@@ -201,6 +201,39 @@ class TrinhBay(unittest.TestCase):
         self.assertIn("**3 lead mới**", f.getvalue())
 
 
+class BanNgan(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            bct.main([str(MAU), "--now", "2026-11-02 08:00", "--format", "ngan"])
+        cls.txt = f.getvalue()
+
+    def test_noi_dung(self):
+        self.assertTrue(self.txt.startswith("BÁO CÁO LEAD TUẦN 26/10/2026 – 01/11/2026"))
+        self.assertIn("Lead mới: 9, tuần trước 3, chênh +6", self.txt)
+        self.assertIn("33,3% (2/6)", self.txt)
+        self.assertIn("Theo cơ sở: Chùa Láng 2, Mỹ Đình 2, Kim Mã 3", self.txt)
+        self.assertIn("Bình Thử (…0412), Kim Mã, chờ 262 giờ", self.txt)
+
+    def test_chu_thuong(self):
+        # Dán vào Zalo: không có bảng Markdown, không có dấu ** hay #.
+        self.assertNotIn("|", self.txt)
+        self.assertNotIn("**", self.txt)
+        self.assertNotIn("#", self.txt)
+
+    def test_khong_lo_sdt(self):
+        self.assertIsNone(re.search(r"(?<!\d)0\d{9}(?!\d)", self.txt))
+        self.assertNotIn("GIA-", self.txt)
+
+    def test_cat_bot_danh_sach(self):
+        bc = lap()
+        bc["cho_lien_he_qua_48h"] = bc["cho_lien_he_qua_48h"] * 4  # 8 người
+        txt = bct.ban_ngan(bc)
+        self.assertEqual(txt.count("  • "), 6)
+        self.assertIn("… và 3 người nữa", txt)
+
+
 class DuLieuEval(unittest.TestCase):
     def test_scaffold_giong_file_mau(self):
         """Script tạo dữ liệu của bộ eval phải ghi đúng nội dung leads_mau.csv."""
