@@ -38,7 +38,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Mã lead`: tick **Key**; **Initial value** `UNIQUEID()`; bỏ tick **Show**.
 - `Ngày nhận`: Initial value `NOW()`; **Editable** tắt.
 - `SĐT`: Type **Phone**.
-- `Cơ sở`, `Nguồn`: Type **Enum**; trong **Valid If** nhập `SELECT(Danh mục[Giá trị], [Loại] = "Cơ sở")` (với Nguồn đổi chữ "Cơ sở" thành "Nguồn").
+- `Cơ sở`, `Nguồn`: Type **Enum** (`Nguồn` tick **Require**, báo cáo theo nguồn cần cột này); trong **Valid If** nhập `SELECT(Danh mục[Giá trị], [Loại] = "Cơ sở")` (với Nguồn đổi chữ "Cơ sở" thành "Nguồn").
 - `PH quan tâm`: Type **EnumList**, Valid If `SELECT(Danh mục[Giá trị], [Loại] = "Mối quan tâm")`.
 - `Sale phụ trách`: Type **Ref**, Source table `Sale`; Initial value `USEREMAIL()`; **Editable If** là công thức "ai là chủ" ở thiet-ke.md mục 4.
 - `Chất lượng lead`: Enum `Tốt`, `Trung bình`, `Kém`.
@@ -192,17 +192,19 @@ Chào <<[Sale phụ trách].[Tên]>>,
 Chủ nhắc bạn liên hệ phụ huynh <<[Tên phụ huynh]>> (bé <<[Tên bé]>>, cơ sở <<[Cơ sở]>>).
 Tình trạng: <<[Mức khẩn]>>. Lần cuối: <<[Lần cuối tóm tắt]>>.
 
-Mở lead trong app: <<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>
+Mở lead trong app: <<CONCATENATE("https://www.appsheet.com/start/<MÃ APP>", LINKTOROW([Mã lead], "Hồ sơ lead_Detail"))>>
 Sau khi liên hệ, nhớ bấm "Ghi nhận lần chăm sóc".
 ```
+
+Trong email, `LINKTOROW` chỉ cho nửa sau của link (`#control=…&row=…`), bấm không mở được. Ghép phía trước địa chỉ app `https://www.appsheet.com/start/<MÃ APP>` (mở app trong tab riêng, lấy đoạn trên thanh địa chỉ trước dấu `?` hoặc `#`).
 
 ### Email báo chủ khi có lead trùng, báo sale khi được giao lead
 
 **Automation** → **+ New bot** → `Lead trùng`: Event **Data change**, bảng `Hồ sơ lead`, **Adds only**; Condition `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Mã lead] <> [_THISROW].[Mã lead]))) > 0`. Task **Send an email** tới các email có Vai trò "Chủ": To `SELECT(Sale[Email], [Vai trò] = "Chủ")`; Subject `Lead trùng SĐT: <<[Tên phụ huynh]>>`; Body nêu lead mới (tên, sale phụ trách) và các lead cũ cùng SĐT: `<<Start: SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Mã lead] <> [_THISROW].[Mã lead]))>><<[Tên phụ huynh]>> · <<[Sale phụ trách].[Tên]>> · <<[Tình trạng hiện tại]>><<End>>`.
 
-**Automation** → **+ New bot** → `Được giao lead`: Event **Data change**, bảng `Hồ sơ lead`, **Adds and updates**; Condition `OR(ISBLANK([_THISROW_BEFORE].[Mã lead]), [_THISROW_BEFORE].[Sale phụ trách] <> [_THISROW_AFTER].[Sale phụ trách])` và người làm thay đổi là chủ: `LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"`. Task **Send an email** To `[Sale phụ trách].[Email]`, Subject `Bạn được giao lead mới: <<[Tên phụ huynh]>>`, kèm link `<<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>`.
+**Automation** → **+ New bot** → `Được giao lead`: Event **Data change**, bảng `Hồ sơ lead`, **Adds and updates**; Condition `AND(LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ", [Sale phụ trách] <> USEREMAIL(), OR(ISBLANK([_THISROW_BEFORE].[Mã lead]), [_THISROW_BEFORE].[Sale phụ trách] <> [_THISROW_AFTER].[Sale phụ trách]))` (người làm thay đổi là chủ, không giao cho chính mình, lead mới hoặc vừa đổi sale). Task **Send an email** To `[Sale phụ trách].[Email]`, Subject `Bạn được giao lead mới: <<[Tên phụ huynh]>>`, kèm link ghép địa chỉ app như bot Chủ nhắc sale.
 
-Hai bot này chạy trên máy chủ của AppSheet. Cần kiểm tra ở bước 10 rằng bot `Lead trùng` thấy được lead của mọi sale (không bị security filter của người bấm lưu che mất).
+Hai bot này chạy trên máy chủ của AppSheet; bật **Bypass Security Filters?** để bot `Lead trùng` thấy lead của mọi sale. Đã thử trên Sheet mẫu: cả 4 bot gửi đúng nội dung. Bot `Lead trùng` so SĐT y nguyên chữ: `0900 000 604` hay `+84900000604` không được coi là trùng với `0900000604`.
 
 ## Bước 9. Người dùng và quyền
 
