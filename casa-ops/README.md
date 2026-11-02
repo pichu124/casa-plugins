@@ -12,7 +12,8 @@ Plugin riêng của **Casa dei Bambini**, hệ thống mầm non ở Hà Nội (
 | `skills/chu-de-noi-dung` | Top chủ đề phụ huynh hỏi → gợi ý nội dung và quảng cáo |
 | `skills/ra-soat-hoi-dap` | Rà soát chất lượng bộ hỏi đáp của bot hằng tháng: gộp trùng, đánh dấu mâu thuẫn, sửa giọng văn, tìm câu đáng thành thông tin chung |
 
-- `bao-cao-tuan` và `chu-de-noi-dung` đã có script tính toán và test bằng dữ liệu giả. Còn chờ khảo sát để chốt kênh gửi, kênh đăng và lịch chạy tự động.
+- `bao-cao-tuan` dùng được: báo cáo đầy đủ trong chat, bản tóm tắt để dán nhóm Zalo, bản nháp Gmail. Chạy tự động 8h sáng thứ Hai bằng tác vụ hẹn giờ (xem dưới).
+- `chu-de-noi-dung` dùng được: xếp hạng chủ đề và gợi ý nội dung cho Facebook, Zalo OA, Website.
 - `ra-soat-hoi-dap` vẫn ở dạng **khung** (ưu tiên thấp nhất).
 - Hàm dùng chung (chuẩn hóa cơ sở, tuổi bé, ẩn SĐT) nằm ở `scripts/casa_chung.py`.
 
@@ -26,7 +27,23 @@ Bộ kiểm tra hành vi của skill nằm ở [`evals/`](evals/README.md).
 
 ## Connector
 
-Google Sheets và Google Drive, xem [CONNECTORS.md](CONNECTORS.md).
+Google Sheets, Google Drive và Gmail, xem [CONNECTORS.md](CONNECTORS.md). Zalo, Zalo OA và MISA chưa có connector.
+
+## Chạy báo cáo tuần tự động (8h sáng thứ Hai)
+
+Làm một lần, trong app Claude (Cowork):
+
+1. Kết nối **Google Sheets** và **Gmail** ở Cài đặt → Connectors.
+2. Tạo một **tác vụ hẹn giờ** (scheduled task) mới, lặp lại **mỗi thứ Hai lúc 8:00** giờ Việt Nam.
+3. Dán nội dung sau, thay link Sheet và email người nhận:
+
+   ```
+   Lập báo cáo lead tuần trước của Casa từ Sheet lead: <link Google Sheet>.
+   Đưa bản tóm tắt ngắn để dán Zalo, và tạo bản nháp Gmail gửi <email người nhận>.
+   ```
+4. Sáng thứ Hai: mở Gmail, xem bản nháp, bấm gửi. Copy bản tóm tắt ngắn dán vào nhóm Zalo.
+
+Báo cáo chỉ tạo bản nháp email, không tự gửi. Tên mục "tác vụ hẹn giờ" trong app có thể khác một chút tùy phiên bản.
 
 ## Nguyên tắc
 

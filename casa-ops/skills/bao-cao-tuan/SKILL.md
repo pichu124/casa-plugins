@@ -31,11 +31,12 @@ File CSV tạm chứa dữ liệu thật: để trong thư mục tạm, không �
 ## Bước 3. Chạy script
 
 ```bash
-python3 scripts/bao_cao_tuan.py <file> --now "<giờ Việt Nam hiện tại, YYYY-MM-DD HH:MM>" [--tuan YYYY-MM-DD] [--format json]
+python3 scripts/bao_cao_tuan.py <file> --now "<giờ Việt Nam hiện tại, YYYY-MM-DD HH:MM>" [--tuan YYYY-MM-DD] [--format markdown|ngan|json]
 ```
 
 - `--now` phải là giờ Việt Nam (UTC+7). Môi trường chạy thường để giờ UTC, nên luôn truyền `--now` cho chắc.
-- Mặc định script in báo cáo Markdown. Dùng `--format json` khi cần số liệu để làm tiếp (vẽ biểu đồ, so sánh nhiều tuần).
+- Mặc định script in báo cáo đầy đủ (Markdown). `--format ngan` in bản tóm tắt chữ thường, không bảng, để dán vào nhóm Zalo hay thân email. `--format json` cho số liệu để làm tiếp (vẽ biểu đồ, so sánh nhiều tuần).
+- Thường chạy hai lần trên cùng file: một lần bản đầy đủ, một lần `--format ngan`.
 - Script chỉ dùng thư viện chuẩn Python. File `.xlsx` cần thêm `openpyxl`; không có thì xuất CSV.
 
 Không chạy được Python thì tính tay theo đúng các quy tắc ở bước 4, và ghi ở đầu báo cáo là số liệu tính tay.
@@ -61,13 +62,36 @@ Không chạy được Python thì tính tay theo đúng các quy tắc ở bư�
 - Danh sách chờ quá 48 giờ là để chủ nắm tình hình. **Không** nhắn tư vấn viên hay phụ huynh: bot đã nhắc tư vấn viên trên Telegram.
 - Ghi chú về dữ liệu (hàng lỗi ngày, trùng ID, chưa rõ cơ sở hay tuổi) giữ ở cuối, để trường biết chỗ cần sửa trên Sheet.
 
+## Bước 6. Gửi báo cáo
+
+Trường trao đổi nội bộ qua **Zalo** (chưa có connector) và dùng **Gmail**. Sau khi trình bày báo cáo đầy đủ trong khung chat:
+
+1. **Đưa luôn bản tóm tắt ngắn** (`--format ngan`) trong một khối riêng, kèm câu: "Anh/chị copy đoạn này dán vào nhóm Zalo của ban giám hiệu." Bản này không có bảng nên dán vào Zalo vẫn dễ đọc.
+2. **Email (khi đã kết nối `~~email`)**: hỏi người nhận nếu chưa biết, rồi tạo **bản nháp** Gmail:
+   - Tiêu đề: `Báo cáo lead tuần DD/MM – DD/MM/YYYY`.
+   - Thân thư: bản tóm tắt ngắn, sau đó là báo cáo đầy đủ.
+   - **Chỉ tạo bản nháp, không tự bấm gửi**, trừ khi người dùng nói rõ "gửi luôn". Báo người dùng là bản nháp đang nằm trong mục Thư nháp của Gmail.
+   - Người dùng đã cho danh sách người nhận cố định thì dùng lại, không hỏi lại mỗi tuần.
+3. Không có `~~email` thì chỉ làm bước 1. Không gợi ý cài thêm công cụ.
+
+Không gửi báo cáo cho phụ huynh, không nhắn riêng từng tư vấn viên.
+
+## Chạy tự động 8h sáng thứ Hai
+
+Plugin không tự hẹn giờ được. Người dùng tạo **tác vụ hẹn giờ** (scheduled task) trong Cowork, lặp lại vào 8h sáng thứ Hai, với nội dung như sau (thay link Sheet và email người nhận):
+
+```
+Lập báo cáo lead tuần trước của Casa từ Sheet lead: <link Google Sheet>.
+Đưa bản tóm tắt ngắn để dán Zalo, và tạo bản nháp Gmail gửi <email người nhận>.
+```
+
+Khi tác vụ chạy, skill này làm đủ các bước trên. Hướng dẫn tạo tác vụ hẹn giờ ở `casa-ops/README.md`.
+
 ## Kiểm tra
 
 - Test của script, chạy bằng dữ liệu giả `tests/leads_mau.csv`: `python3 -m unittest discover -s casa-ops/skills/bao-cao-tuan/tests -v`.
 - Bộ kiểm tra hành vi của skill nằm ở `casa-ops/evals/` (xem README ở đó).
 
-## Việc còn lại (chờ khảo sát)
+## Việc còn lại
 
-- Báo cáo gửi cho ai và qua kênh nào (tin nhắn, Google Doc, email), có tách theo cơ sở không.
-- Cách chạy lúc 8h sáng thứ Hai: tác vụ hẹn giờ trong Cowork hoặc Claude Code, nằm trong tài khoản của ai.
 - Khi có Nhật ký chăm sóc (mục 3 file dữ liệu lead), thêm: lead theo sale, tỷ lệ chốt theo sale, lead bị bỏ quên, lead "Rất quan tâm" chưa chốt, lý do từ chối, chất lượng lead theo nguồn và chiến dịch, phễu Lead mới → Nhập học.
