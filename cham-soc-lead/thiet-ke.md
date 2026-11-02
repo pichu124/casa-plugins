@@ -13,7 +13,7 @@ Dựa trên "Mô tả yêu cầu phần mềm quản lý và chăm sóc lead ph�
 Các tab của app được thêm vào **cùng file Google Sheet mà bot Messenger đang ghi** (file có tab `Leads` và `Chủ đề`), để một file có đủ mọi thứ.
 
 - Tab **`Leads` của bot giữ nguyên**: app chỉ **đọc**, không sửa, không thêm cột. Script của bot ghi lại cả cột A đến P của một hàng mỗi lần có sự kiện, và dừng ghi nếu có người chiếm cột bot cần dùng sau này (`docs/google-sheet-leads.md` của repo bot, mục 5).
-- App có 6 tab riêng, đặt tên khác hẳn tab của bot để khỏi nhầm:
+- App có 7 tab riêng, đặt tên khác hẳn tab của bot để khỏi nhầm:
 
 | Tab | Mỗi hàng là | Ai ghi |
 |---|---|---|
@@ -23,6 +23,7 @@ Các tab của app được thêm vào **cùng file Google Sheet mà bot Messeng
 | `Danh mục` | Một lựa chọn trong danh sách (cơ sở, nguồn, lý do…) | Chủ |
 | `Cấu hình` | Một con số trong quy tắc nhắc | Chủ |
 | `Thống kê` | Một tháng của một cơ sở (hoặc "Tất cả"): phễu và tỷ lệ chuyển đổi | Công thức trong Sheet, tự tính |
+| `Tổng hợp lead` | Mọi lead đang có, lọc theo cơ sở, sale, tình trạng, mức khẩn, kèm quá trình tư vấn | Công thức trong Sheet, cho chủ xem trên máy tính |
 
 **Lead từ Messenger** không tự sang app. Trong app có danh sách "Messenger chưa nhận" (phụ huynh đã để SĐT cho bot mà chưa có hồ sơ). Sale hoặc chủ bấm **"Nhận lead này"**, app tạo hàng mới trong `Hồ sơ lead` với tên, tuổi bé, SĐT, quảng cáo và Customer ID lấy từ tab của bot. Customer ID dùng để nối hai bên và tránh nhận trùng.
 
@@ -115,6 +116,12 @@ Tab này **chỉ có công thức** (ở hàng 2), tự sinh mỗi tháng × m�
 **Tính theo tháng nhận lead**: lead về tháng 10 mà tháng 11 mới nhập học thì vẫn được tính vào tháng 10. Vì vậy số của tháng gần nhất còn tăng dần trong vài tuần sau, khi phụ huynh đi tham quan, đặt cọc. Cách tính này cho biết lead của tháng nào chuyển đổi tốt, và so được tháng với tháng.
 
 Công thức nằm ở `mau/thong-ke-cong-thuc.md`. Hàm `thong_ke_thang` trong `quy_tac_nhac.py` tính đúng các con số này để đối chiếu.
+
+### `Tổng hợp lead`
+
+Tab cho chủ mở trên máy tính, **đặt đầu tiên** trong file. Hàng 1 có 4 ô chọn: **Cơ sở**, **Sale**, **Tình trạng**, **Mức khẩn** (mặc định "Tất cả"). Bên dưới là mọi lead khớp bộ lọc, lead mới nhận lên đầu, mỗi lead một hàng: mã, ngày nhận, phụ huynh, bé, cơ sở, nguồn, sale, tình trạng hiện tại, mức quan tâm, lần cuối, hạn liên hệ, mức khẩn, số lần chăm sóc, và **quá trình tư vấn** (mỗi lần một dòng: ngày · sale · phương thức · tình trạng · phản hồi). Bấm vào ô quá trình tư vấn để đọc hết.
+
+Chỉ có công thức, không ai gõ vào tab này. Công thức và cách tính: `mau/tong-hop-lead-cong-thuc.md`.
 
 ## 4. Quy tắc nhắc
 
@@ -232,6 +239,7 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 ### Chủ (chỉ hiện với Vai trò = Chủ)
 
 - **Báo cáo tháng**: hai nút chọn **Tháng** và **Cơ sở** (mặc định tháng hiện tại, Tất cả). Hiện phễu Lead mới → Đã tư vấn → Đã tham quan → Đặt cọc → Nhập học, mỗi bước kèm số, % so với lead mới, % so với bước trước, và số lead mới so với tháng trước. Bấm vào để xem danh sách lead của tháng đó. Chọn tháng cũ để nhìn lại.
+- **Tất cả lead**: mọi lead của trường, lọc theo **Cơ sở** và **Sale** (nút chọn trong Settings, như Tháng), nhóm theo tình trạng. Bấm vào một lead là thấy chi tiết và **dòng thời gian các lần tư vấn** (mới nhất trên cùng: ngày, sale, phương thức, tình trạng, mức quan tâm, phản hồi), kèm nút Nhắc sale. Trên máy tính, tab `Tổng hợp lead` của Sheet cho cùng thông tin.
 - **So sánh các tháng / các cơ sở**: bảng tab `Thống kê`, nhóm theo tháng, kèm biểu đồ lead mới theo tháng.
 - **Theo sale**: mỗi sale đang giữ bao nhiêu lead, đã liên hệ hôm nay bao nhiêu, quá hạn bao nhiêu, tỷ lệ chốt, số lần chăm sóc.
 - **Bỏ quên** và **Rất quan tâm chưa chốt**: danh sách chi tiết, **nhóm theo sale phụ trách** để chủ biết nhắc ai. Mỗi lead hiện tên phụ huynh, bé, cơ sở, sale phụ trách, số ngày quá hạn hoặc số ngày chưa cập nhật, và **lần cuối** (ngày · tình trạng · phản hồi). Nút **Nhắc sale** gửi email nhắc cho sale phụ trách và ghi lại thời điểm đã nhắc, để lần sau chủ biết mình đã nhắc chưa.
@@ -266,5 +274,5 @@ Khi app chạy, plugin `casa-ops` (skill `bao-cao-tuan`) đọc thêm tab `Hồ 
 
 1. Dựng app trên **Sheet mẫu** (dữ liệu giả), theo [huong-dan-appsheet.md](huong-dan-appsheet.md).
 2. Thử với 1 – 2 sale trong một tuần, sửa theo phản hồi.
-3. Thêm 6 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
+3. Thêm 7 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
 4. Mở cho cả 6 sale.

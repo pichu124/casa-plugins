@@ -13,7 +13,7 @@ Tên nút trong AppSheet là tiếng Anh, ghi đúng như trên màn hình. Giao
    - Ở tab `Sale`, xoá hàng `chu@example.com`, rồi đổi **Vai trò** của hàng mang email của bạn thành `Chủ`.
    - Khi đó bạn là sale phụ trách lead Hoa Thử và Đào Thử, và thấy thêm các màn hình của chủ.
 
-Sheet có 7 tab: `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` (chỉ có công thức, tự tính theo tháng), và `Leads` (bản giả của tab bot ghi).
+Sheet có 8 tab: `Tổng hợp lead` (bảng cho chủ, chỉ có công thức), `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` (chỉ có công thức, tự tính theo tháng), và `Leads` (bản giả của tab bot ghi).
 
 ## Bước 1. Tạo app
 
@@ -71,6 +71,7 @@ Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như 
 
 - Bật một ô tùy chỉnh, đặt tên `Tháng`: Type **Enum**; **Valid If** `SORT(UNIQUE(Thống kê[Tháng]), TRUE)`; **Initial value** `TEXT(TODAY(), "YYYY-MM")`.
 - Ô thứ hai `Cơ sở`: Type **Enum**; Valid If `UNIQUE(Thống kê[Cơ sở])`; Initial value `"Tất cả"`.
+- Ô thứ ba `Sale`: Type **Enum**; Valid If `LIST("Tất cả") + SELECT(Sale[Tên], [Vai trò] = "Sale")`; Initial value `"Tất cả"`.
 
 Người dùng đổi tháng, cơ sở trong menu **Settings** của app; mọi màn hình báo cáo đổi theo.
 
@@ -87,6 +88,7 @@ Người dùng đổi tháng, cơ sở trong menu **Settings** của app; mọi 
 | Đề xuất tạm dừng | Hồ sơ lead | `[Đề xuất tạm dừng]` |
 | Messenger chưa nhận | Messenger | `AND(ISNOTBLANK([SĐT]), NOT(IN([Customer ID], Hồ sơ lead[Customer ID])), [Giai đoạn] <> "Không quan tâm")` |
 | Tháng đang chọn | Thống kê | `AND([Tháng] = USERSETTINGS("Tháng"), [Cơ sở] = USERSETTINGS("Cơ sở"))` |
+| Lead theo bộ lọc | Hồ sơ lead | `AND(OR(USERSETTINGS("Cơ sở") = "Tất cả", [Cơ sở] = USERSETTINGS("Cơ sở")), OR(USERSETTINGS("Sale") = "Tất cả", [Sale phụ trách].[Tên] = USERSETTINGS("Sale")))` |
 | Lead tháng đang chọn | Hồ sơ lead | `AND(TEXT([Ngày nhận], "YYYY-MM") = USERSETTINGS("Tháng"), OR(USERSETTINGS("Cơ sở") = "Tất cả", [Cơ sở] = USERSETTINGS("Cơ sở")))` |
 
 ## Bước 5. Màn hình (Views)
@@ -103,6 +105,7 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | Group by `Sale phụ trách`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Tình trạng hiện tại, Hạn liên hệ, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Đề xuất tạm dừng | Đề xuất tạm dừng | Table | menu | |
+| Tất cả lead | Lead theo bộ lọc | Table | menu | Group by `Tình trạng hiện tại`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Sale phụ trách, Mức khẩn, Lần cuối tóm tắt. Bấm vào dòng mở trang chi tiết có dòng thời gian tư vấn (xem dưới) |
 | Báo cáo tháng | Tháng đang chọn | Detail | menu | Hiện Tháng, Cơ sở, Lead mới, Lead mới tháng trước, rồi từng bước kèm tỷ lệ. Thêm cột ảo nếu muốn % so với bước trước, vd `IF([Đã tư vấn] = 0, 0, [Đã tham quan] / [Đã tư vấn])` |
 | Lead của tháng | Lead tháng đang chọn | Table | menu | Danh sách lead của tháng và cơ sở đang chọn, cột Tình trạng hiện tại, Nguồn, Sale phụ trách |
 | Các tháng | Thống kê | Table | menu | Group by `Tháng`; so sánh các tháng, các cơ sở |
@@ -114,7 +117,7 @@ Với 6 view cuối (của chủ), trong mục **Display** → **Show if** nhậ
 
 **Form `Chăm sóc`** (view `Chăm sóc_Form` AppSheet tự tạo): sắp thứ tự cột: Phương thức, Tình trạng, Mức quan tâm, Phản hồi, Lý do từ chối, Ngày hẹn gọi lại, Ngày hẹn tham quan. Ẩn Mã, Mã lead, Thời gian, Sale, Lần thứ, Hạn liên hệ tiếp.
 
-**Trang chi tiết `Hồ sơ lead`**: để `Tên phụ huynh`, `SĐT`, `Mức khẩn`, `Hạn liên hệ`, `Tình trạng hiện tại` lên đầu. Danh sách lần chăm sóc (`Related Chăm sócs`) hiện ở cuối, kèm nút **Add** để ghi lần mới.
+**Trang chi tiết `Hồ sơ lead`**: để `Tên phụ huynh`, `SĐT`, `Mức khẩn`, `Hạn liên hệ`, `Tình trạng hiện tại`, `Sale phụ trách`, `Chủ đã nhắc lúc` lên đầu. Danh sách lần chăm sóc (`Related Chăm sócs`) hiện ở cuối làm **dòng thời gian tư vấn**, kèm nút **Add** để ghi lần mới. Chỉnh view `Chăm sóc_Inline` (AppSheet tự tạo): Sort by `Thời gian` **giảm dần** (mới nhất trên cùng); cột hiện: Thời gian, Sale, Phương thức, Tình trạng, Mức quan tâm, Phản hồi.
 
 ## Bước 6. Nút bấm (Actions)
 
@@ -199,6 +202,8 @@ Mở app (nút **Preview** bên phải, hoặc mở link app trên điện tho�
 - [ ] **Messenger**: có **Cúc Thử** và **Nga Thử** (có SĐT, chưa nhận); không có Lan Thử (đã có hồ sơ) và khách chưa rõ tên (chưa có SĐT). Bấm **Nhận lead này** cho Cúc Thử: hồ sơ mới xuất hiện trong **Của tôi**, Cúc Thử biến mất khỏi danh sách Messenger.
 - [ ] **Theo sale**: Sale 6 đang giữ 1 lead; bạn (sale1) quá hạn 1 lead.
 - [ ] Thêm một lần chăm sóc "Từ chối": app bắt chọn Lý do từ chối, không hỏi Mức quan tâm.
+- [ ] **Tất cả lead**: Settings chọn Cơ sở **Mỹ Đình**, Sale **Tất cả** → ra Quang Thử, Hằng Thử, Lan Thử. Bấm Lan Thử → dòng thời gian 3 lần: 27/10 Đã hẹn tham quan (trên cùng), 24/10 Đang cân nhắc, 23/10 Đang cân nhắc. Chọn thêm Sale **Sale 1** → danh sách trống.
+- [ ] Tab **Tổng hợp lead** trên Sheet: chọn B1 = Mỹ Đình ra đúng 3 lead trên; cột Quá trình tư vấn của Lan Thử có 3 dòng.
 - [ ] **Bỏ quên** (màn của chủ): có đúng 3 lead: Đào Thử (của bạn, quá hạn 14 ngày), Minh Thử (Sale 5, quá hạn 3 ngày), Thu Thử (Sale 6, đã nhắc 3 lần, 9 ngày không cập nhật), nhóm theo sale. Lan Thử và Hoa Thử **không** có (đã có lịch hẹn); mỗi dòng có "Lần cuối" như "29/10 · Đang cân nhắc · Hỏi thực đơn…". Bấm **Nhắc sale** ở Đào Thử: cột Chủ nhắc lúc có giờ hiện tại, và email của bạn nhận được thư "Chủ nhắc: liên hệ Đào Thử".
 
 Nếu một bước sai, so công thức với thiet-ke.md mục 4. `quy_tac_nhac.py` tính được kết quả đúng cho mọi trường hợp để đối chiếu.
@@ -207,7 +212,7 @@ Nếu một bước sai, so công thức với thiet-ke.md mục 4. `quy_tac_nha
 
 Chỉ làm sau khi thử xong với 1 – 2 sale:
 
-1. Mở file Sheet thật của bot. Sao chép 6 tab `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` từ Sheet mẫu sang (chuột phải tên tab → **Sao chép vào** → chọn file thật). Đổi tên các tab sao chép cho bỏ chữ "Bản sao của". **Không** sao chép tab `Leads` mẫu: file thật đã có tab `Leads` của bot.
+1. Mở file Sheet thật của bot. Sao chép 7 tab `Tổng hợp lead`, `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` từ Sheet mẫu sang (chuột phải tên tab → **Sao chép vào** → chọn file thật). Đổi tên các tab sao chép cho bỏ chữ "Bản sao của". **Không** sao chép tab `Leads` mẫu: file thật đã có tab `Leads` của bot.
 2. Trong file thật, xoá dữ liệu giả ở `Hồ sơ lead` và `Chăm sóc` (giữ hàng tiêu đề), điền email thật của 6 sale và chủ vào `Sale`.
 3. Trong AppSheet: **Data** → từng bảng → **Source** → đổi sang file thật (cùng tên tab). Bấm **Regenerate structure** nếu được hỏi, kiểm tra lại kiểu cột.
 4. **Không** đổi gì ở tab `Leads` của bot, và không gõ tay lead nào vào tab đó. Lead từ Zalo, hotline, giới thiệu, đến trực tiếp… thêm bằng nút **Thêm lead** trong app (hoặc gõ vào tab `Hồ sơ lead`, xem thiet-ke.md mục 2).
