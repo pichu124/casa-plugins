@@ -54,7 +54,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Phương thức`, `Tình trạng`, `Mức quan tâm`: Type **Enum**, nhập các giá trị như thiet-ke.md; **Input mode** chọn **Buttons**; tick **Require**.
 - `Mức quan tâm`: Show If `NOT(IN([Tình trạng], LIST("Từ chối", "Chưa liên lạc được")))`; **Required If** dùng cùng công thức (bỏ tick Require).
 - `Lý do từ chối`: Enum, Valid If loại "Lý do từ chối"; Show If và Required If: `[Tình trạng] = "Từ chối"`.
-- `Ngày hẹn gọi lại`: Type Date; Show If `NOT(IN([Tình trạng], LIST("Từ chối", "Đã nhập học")))`; Required If `[Tình trạng] = "Yêu cầu gọi lại sau"`.
+- `Ngày hẹn gọi lại`: Type Date; **Initial value để trống** (AppSheet hay tự điền hôm nay, làm hạn liên hệ tiếp thành hôm nay; `Ngày hẹn tham quan` cũng vậy); Show If `NOT(IN([Tình trạng], LIST("Từ chối", "Đã nhập học")))`; Required If `[Tình trạng] = "Yêu cầu gọi lại sau"`.
 - `Ngày hẹn tham quan`: Type Date; Show If và Required If `[Tình trạng] = "Đã hẹn tham quan / học thử"`.
 - `Lần thứ`, `Hạn liên hệ tiếp`: điền **App formula** từ thiet-ke.md mục 4; bỏ tick Show trong form (vẫn hiện ở trang chi tiết nếu muốn).
 - **Thêm cột ảo** `Mốc gần nhất` (nút **Add virtual column**), Type Ref → `Chăm sóc`, công thức ở thiet-ke.md. Làm cột này **trước** khi nhập công thức `Lần thứ`.
@@ -117,6 +117,8 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | Lý do từ chối | Chăm sóc | Chart | menu | Cột `Lý do từ chối` |
 
 Với 6 view cuối (của chủ), trong mục **Display** → **Show if** nhập công thức "ai là chủ" (thiet-ke.md mục 4).
+
+**Mọi màn mở chung một trang chi tiết.** Mỗi slice có trang chi tiết riêng do AppSheet tự tạo (`Lead của tôi_Detail`, `Lead theo bộ lọc_Detail`…), nên chỉnh `Hồ sơ lead_Detail` không đủ. Tạo action **Mở hồ sơ** (bảng `Hồ sơ lead`, Do this **App: go to another view within this app**, Target `LINKTOROW([Mã lead], "Hồ sơ lead_Detail")`, Position **Hide**), rồi ở mỗi view danh sách lead (Hôm nay, Của tôi, Tất cả lead, Bỏ quên, Rất quan tâm chưa chốt, Đề xuất tạm dừng, Lead của tháng) đặt **Behavior → Row Selected** = `Mở hồ sơ`.
 
 **Form `Chăm sóc`** (view `Chăm sóc_Form` AppSheet tự tạo): sắp thứ tự cột: Phương thức, Tình trạng, Mức quan tâm, Phản hồi, Lý do từ chối, Ngày hẹn gọi lại, Ngày hẹn tham quan. Ẩn Mã, Mã lead, Thời gian, Sale, Lần thứ, Hạn liên hệ tiếp.
 
