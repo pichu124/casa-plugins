@@ -211,7 +211,7 @@ Công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra ch�
 | Bỏ quên | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), OR([Mức khẩn] = "Quá hạn", AND(ISBLANK([Hạn liên hệ]), [Ngày không cập nhật] > LOOKUP("Bỏ quên", "Cấu hình", "Khóa", "Giá trị"))))` |
 | Đề xuất tạm dừng | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), ISNOTBLANK([Lần cuối]), ISBLANK([Hạn liên hệ]))` |
 | Số ngày quá hạn | Number | `IF([Mức khẩn] = "Quá hạn", HOUR(TODAY() - [Hạn liên hệ]) / 24, 0)` |
-| Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], " · ", [Lần cuối].[Phản hồi]))` |
+| Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], IF(ISBLANK([Lần cuối].[Phản hồi]), "", CONCATENATE(" · ", [Lần cuối].[Phản hồi]))))` |
 
 **`Sale`**, các cột ảo cho màn hình của chủ:
 
