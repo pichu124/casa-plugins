@@ -27,6 +27,7 @@ Vào **Data** (biểu tượng cơ sở dữ liệu bên trái) → **+** (Add n
 
 - Bảng `Leads`: đổi tên hiển thị thành `Messenger`. Trong **Table settings**, mục **Are updates allowed?** chọn **Read-Only**. App không được sửa tab của bot.
 - Bảng `Danh mục`, `Cấu hình`: chọn **Read-Only** (chủ sửa trực tiếp trên Sheet).
+- Bảng `Cấu hình`: cột `Khóa` Type **Text**, tick **Key** và **Label**; `Giá trị` Type **Number**; bỏ Key/Label ở `Ý nghĩa`. AppSheet hay đoán `Khóa` là **Price** và đặt Key vào `Ý nghĩa`; khi đó mọi `LOOKUP(..., "Cấu hình", ...)` ra rỗng và hạn liên hệ tiếp chỉ bằng ngày gọi. Kiểm tra: Test `LOOKUP("L2", "Cấu hình", "Khóa", "Giá trị")` ra 3.
 - Bảng `Thống kê`: **Read-Only**; cột `Mã` là **Key**; cột `Tháng` đổi Type thành **Text** (AppSheet đoán `2026-10` là ngày 01/10/2026, làm ô chọn tháng ở bước 4a không khớp); cột Tỷ lệ… chọn Type **Percent**.
 
 ## Bước 3. Cột của từng bảng

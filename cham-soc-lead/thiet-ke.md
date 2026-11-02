@@ -187,9 +187,15 @@ IFS(
     DATE([Thời gian]) + LOOKUP("Hạn đặt cọc", "Cấu hình", "Khóa", "Giá trị"),
   [Lần thứ] > 3, "",
   [Tình trạng] = "Chưa liên lạc được", DATE([Thời gian]) + 1,
-  TRUE, DATE([Thời gian]) + LOOKUP(CONCATENATE("L", [Lần thứ]), "Cấu hình", "Khóa", "Giá trị")
+  TRUE, DATE([Thời gian]) + SWITCH([Lần thứ],
+    1, LOOKUP("L1", "Cấu hình", "Khóa", "Giá trị"),
+    2, LOOKUP("L2", "Cấu hình", "Khóa", "Giá trị"),
+    3, LOOKUP("L3", "Cấu hình", "Khóa", "Giá trị"),
+    1)
 )
 ```
+
+Không đặt tên cột vào trong tham số đầu của `LOOKUP` (vd `LOOKUP(CONCATENATE("L", [Lần thứ]), …)`): AppSheet đọc cột đó trên hàng của bảng được tra, nên ra rỗng. Vì vậy công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra chữ cố định.
 
 **`Hồ sơ lead`**, các cột ảo. `[Related Chăm sócs]` là danh sách lần chăm sóc AppSheet tự tạo khi `Chăm sóc` có cột Ref tới `Hồ sơ lead`; tên có thể hơi khác, xem trong mục **Columns**.
 
