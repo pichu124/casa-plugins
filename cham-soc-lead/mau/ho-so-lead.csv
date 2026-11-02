@@ -1,0 +1,9 @@
+Mã lead,Ngày nhận,Tên phụ huynh,Tên bé,Tuổi bé,SĐT,Cơ sở,Nguồn,Chiến dịch,PH quan tâm,Sale phụ trách,Customer ID,Chất lượng lead,Lý do chất lượng,Ghi chú,Tạm dừng
+L0001,2026-10-23 09:00:00,Lan Thử,Bé Na,3 tuổi,0900000601,Mỹ Đình,Facebook Messenger,QC Cambridge T10,"Học phí, Chương trình",sale3@example.com,GIA-M1,Tốt,,,FALSE
+L0002,2026-10-27 09:00:00,Hoa Thử,Bé Bông,2 tuổi,0900000602,Chùa Láng,Zalo,,Giờ học,sale1@example.com,,Trung bình,Ở quá xa,,FALSE
+L0003,2026-10-29 09:00:00,Minh Thử,Bé Su,18 tháng,0900000603,Kim Mã,Giới thiệu,,Ăn uống,sale5@example.com,,,,Phụ huynh bé Tôm giới thiệu,FALSE
+L0004,2026-10-30 09:00:00,Hằng Thử,Bé Mít,4 tuổi,0900000604,Mỹ Đình,Website,,Tiếng Anh,sale4@example.com,,Tốt,,,FALSE
+L0005,2026-10-21 09:00:00,Long Thử,Bé Bin,5 tuổi,0900000605,Chùa Láng,Facebook,QC Học phí,Học phí,sale2@example.com,,Kém,Học phí vượt khả năng,,FALSE
+L0006,2026-10-13 09:00:00,Thu Thử,Bé Cún,3 tuổi,0900000606,Kim Mã,Sự kiện,,Chương trình,sale6@example.com,,Tốt,,,FALSE
+L0007,2026-11-02 08:00:00,Quang Thử,Bé Tin,2 tuổi,0900000607,Mỹ Đình,Đến trực tiếp,,,sale3@example.com,,,,"Mới nhận sáng nay, chưa gọi",FALSE
+L0008,2026-10-18 09:00:00,Đào Thử,Bé Gạo,4 tuổi,0900000608,Chùa Láng,Facebook Messenger,QC Cambridge T10,Học phí,sale1@example.com,GIA-M2,Trung bình,Học phí vượt khả năng,,FALSE
