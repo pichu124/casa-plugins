@@ -18,6 +18,8 @@ Kho này sao từ [anthropics/knowledge-work-plugins](https://github.com/anthrop
 | [pdf-viewer](./pdf-viewer) | Xem, ghi chú, ký PDF (hợp đồng, đơn nhập học) | Bản gốc |
 | [cowork-plugin-management](./cowork-plugin-management) | Tạo và chỉnh plugin | Bản gốc |
 
+Ngoài plugin, thư mục [`cham-soc-lead/`](cham-soc-lead) chứa thiết kế và hướng dẫn dựng **ứng dụng chăm sóc lead** bằng AppSheet cho sale.
+
 Các plugin gốc viết theo chuẩn Mỹ. Khi làm việc cho Casa, dùng tiếng Việt, tiền VND, quy định Việt Nam và giọng văn với phụ huynh như mô tả trong [`casa-ops/references/boi-canh-casa.md`](casa-ops/references/boi-canh-casa.md).
 
 ## Cài đặt (làm một lần)

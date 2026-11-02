@@ -1,0 +1,15 @@
+Mã,Mã lead,Thời gian,Sale,Phương thức,Tình trạng,Mức quan tâm,Phản hồi,Lý do từ chối,Ngày hẹn gọi lại,Ngày hẹn tham quan,Lần thứ,Hạn liên hệ tiếp
+C0001,L0006,2026-10-13 09:00:00,sale6@example.com,Gọi điện,Đang cân nhắc,Quan tâm bình thường,,,,,1,2026-10-14
+C0002,L0006,2026-10-14 09:00:00,sale6@example.com,Zalo,Đang cân nhắc,Hời hợt,Chưa trả lời tin,,,,2,2026-10-17
+C0003,L0006,2026-10-17 09:00:00,sale6@example.com,Gọi điện,Đang cân nhắc,Hời hợt,Hẹn suy nghĩ thêm,,,,3,2026-10-24
+C0004,L0008,2026-10-18 10:00:00,sale1@example.com,Messenger (Facebook),Đang cân nhắc,Quan tâm bình thường,Hỏi học phí lớp 4 tuổi,,,,1,2026-10-19
+C0005,L0005,2026-10-21 09:00:00,sale2@example.com,Gọi điện,Từ chối,,Thấy học phí cao,Học phí,,,1,
+C0006,L0001,2026-10-23 10:00:00,sale3@example.com,Gọi điện,Đang cân nhắc,Quan tâm bình thường,"Băn khoăn học phí, muốn hỏi thêm chồng",,,,1,2026-10-24
+C0007,L0006,2026-10-24 09:00:00,sale6@example.com,Zalo,Đang cân nhắc,Hời hợt,Chưa phản hồi,,,,4,
+C0008,L0001,2026-10-24 15:00:00,sale3@example.com,Zalo,Đang cân nhắc,Quan tâm bình thường,Đã gửi thông tin chương trình,,,,2,2026-10-27
+C0009,L0001,2026-10-27 09:00:00,sale3@example.com,Gọi điện,Đã hẹn tham quan / học thử,Rất quan tâm,Hẹn đến xem trường,,,2026-11-04,1,2026-11-03
+C0010,L0002,2026-10-27 11:00:00,sale1@example.com,Gọi điện,Chưa liên lạc được,,Không nghe máy,,,,1,2026-10-28
+C0011,L0002,2026-10-28 14:00:00,sale1@example.com,Zalo,Yêu cầu gọi lại sau,Hời hợt,"Bận, hẹn tuần sau",,2026-11-02,,2,2026-11-02
+C0012,L0003,2026-10-29 16:00:00,sale5@example.com,Gọi điện,Đang cân nhắc,Quan tâm bình thường,"Hỏi thực đơn, đang so sánh trường khác",,,,1,2026-10-30
+C0013,L0004,2026-10-30 10:00:00,sale4@example.com,Gặp trực tiếp tại trường,Đã tham quan / học thử,Rất quan tâm,"Bé thích lớp, phụ huynh hỏi lịch nhập học",,,,1,2026-10-31
+C0014,L0004,2026-11-01 09:00:00,sale4@example.com,Gọi điện,Đã đặt cọc,Rất quan tâm,Đã chuyển khoản đặt cọc,,,,1,2026-11-08

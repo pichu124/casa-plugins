@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'casa-ops/**'
+      - 'cham-soc-lead/**'
       - '.github/workflows/test-casa-ops.yml'
   workflow_dispatch:
 
@@ -26,3 +27,5 @@ jobs:
         run: python3 -m unittest discover -s casa-ops/skills/bao-cao-tuan/tests -v
       - name: Test chu-de-noi-dung
         run: python3 -m unittest discover -s casa-ops/skills/chu-de-noi-dung/tests -v
+      - name: Test quy tắc nhắc chăm sóc lead
+        run: python3 -m unittest discover -s cham-soc-lead -v

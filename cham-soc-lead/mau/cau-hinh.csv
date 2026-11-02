@@ -1,0 +1,6 @@
+Khóa,Giá trị,Ý nghĩa
+L1,1,Số ngày nhắc lần 1 sau lần liên hệ trước
+L2,3,Số ngày nhắc lần 2
+L3,7,Số ngày nhắc lần 3. Sau lần 3 chưa chốt thì đề xuất tạm dừng
+Bỏ quên,3,Quá chừng này ngày không cập nhật thì vào danh sách bỏ quên của chủ
+Hạn đặt cọc,7,Số ngày sau đặt cọc thì nhắc hoàn tất thủ tục nhập học
