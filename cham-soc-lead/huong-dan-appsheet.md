@@ -152,7 +152,7 @@ AppSheet tự có nút Gọi và SMS cho cột kiểu Phone.
 
 - `[Mức khẩn] = "Quá hạn"`: chữ đỏ, đậm, biểu tượng cảnh báo.
 - `[Mức khẩn] = "Hôm nay"`: chữ cam.
-- `[Đề xuất tạm dừng]`: chữ xám.
+- `[Đề xuất tạm dừng]`: chữ xanh dương (xám nhìn gần như đen).
 
 ## Bước 8. Email nhắc mỗi sáng
 
@@ -174,6 +174,10 @@ Mở app Casa Chăm sóc lead để ghi nhận sau mỗi lần liên hệ.
 ```
 
 Email không ghi SĐT.
+
+Bật **Bypass Security Filters?** ở mọi bot (Nhắc việc, Chủ nhắc sale, Lead trùng, Được giao lead): bot cần thấy lead của mọi sale, không bị bộ lọc ở bước 9 che.
+
+**Thử bot mà không làm phiền sale:** chừng nào app chưa **Deploy** (bước 11), AppSheet gửi mọi email về người tạo app, kèm dòng "App version … is not deployed". Để ô To đúng công thức (`[Email]`), bấm **Run** ở trang bot, rồi đọc thư trong hộp thư của người tạo: mỗi sale một thư.
 
 ### Email khi chủ nhắc sale
 
