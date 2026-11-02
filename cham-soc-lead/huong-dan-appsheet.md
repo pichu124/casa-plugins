@@ -73,7 +73,7 @@ Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như 
 - Ô thứ hai `Cơ sở`: Type **Enum**; Valid If `UNIQUE(Thống kê[Cơ sở])`; Initial value `"Tất cả"`.
 - Ô thứ ba `Sale`: Type **Enum**; Valid If `LIST("Tất cả") + SELECT(Sale[Tên], [Vai trò] = "Sale")`; Initial value `"Tất cả"`.
 
-Người dùng đổi tháng, cơ sở trong menu **Settings** của app; mọi màn hình báo cáo đổi theo.
+Người dùng (cả sale lẫn chủ) đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **Tất cả lead** và các màn báo cáo đổi theo.
 
 ## Bước 4. Lát cắt dữ liệu (Slices)
 
@@ -99,13 +99,12 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 |---|---|---|---|---|
 | Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Đặt làm **Starting view** (Settings → Views → General) |
 | Của tôi | Lead của tôi | Deck | next | Group by `Mức khẩn` |
-| Tìm phụ huynh | Hồ sơ lead | Deck | next | Toàn bộ lead của trường. Ô tìm kiếm có sẵn ở góc trên; Group by `Cơ sở`. Khi phụ huynh tự gọi tới: gõ tên hoặc vài số cuối SĐT, mở ra, ghi nhận |
 | Messenger | Messenger chưa nhận | Table | menu | |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | Group by `Sale phụ trách`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Tình trạng hiện tại, Hạn liên hệ, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Đề xuất tạm dừng | Đề xuất tạm dừng | Table | menu | |
-| Tất cả lead | Lead theo bộ lọc | Table | menu | Group by `Tình trạng hiện tại`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Sale phụ trách, Mức khẩn, Lần cuối tóm tắt. Bấm vào dòng mở trang chi tiết có dòng thời gian tư vấn (xem dưới) |
+| Tất cả lead | Lead theo bộ lọc | Deck | next | **Dùng chung cho sale và chủ** (không đặt Show if). Ô tìm kiếm có sẵn ở góc trên; lọc Cơ sở, Sale bằng User settings (bước 4a). Hiện Tên phụ huynh, Tên bé, Cơ sở, Sale phụ trách, Mức khẩn, Tình trạng hiện tại. Bấm vào mở trang chi tiết có dòng thời gian tư vấn (xem dưới) |
 | Báo cáo tháng | Tháng đang chọn | Detail | menu | Hiện Tháng, Cơ sở, Lead mới, Lead mới tháng trước, rồi từng bước kèm tỷ lệ. Thêm cột ảo nếu muốn % so với bước trước, vd `IF([Đã tư vấn] = 0, 0, [Đã tham quan] / [Đã tư vấn])` |
 | Lead của tháng | Lead tháng đang chọn | Table | menu | Danh sách lead của tháng và cơ sở đang chọn, cột Tình trạng hiện tại, Nguồn, Sale phụ trách |
 | Các tháng | Thống kê | Table | menu | Group by `Tháng`; so sánh các tháng, các cơ sở |
@@ -194,7 +193,7 @@ Sau khi liên hệ, nhớ bấm "Ghi nhận lần chăm sóc".
 Mở app (nút **Preview** bên phải, hoặc mở link app trên điện thoại). Với Sheet mẫu tạo ngày 02/11/2026 và `sale1@example.com` đã đổi thành email của bạn (bước 0), kết quả đúng là:
 
 - [ ] Màn hình **Hôm nay** có **Hoa Thử** (hẹn gọi lại hôm nay) và **Đào Thử** (quá hạn, chữ đỏ).
-- [ ] **Tìm phụ huynh** có 8 lead. Gõ "Minh" ra Minh Thử; gõ "0604" ra Hằng Thử (lead của Sale 4). Mở Hằng Thử, ghi nhận một lần: lưu được, và lần đó mang email của bạn.
+- [ ] **Tất cả lead** có 8 lead. Gõ "Minh" vào ô tìm ra Minh Thử; gõ "0604" ra Hằng Thử (lead của Sale 4). Mở Hằng Thử, ghi nhận một lần: lưu được, và lần đó mang email của bạn.
 - [ ] Settings chọn Tháng **2026-10**, Cơ sở **Tất cả** → **Báo cáo tháng**: Lead mới 7, Đã tư vấn 7, Đã tham quan 1, Đã đặt cọc 1, Đã nhập học 0, Tỷ lệ tham quan 14%. Đổi Cơ sở sang **Mỹ Đình**: 2, 2, 1, 1, 0. Chọn Tháng **2026-11**, Tất cả: Lead mới 1, Lead mới tháng trước 7.
 - [ ] Mở **Thu Thử**: Tình trạng hiện tại "Đang cân nhắc", Lần thứ 4, nằm trong **Đề xuất tạm dừng**.
 - [ ] Mở **Lan Thử**: hạn liên hệ 03/11/2026 (xác nhận lịch tham quan ngày 04/11).
@@ -202,7 +201,7 @@ Mở app (nút **Preview** bên phải, hoặc mở link app trên điện tho�
 - [ ] **Messenger**: có **Cúc Thử** và **Nga Thử** (có SĐT, chưa nhận); không có Lan Thử (đã có hồ sơ) và khách chưa rõ tên (chưa có SĐT). Bấm **Nhận lead này** cho Cúc Thử: hồ sơ mới xuất hiện trong **Của tôi**, Cúc Thử biến mất khỏi danh sách Messenger.
 - [ ] **Theo sale**: Sale 6 đang giữ 1 lead; bạn (sale1) quá hạn 1 lead.
 - [ ] Thêm một lần chăm sóc "Từ chối": app bắt chọn Lý do từ chối, không hỏi Mức quan tâm.
-- [ ] **Tất cả lead**: Settings chọn Cơ sở **Mỹ Đình**, Sale **Tất cả** → ra Quang Thử, Hằng Thử, Lan Thử. Bấm Lan Thử → dòng thời gian 3 lần: 27/10 Đã hẹn tham quan (trên cùng), 24/10 Đang cân nhắc, 23/10 Đang cân nhắc. Chọn thêm Sale **Sale 1** → danh sách trống.
+- [ ] **Tất cả lead** với bộ lọc: Settings chọn Cơ sở **Mỹ Đình**, Sale **Tất cả** → ra Quang Thử, Hằng Thử, Lan Thử. Bấm Lan Thử → dòng thời gian 3 lần: 27/10 Đã hẹn tham quan (trên cùng), 24/10 Đang cân nhắc, 23/10 Đang cân nhắc. Chọn thêm Sale **Sale 1** → danh sách trống.
 - [ ] Tab **Tổng hợp lead** trên Sheet: chọn B1 = Mỹ Đình ra đúng 3 lead trên; cột Quá trình tư vấn của Lan Thử có 3 dòng.
 - [ ] **Bỏ quên** (màn của chủ): có đúng 3 lead: Đào Thử (của bạn, quá hạn 14 ngày), Minh Thử (Sale 5, quá hạn 3 ngày), Thu Thử (Sale 6, đã nhắc 3 lần, 9 ngày không cập nhật), nhóm theo sale. Lan Thử và Hoa Thử **không** có (đã có lịch hẹn); mỗi dòng có "Lần cuối" như "29/10 · Đang cân nhắc · Hỏi thực đơn…". Bấm **Nhắc sale** ở Đào Thử: cột Chủ nhắc lúc có giờ hiện tại, và email của bạn nhận được thư "Chủ nhắc: liên hệ Đào Thử".
 
