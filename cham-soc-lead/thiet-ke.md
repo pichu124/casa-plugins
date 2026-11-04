@@ -187,9 +187,15 @@ IFS(
     DATE([Thời gian]) + LOOKUP("Hạn đặt cọc", "Cấu hình", "Khóa", "Giá trị"),
   [Lần thứ] > 3, "",
   [Tình trạng] = "Chưa liên lạc được", DATE([Thời gian]) + 1,
-  TRUE, DATE([Thời gian]) + LOOKUP(CONCATENATE("L", [Lần thứ]), "Cấu hình", "Khóa", "Giá trị")
+  TRUE, DATE([Thời gian]) + SWITCH([Lần thứ],
+    1, LOOKUP("L1", "Cấu hình", "Khóa", "Giá trị"),
+    2, LOOKUP("L2", "Cấu hình", "Khóa", "Giá trị"),
+    3, LOOKUP("L3", "Cấu hình", "Khóa", "Giá trị"),
+    1)
 )
 ```
+
+Công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra chữ cố định (đã chạy đúng trong AppSheet). Đặt tên cột vào trong `LOOKUP` có thể bị AppSheet đọc trên hàng của bảng được tra, nên tránh.
 
 **`Hồ sơ lead`**, các cột ảo. `[Related Chăm sócs]` là danh sách lần chăm sóc AppSheet tự tạo khi `Chăm sóc` có cột Ref tới `Hồ sơ lead`; tên có thể hơi khác, xem trong mục **Columns**.
 
@@ -205,7 +211,7 @@ IFS(
 | Bỏ quên | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), OR([Mức khẩn] = "Quá hạn", AND(ISBLANK([Hạn liên hệ]), [Ngày không cập nhật] > LOOKUP("Bỏ quên", "Cấu hình", "Khóa", "Giá trị"))))` |
 | Đề xuất tạm dừng | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), ISNOTBLANK([Lần cuối]), ISBLANK([Hạn liên hệ]))` |
 | Số ngày quá hạn | Number | `IF([Mức khẩn] = "Quá hạn", HOUR(TODAY() - [Hạn liên hệ]) / 24, 0)` |
-| Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], " · ", [Lần cuối].[Phản hồi]))` |
+| Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], IF(ISBLANK([Lần cuối].[Phản hồi]), "", CONCATENATE(" · ", [Lần cuối].[Phản hồi]))))` |
 
 **`Sale`**, các cột ảo cho màn hình của chủ:
 
@@ -216,7 +222,7 @@ IFS(
 | Quá hạn | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Mức khẩn] = "Quá hạn")))` |
 | Tổng lead | `COUNT(SELECT(Hồ sơ lead[Mã lead], [Sale phụ trách] = [_THISROW].[Email]))` |
 | Đã nhập học | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Tình trạng hiện tại] = "Đã nhập học")))` |
-| Tỷ lệ chốt | `IF([Tổng lead] = 0, 0, [Đã nhập học] / [Tổng lead])`, kiểu Percent |
+| Tỷ lệ chốt | `IF([Tổng lead] = 0, 0, DECIMAL([Đã nhập học]) / [Tổng lead])`, kiểu Percent. Phải có `DECIMAL`: AppSheet chia hai số nguyên thì làm tròn xuống (1/4 ra 0) |
 | Số lần chăm sóc | `COUNT(SELECT(Chăm sóc[Mã], [Sale] = [_THISROW].[Email]))` |
 
 **Ai là chủ** (dùng trong điều kiện hiện màn hình, quyền sửa):

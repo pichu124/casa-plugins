@@ -19,7 +19,7 @@ Sheet có 8 tab: `Tổng hợp lead` (bảng cho chủ, chỉ có công thức),
 
 1. Vào **appsheet.com** → **Create** → **App** → **Start with existing data**.
 2. Tên app: `Casa Chăm sóc lead`. Category: để mặc định. **Choose your data** → chọn bản sao Sheet ở bước 0.
-3. AppSheet tự tạo app từ tab đầu tiên (`Hồ sơ lead`). Chờ nó dựng xong.
+3. AppSheet tự tạo app từ **tab đầu tiên** của Sheet. Trước khi tạo, kéo tab `Hồ sơ lead` lên đầu (bản sao có thể để `Tổng hợp lead` đứng đầu; tab đó chỉ có công thức, không dùng làm bảng). Chờ app dựng xong.
 
 ## Bước 2. Thêm các bảng
 
@@ -27,7 +27,8 @@ Vào **Data** (biểu tượng cơ sở dữ liệu bên trái) → **+** (Add n
 
 - Bảng `Leads`: đổi tên hiển thị thành `Messenger`. Trong **Table settings**, mục **Are updates allowed?** chọn **Read-Only**. App không được sửa tab của bot.
 - Bảng `Danh mục`, `Cấu hình`: chọn **Read-Only** (chủ sửa trực tiếp trên Sheet).
-- Bảng `Thống kê`: **Read-Only**; cột `Mã` là **Key**; cột Tỷ lệ… chọn Type **Percent**.
+- Bảng `Cấu hình`: cột `Khóa` Type **Text**, tick **Key** và **Label**; `Giá trị` Type **Number**; bỏ Key/Label ở `Ý nghĩa`. AppSheet hay đoán `Khóa` là **Price** và đặt Key vào `Ý nghĩa`; khi đó mọi `LOOKUP(..., "Cấu hình", ...)` ra rỗng và hạn liên hệ tiếp chỉ bằng ngày gọi. Kiểm tra: Test `LOOKUP("L2", "Cấu hình", "Khóa", "Giá trị")` ra 3.
+- Bảng `Thống kê`: **Read-Only**; cột `Mã` là **Key**; cột `Tháng` đổi Type thành **Text** (AppSheet đoán `2026-10` là ngày 01/10/2026, làm ô chọn tháng ở bước 4a không khớp); cột Tỷ lệ… chọn Type **Percent**.
 
 ## Bước 3. Cột của từng bảng
 
@@ -37,15 +38,15 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Mã lead`: tick **Key**; **Initial value** `UNIQUEID()`; bỏ tick **Show**.
 - `Ngày nhận`: Initial value `NOW()`; **Editable** tắt.
 - `SĐT`: Type **Phone**.
-- `Cơ sở`, `Nguồn`: Type **Enum**; trong **Valid If** nhập `SELECT(Danh mục[Giá trị], [Loại] = "Cơ sở")` (với Nguồn đổi chữ "Cơ sở" thành "Nguồn").
+- `Cơ sở`, `Nguồn`: Type **Enum** (`Nguồn` tick **Require**, báo cáo theo nguồn cần cột này); trong **Valid If** nhập `SELECT(Danh mục[Giá trị], [Loại] = "Cơ sở")` (với Nguồn đổi chữ "Cơ sở" thành "Nguồn").
 - `PH quan tâm`: Type **EnumList**, Valid If `SELECT(Danh mục[Giá trị], [Loại] = "Mối quan tâm")`.
 - `Sale phụ trách`: Type **Ref**, Source table `Sale`; Initial value `USEREMAIL()`; **Editable If** là công thức "ai là chủ" ở thiet-ke.md mục 4.
 - `Chất lượng lead`: Enum `Tốt`, `Trung bình`, `Kém`.
 - `Lý do chất lượng`: Enum, Valid If `SELECT(Danh mục[Giá trị], [Loại] = "Lý do chất lượng")`; **Show If** `IN([Chất lượng lead], LIST("Trung bình", "Kém"))`.
 - `Customer ID`: bỏ tick **Show**.
 - `Tên phụ huynh`, `Tên bé`, `SĐT`: tick **Search** (để ô tìm kiếm tìm được theo các cột này). Bỏ tick Search ở các cột còn lại cho kết quả gọn.
-- `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ".
-- `Chủ nhắc lúc`: Type **DateTime**; **Editable** tắt (chỉ nút Nhắc sale ghi vào); Show If `ISNOTBLANK([Chủ nhắc lúc])`; Display name `Chủ đã nhắc lúc`.
+- `Tạm dừng`: Type **Yes/No**; Editable If là công thức "ai là chủ"; **Initial value** `FALSE`; **không** tick Require (sale không sửa được ô này, nếu bắt buộc thì sale không lưu được lead mới).
+- `Chủ nhắc lúc`: Type **DateTime**; **Initial value để trống** (nếu AppSheet tự điền `NOW()`, mọi lead mới đều bị coi là chủ vừa nhắc và gửi email nhắc nhầm); **Editable** tắt (chỉ nút Nhắc sale ghi vào); Show If `ISNOTBLANK([Chủ nhắc lúc])`; Display name `Chủ đã nhắc lúc`.
 
 **`Chăm sóc`**
 - `Mã`: Key, Initial value `UNIQUEID()`, ẩn.
@@ -54,14 +55,16 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 - `Phương thức`, `Tình trạng`, `Mức quan tâm`: Type **Enum**, nhập các giá trị như thiet-ke.md; **Input mode** chọn **Buttons**; tick **Require**.
 - `Mức quan tâm`: Show If `NOT(IN([Tình trạng], LIST("Từ chối", "Chưa liên lạc được")))`; **Required If** dùng cùng công thức (bỏ tick Require).
 - `Lý do từ chối`: Enum, Valid If loại "Lý do từ chối"; Show If và Required If: `[Tình trạng] = "Từ chối"`.
-- `Ngày hẹn gọi lại`: Type Date; Show If `NOT(IN([Tình trạng], LIST("Từ chối", "Đã nhập học")))`; Required If `[Tình trạng] = "Yêu cầu gọi lại sau"`.
+- `Ngày hẹn gọi lại`: Type Date; **Initial value để trống** (AppSheet hay tự điền hôm nay, làm hạn liên hệ tiếp thành hôm nay; `Ngày hẹn tham quan` cũng vậy); Show If `NOT(IN([Tình trạng], LIST("Từ chối", "Đã nhập học")))`; Required If `[Tình trạng] = "Yêu cầu gọi lại sau"`.
 - `Ngày hẹn tham quan`: Type Date; Show If và Required If `[Tình trạng] = "Đã hẹn tham quan / học thử"`.
 - `Lần thứ`, `Hạn liên hệ tiếp`: điền **App formula** từ thiet-ke.md mục 4; bỏ tick Show trong form (vẫn hiện ở trang chi tiết nếu muốn).
 - **Thêm cột ảo** `Mốc gần nhất` (nút **Add virtual column**), Type Ref → `Chăm sóc`, công thức ở thiet-ke.md. Làm cột này **trước** khi nhập công thức `Lần thứ`.
 
-**`Sale`**: `Email` là Key, Type Email; `Vai trò` Enum `Sale`, `Chủ`; `Đang làm` Yes/No.
+**`Sale`**: `Email` là Key, Type Email (bỏ Key ở `_RowNumber`); `Tên` là Label; `Vai trò` Enum `Sale`, `Chủ`; `Đang làm` Yes/No.
 
-**`Messenger`** (tab `Leads`): Key là `Customer ID`. Nếu AppSheet báo tên cột có dấu `/` (như `Cơ sở/hệ`) không hợp lệ, nó sẽ tự đổi tên hiển thị; ghi lại tên mới để dùng ở bước 6.
+**`Messenger`** (tab `Leads`): Key là `Customer ID` (AppSheet hay tự chọn `Thời gian`, phải đổi); Label là `Tên Facebook`; `SĐT` đổi Type thành **Phone** (AppSheet đoán Number, làm mất số 0 đầu); bỏ Require ở `Thời gian`, `SĐT`. Nếu AppSheet báo tên cột có dấu `/` (như `Cơ sở/hệ`) không hợp lệ, nó sẽ tự đổi tên hiển thị; ghi lại tên mới để dùng ở bước 6.
+
+Mỗi bảng chỉ để **một** cột tick Label (AppSheet có khi tick sẵn nhiều cột). Ngày trong app hiển thị theo ngôn ngữ của trình duyệt hoặc điện thoại (máy tiếng Anh hiện 10/19/2026, máy tiếng Việt hiện 19/10/2026); không có ô chỉnh trong AppSheet. Đừng đổi **Data locale** của bảng nếu ngày đang đọc đúng.
 
 Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như bảng ở thiet-ke.md mục 4. Thêm theo thứ tự trong bảng, vì cột sau dùng cột trước.
 
@@ -77,7 +80,9 @@ Chủ đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **T�
 
 ## Bước 4. Lát cắt dữ liệu (Slices)
 
-**Data** → bảng → **Slices** → **New slice**:
+**Data** → rê chuột lên tên bảng → **+** → **Create a new slice** (bỏ qua các gợi ý có sẵn).
+
+Ô **Row filter condition** mặc định là ô "Describe the expression in your own words" (mô tả bằng lời cho AI). Dán công thức thẳng vào đó thì **không được lưu**. Bấm vào ô, gõ dấu `=` trước rồi dán công thức ngay sau; ô chuyển sang chữ kiểu code là đúng. **Preview data** ở góc trên phải slice chỉ đọc dữ liệu thô trong Sheet, không tính cột ảo: slice lọc theo cột ảo (Bỏ quên, Rất quan tâm chưa chốt…) sẽ ra 0 dòng ở đó dù đúng. Kiểm tra các slice này bằng nút **Test** trong Expression Assistant, hoặc trong app sau bước 5.
 
 | Slice | Bảng | Điều kiện (Row filter condition) |
 |---|---|---|
@@ -97,8 +102,8 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 
 | View | Dữ liệu | Kiểu | Vị trí | Ghi chú |
 |---|---|---|---|---|
-| Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Đặt làm **Starting view** (Settings → Views → General) |
-| Của tôi | Lead của tôi | Deck | next | Group by `Mức khẩn`. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
+| Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Hai màn deck của sale: Primary header `Tên phụ huynh`, Secondary header `Mức khẩn`, Summary column `Lần cuối tóm tắt`. Slice của sale bỏ **Deletes** ở Update mode. Đặt làm **Starting view** (Settings → Views → General) |
+| Của tôi | Lead của tôi | Deck | next | Group by cột ảo `Nhóm` (Hồ sơ lead, Text: `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, "4 · Không có hạn")`) để Quá hạn lên đầu. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
 | Messenger | Messenger chưa nhận | Table | menu | **Chỉ chủ** (Show if như các view của chủ) |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
@@ -113,6 +118,8 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | Lý do từ chối | Chăm sóc | Chart | menu | Cột `Lý do từ chối` |
 
 Với 6 view cuối (của chủ), trong mục **Display** → **Show if** nhập công thức "ai là chủ" (thiet-ke.md mục 4).
+
+**Mọi màn mở chung một trang chi tiết.** Mỗi slice có trang chi tiết riêng do AppSheet tự tạo (`Lead của tôi_Detail`, `Lead theo bộ lọc_Detail`…), nên chỉnh `Hồ sơ lead_Detail` không đủ. Tạo action **Mở hồ sơ** (bảng `Hồ sơ lead`, Do this **App: go to another view within this app**, Target `LINKTOROW([Mã lead], "Hồ sơ lead_Detail")`, Position **Hide**), rồi ở mỗi view danh sách lead (Hôm nay, Của tôi, Tất cả lead, Bỏ quên, Rất quan tâm chưa chốt, Đề xuất tạm dừng, Lead của tháng) đặt **Behavior → Row Selected** = `Mở hồ sơ`.
 
 **Form `Chăm sóc`** (view `Chăm sóc_Form` AppSheet tự tạo): sắp thứ tự cột: Phương thức, Tình trạng, Mức quan tâm, Phản hồi, Lý do từ chối, Ngày hẹn gọi lại, Ngày hẹn tham quan. Ẩn Mã, Mã lead, Thời gian, Sale, Lần thứ, Hạn liên hệ tiếp.
 
@@ -145,7 +152,7 @@ AppSheet tự có nút Gọi và SMS cho cột kiểu Phone.
 
 - `[Mức khẩn] = "Quá hạn"`: chữ đỏ, đậm, biểu tượng cảnh báo.
 - `[Mức khẩn] = "Hôm nay"`: chữ cam.
-- `[Đề xuất tạm dừng]`: chữ xám.
+- `[Đề xuất tạm dừng]`: chữ xanh dương (xám nhìn gần như đen).
 
 ## Bước 8. Email nhắc mỗi sáng
 
@@ -168,6 +175,10 @@ Mở app Casa Chăm sóc lead để ghi nhận sau mỗi lần liên hệ.
 
 Email không ghi SĐT.
 
+Bật **Bypass Security Filters?** ở mọi bot (Nhắc việc, Chủ nhắc sale, Lead trùng, Được giao lead): bot cần thấy lead của mọi sale, không bị bộ lọc ở bước 9 che.
+
+**Thử bot mà không làm phiền sale:** chừng nào app chưa **Deploy** (bước 11), AppSheet gửi mọi email về người tạo app, kèm dòng "App version … is not deployed". Để ô To đúng công thức (`[Email]`), bấm **Run** ở trang bot, rồi đọc thư trong hộp thư của người tạo: mỗi sale một thư.
+
 ### Email khi chủ nhắc sale
 
 **Automation** → **+ New bot** → tên `Chủ nhắc sale`:
@@ -181,21 +192,23 @@ Chào <<[Sale phụ trách].[Tên]>>,
 Chủ nhắc bạn liên hệ phụ huynh <<[Tên phụ huynh]>> (bé <<[Tên bé]>>, cơ sở <<[Cơ sở]>>).
 Tình trạng: <<[Mức khẩn]>>. Lần cuối: <<[Lần cuối tóm tắt]>>.
 
-Mở lead trong app: <<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>
+Mở lead trong app: <<CONCATENATE("https://www.appsheet.com/start/<MÃ APP>", LINKTOROW([Mã lead], "Hồ sơ lead_Detail"))>>
 Sau khi liên hệ, nhớ bấm "Ghi nhận lần chăm sóc".
 ```
+
+Trong email, `LINKTOROW` chỉ cho nửa sau của link (`#control=…&row=…`), bấm không mở được. Ghép phía trước địa chỉ app `https://www.appsheet.com/start/<MÃ APP>` (mở app trong tab riêng, lấy đoạn trên thanh địa chỉ trước dấu `?` hoặc `#`).
 
 ### Email báo chủ khi có lead trùng, báo sale khi được giao lead
 
 **Automation** → **+ New bot** → `Lead trùng`: Event **Data change**, bảng `Hồ sơ lead`, **Adds only**; Condition `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Mã lead] <> [_THISROW].[Mã lead]))) > 0`. Task **Send an email** tới các email có Vai trò "Chủ": To `SELECT(Sale[Email], [Vai trò] = "Chủ")`; Subject `Lead trùng SĐT: <<[Tên phụ huynh]>>`; Body nêu lead mới (tên, sale phụ trách) và các lead cũ cùng SĐT: `<<Start: SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Mã lead] <> [_THISROW].[Mã lead]))>><<[Tên phụ huynh]>> · <<[Sale phụ trách].[Tên]>> · <<[Tình trạng hiện tại]>><<End>>`.
 
-**Automation** → **+ New bot** → `Được giao lead`: Event **Data change**, bảng `Hồ sơ lead`, **Adds and updates**; Condition `OR(ISBLANK([_THISROW_BEFORE].[Mã lead]), [_THISROW_BEFORE].[Sale phụ trách] <> [_THISROW_AFTER].[Sale phụ trách])` và người làm thay đổi là chủ: `LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"`. Task **Send an email** To `[Sale phụ trách].[Email]`, Subject `Bạn được giao lead mới: <<[Tên phụ huynh]>>`, kèm link `<<LINKTOROW([Mã lead], "Hồ sơ lead_Detail")>>`.
+**Automation** → **+ New bot** → `Được giao lead`: Event **Data change**, bảng `Hồ sơ lead`, **Adds and updates**; Condition `AND(LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ", [Sale phụ trách] <> USEREMAIL(), OR(ISBLANK([_THISROW_BEFORE].[Mã lead]), [_THISROW_BEFORE].[Sale phụ trách] <> [_THISROW_AFTER].[Sale phụ trách]))` (người làm thay đổi là chủ, không giao cho chính mình, lead mới hoặc vừa đổi sale). Task **Send an email** To `[Sale phụ trách].[Email]`, Subject `Bạn được giao lead mới: <<[Tên phụ huynh]>>`, kèm link ghép địa chỉ app như bot Chủ nhắc sale.
 
-Hai bot này chạy trên máy chủ của AppSheet. Cần kiểm tra ở bước 10 rằng bot `Lead trùng` thấy được lead của mọi sale (không bị security filter của người bấm lưu che mất).
+Hai bot này chạy trên máy chủ của AppSheet; bật **Bypass Security Filters?** để bot `Lead trùng` thấy lead của mọi sale. Đã thử trên Sheet mẫu: cả 4 bot gửi đúng nội dung. Bot `Lead trùng` so SĐT y nguyên chữ: `0900 000 604` hay `+84900000604` không được coi là trùng với `0900000604`.
 
 ## Bước 9. Người dùng và quyền
 
-1. **Security** → **Require Sign-In**: bật. **Domain authentication**: chỉ người trong tên miền của trường.
+1. **Security** → **Require sign-in**: bật, provider Google, **Allow all signed-in users** tắt (chỉ người trong danh sách Manage users). **Domain Authentication** để **tắt**: mục này cần gói Enterprise, gói Core của trường không dùng được; danh sách người dùng đã đủ chặn người lạ.
 2. Chỉ cho email trong tab `Sale` dùng: ở **Settings → Users** (hoặc nút **Share**), thêm 6 email sale và email chủ.
 3. **Sale chỉ thấy lead của mình**: **Security** → **Security filters**, đặt cho từng bảng (với "ai là chủ" là công thức ở thiet-ke.md mục 4):
    - `Hồ sơ lead`: `OR(<ai là chủ>, [Sale phụ trách] = USEREMAIL())`
@@ -233,5 +246,8 @@ Chỉ làm sau khi thử xong với 1 – 2 sale:
 
 1. Mở file Sheet thật của bot. Sao chép 7 tab `Tổng hợp lead`, `Hồ sơ lead`, `Chăm sóc`, `Sale`, `Danh mục`, `Cấu hình`, `Thống kê` từ Sheet mẫu sang (chuột phải tên tab → **Sao chép vào** → chọn file thật). Đổi tên các tab sao chép cho bỏ chữ "Bản sao của". **Không** sao chép tab `Leads` mẫu: file thật đã có tab `Leads` của bot.
 2. Trong file thật, xoá dữ liệu giả ở `Hồ sơ lead` và `Chăm sóc` (giữ hàng tiêu đề), điền email thật của 6 sale và chủ vào `Sale`.
-3. Trong AppSheet: **Data** → từng bảng → **Source** → đổi sang file thật (cùng tên tab). Bấm **Regenerate structure** nếu được hỏi, kiểm tra lại kiểu cột.
+3. Trong AppSheet: **Data** → từng bảng → **Source** → đổi sang file thật (cùng tên tab). Chỉ bấm **Regenerate structure** khi AppSheet bắt buộc; nếu đã bấm, kiểm tra lại những chỗ AppSheet hay đoán sai: `Cấu hình`.`Khóa` là Text + Key; `Thống kê`.`Tháng` là Text, `Mã` là Key; `Leads`: Key `Customer ID`, `SĐT` kiểu Phone; mọi bảng chỉ một cột Label; Initial value của `Chủ nhắc lúc`, `Ngày hẹn gọi lại`, `Ngày hẹn tham quan` trống. Mở tab `Thống kê`, `Tổng hợp lead` trên file thật xem công thức không báo `#REF!` (tên tab phải đúng như cũ, không còn chữ "Bản sao của").
 4. **Không** đổi gì ở tab `Leads` của bot, và không gõ tay lead nào vào tab đó. Lead từ Zalo, hotline, giới thiệu, đến trực tiếp… thêm bằng nút **Thêm lead** trong app (hoặc gõ vào tab `Hồ sơ lead`, xem thiet-ke.md mục 2).
+5. **Security → Require sign-in → Manage users**: thêm email thật của sale và chủ. **Không** chia sẻ file Sheet cho sale (Access mode của security filter để **as app creator**: app đọc Sheet bằng quyền người tạo, sale không cần quyền mở file).
+6. **Manage → Deploy**: chạy **Deployment check**, rồi chuyển app sang trạng thái **Deployed**. Trước khi deploy, mọi email của bot chỉ gửi về người tạo app; sau khi deploy mới tới sale.
+7. Gửi link app cho sale (trên điện thoại: cài app **AppSheet**, đăng nhập bằng email đã thêm). Link mở lead trong email của bot vẫn đúng vì mã app không đổi.
