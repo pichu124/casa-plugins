@@ -271,6 +271,8 @@ AND(
 )
 ```
 
+**Show?** của các cột ảo mới: để **bật** ở Giai đoạn, Băn khoăn học phí, Số lần gửi ưu đãi, Gửi ưu đãi cuối, Gửi thông tin cuối (hiện ở trang chi tiết và các màn Gửi ưu đãi / Gửi thông tin); **tắt** ở Liên hệ cuối lúc, Lead mới chưa liên hệ, Nên gửi ưu đãi, Nên gửi thông tin (chỉ dùng để tính). Cột tắt Show? bị ẩn ở mọi màn, kể cả màn table.
+
 ## Bước 5. Cột ảo của `Sale`
 
 - **Đang giữ**: `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Giai đoạn] = "Đang chăm sóc")))`
