@@ -200,7 +200,7 @@ Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`)
 
 Tên bảng có dấu cách vẫn dùng được trong công thức, vd `Chăm sóc[Mã]`. Mọi `LOOKUP` vào `Cấu hình` chỉ tra **chữ cố định** (`LOOKUP("L1", "Cấu hình", "Khóa", "Giá trị")`), không đặt tên cột vào trong `LOOKUP`. Dưới đây `CH("x")` là viết tắt của `LOOKUP("x", "Cấu hình", "Khóa", "Giá trị")`: khi dán vào AppSheet phải viết đầy đủ (bản dán sẵn ở `nang-cap-quy-tac-v2.md`).
 
-Cộng trừ ngày: `Date + số` ra Date; so sánh hai ngày bằng `TODAY() >= [Ngày] + n` (Date − Date ra Duration, không so trực tiếp với số được).
+AppSheet **không có `EDATE`**: cộng n tháng viết `MIN(LIST(EOMONTH(d, n - 1) + DAY(d), EOMONTH(d, n)))` (ngày không có như 31/02 thì lấy ngày cuối tháng, giống `cong_thang` trong Python). Cộng trừ ngày: `Date + số` ra Date; so sánh hai ngày bằng `TODAY() >= [Ngày] + n` (Date − Date ra Duration, không so trực tiếp với số được).
 
 **`Chăm sóc`**, theo thứ tự (cột sau dùng cột trước):
 
@@ -210,7 +210,7 @@ Cộng trừ ngày: `Date + số` ra Date; so sánh hai ngày bằng `TODAY() >=
 | Lần thứ | App formula | Number | `IF(OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]), 1, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])))))` |
 | Liên lạc được trước | ảo | DateTime | `MAX(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được")))` |
 | Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` (đếm hàng **trước** rồi cộng 1 cho chính nó: lúc thêm mới qua form, hàng đang lưu chưa có trong bảng) |
-| Ngày hẹn | ảo | Date | `IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", EDATE(DATE([Thời gian]), 1), [Hẹn lại sau] = "3 tháng", EDATE(DATE([Thời gian]), 3), TRUE, [Ngày hẹn gọi lại])` |
+| Ngày hẹn | ảo | Date | `IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", MIN(LIST(EOMONTH(DATE([Thời gian]), 0) + DAY(DATE([Thời gian])), EOMONTH(DATE([Thời gian]), 1))), [Hẹn lại sau] = "3 tháng", MIN(LIST(EOMONTH(DATE([Thời gian]), 2) + DAY(DATE([Thời gian])), EOMONTH(DATE([Thời gian]), 3))), TRUE, [Ngày hẹn gọi lại])` |
 | Đầu năm học tới | ảo | Date | xem dưới |
 | Hạn thô | ảo | Date | xem dưới |
 | Hạn liên hệ tiếp | App formula | Date | `IF(ISBLANK([Hạn thô]), "", WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày]))` |

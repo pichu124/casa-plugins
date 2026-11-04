@@ -70,7 +70,7 @@ IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm s�
 **5. Ngày hẹn** (ảo, kiểu Date)
 
 ```
-IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", EDATE(DATE([Thời gian]), 1), [Hẹn lại sau] = "3 tháng", EDATE(DATE([Thời gian]), 3), TRUE, [Ngày hẹn gọi lại])
+IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", MIN(LIST(EOMONTH(DATE([Thời gian]), 0) + DAY(DATE([Thời gian])), EOMONTH(DATE([Thời gian]), 1))), [Hẹn lại sau] = "3 tháng", MIN(LIST(EOMONTH(DATE([Thời gian]), 2) + DAY(DATE([Thời gian])), EOMONTH(DATE([Thời gian]), 3))), TRUE, [Ngày hẹn gọi lại])
 ```
 
 **6. Đầu năm học tới** (ảo, kiểu Date)

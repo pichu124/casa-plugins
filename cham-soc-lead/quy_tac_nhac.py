@@ -142,7 +142,10 @@ def ngay_lam_viec_lui(d: date, nghi: set[date] = frozenset()) -> date:
 
 
 def cong_thang(d: date, n: int) -> date:
-    """Như EDATE: cùng ngày của n tháng sau, ngày không có (31/4) thì lấy ngày cuối tháng."""
+    """Cùng ngày của n tháng sau, ngày không có (31/4) thì lấy ngày cuối tháng.
+
+    AppSheet không có EDATE: MIN(LIST(EOMONTH(d, n - 1) + DAY(d), EOMONTH(d, n))) cho cùng kết quả.
+    """
     y, m = divmod(d.month - 1 + n, 12)
     y, m = d.year + y, m + 1
     cuoi = (date(y + (m == 12), m % 12 + 1, 1) - timedelta(days=1)).day
