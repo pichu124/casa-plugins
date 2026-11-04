@@ -283,7 +283,7 @@ def thang_tuoi_luc_nhan(tuoi_be: str) -> float | None:
     công thức AppSheet "Tháng tuổi lúc nhận". None: không hiểu, hoặc chữ là năm sinh (xem ngay_sinh_uoc_tinh).
     """
     so = _so_trong(tuoi_be)
-    if not so or max(so) >= 1900:
+    if not so or max(so[:3]) >= 1900:
         return None
     a = so[0]
     if _co(tuoi_be, "tuổi", "tuoi"):
@@ -315,8 +315,8 @@ def ngay_sinh_uoc_tinh(tuoi_be: str, ngay_nhan: date) -> date | None:
     so = _so_trong(tuoi_be)
     if not so:
         return None
-    if max(so) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023"
-        nam = round(max(so))
+    if max(so[:3]) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023". AppSheet chỉ xét 3 số đầu
+        nam = round(max(so[:3]))
         lech = (nam - ngay_nhan.year) * 12 - ngay_nhan.month
         if len(so) >= 2 and 1 <= so[0] <= 12:
             return _eomonth(ngay_nhan, lech + round(so[0]) - 1) + timedelta(days=15)
@@ -370,11 +370,13 @@ def trang_thai_lead(lead: Lead, lich_su: list[LanChamSoc], hom_nay: date,
     het_tuoi = cong_thang(sinh, ch["Tuổi tối đa (tháng)"]) if sinh else None
     chot = cuoi is not None and (cuoi.tinh_trang == NHAP_HOC or (cuoi.tinh_trang == DAT_COC and cuoi.da_gui_thu_moi))
 
+    # Từ chối vì Xa nhà / Sai SĐT: không gọi lại, kể cả để hỏi em nhỏ.
+    dung_han = cuoi is not None and cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi in (LD_XA_NHA, LD_SAI_SDT)
     moc_hoi_em = None
     if not chot:
         if cuoi is not None and cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi == LD_SAI_TUOI:
             moc_hoi_em = cuoi.thoi_gian.date()
-        elif het_tuoi and ((co_ban is not None and co_ban >= het_tuoi) or (co_ban is None and hom_nay >= het_tuoi)):
+        elif het_tuoi and not dung_han and ((co_ban is not None and co_ban >= het_tuoi) or (co_ban is None and hom_nay >= het_tuoi)):
             moc_hoi_em = max(het_tuoi, lien_he_cuoi)
     if moc_hoi_em is not None:
         if lead.em_nho:

@@ -2,7 +2,7 @@
 
 Làm trên máy tính, trình duyệt Chrome. Khoảng 2 – 3 giờ cho lần đầu. Mọi tên cột, công thức nằm trong [thiet-ke.md](thiet-ke.md); hướng dẫn này chỉ chỗ bấm.
 
-Quy tắc nhắc hiện tại là **v2** (theo phản hồi của trường, 11/2026). Dựng mới: làm theo hướng dẫn này, các phần mới của v2 (bảng `Ngày nghỉ`, `Gửi thông tin`, 4 cột mới của `Chăm sóc`, danh sách Gửi ưu đãi / Gửi thông tin, nút Đã gửi thư mời, email 8h) làm theo bước 2, 6, 7, 8 của [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md). App đã dựng theo bản cũ: chỉ cần làm theo [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md).
+Quy tắc nhắc hiện tại là **v2** (theo phản hồi của trường, 11/2026). Dựng mới: làm theo hướng dẫn này, các phần mới của v2 (bảng `Ngày nghỉ`, `Gửi thông tin`, 4 cột mới của `Chăm sóc`, danh sách Gửi ưu đãi / Gửi thông tin, nút Đã gửi thư mời, email 8h) làm theo bước 2, 6, 7, 8 của [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md). App đã dựng theo bản cũ: chỉ cần làm theo [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md). Sau đó làm tiếp **đợt 2** (tuổi bé, em nhỏ, sau nhập học: 3 cột mới của `Hồ sơ lead`, nút Tạo lead cho em, cột Việc cần làm) theo [nang-cap-quy-tac-dot-2.md](nang-cap-quy-tac-dot-2.md), cả khi dựng mới.
 
 Tên nút trong AppSheet là tiếng Anh, ghi đúng như trên màn hình. Giao diện AppSheet thay đổi theo thời gian, nên vị trí nút có thể khác một chút.
 

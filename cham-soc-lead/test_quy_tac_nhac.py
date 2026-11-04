@@ -440,6 +440,18 @@ class F_HoiEmNho(unittest.TestCase):
         self.assertEqual(tt(lead(sinh=D(2020, 11, 4)), ls).giai_doan, q.GD_DANG)  # đủ 6 tuổi hôm nay
         self.assertEqual(tt(lead(sinh=D(2020, 11, 5)), ls).giai_doan, q.GD_DAI_HAN)
 
+    def test_xa_nha_sai_sdt_khong_hoi(self):
+        for ly_do in (q.LD_XA_NHA, q.LD_SAI_SDT):
+            with self.subTest(ly_do=ly_do):
+                r = tt(lead(sinh=D(2020, 1, 1)), [lan(2, 9, q.TU_CHOI, ly_do=ly_do)])
+                self.assertEqual((r.han, r.giai_doan), (None, q.GD_DUNG))
+        r = tt(lead(sinh=D(2020, 1, 1)), [lan(2, 9, q.TU_CHOI, ly_do=q.LD_HOC_PHI)])  # dài hạn học phí: hỏi
+        self.assertEqual((r.han, r.giai_doan), (D(2026, 11, 2), q.GD_DANG))
+
+    def test_ngay_sinh_nhieu_so(self):
+        # "sinh 5/3/2023, 3 tuổi": năm là số lớn nhất trong 3 số đầu, tháng lấy số đầu (lệch vài tháng, sale nên nhập ngày sinh)
+        self.assertEqual(q.ngay_sinh_uoc_tinh("sinh 5/3/2023, 3 tuổi", D(2026, 11, 2)), D(2023, 5, 15))
+
     def test_tu_choi_sai_do_tuoi(self):
         r = tt(lead(tuoi="3 tuổi"), [lan(4, 9, q.TU_CHOI, ly_do=q.LD_SAI_TUOI)])
         self.assertEqual((r.han, r.giai_doan), (D(2026, 11, 4), q.GD_DANG))
