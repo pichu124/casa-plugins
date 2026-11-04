@@ -64,7 +64,7 @@ Tên cột là tên tiêu đề trên Sheet. Kiểu là kiểu cần chọn tron
 | Chủ nhắc lúc | DateTime | Nút **Nhắc sale** của chủ ghi giờ vào đây; app gửi email nhắc sale phụ trách (mục 6). Sale thấy dòng "Chủ đã nhắc lúc…" trong chi tiết lead |
 | Ngày sinh bé | Date | Sale điền khi phụ huynh cho ngày cụ thể. Trống thì app ước tính từ Tuổi bé (mục 4) |
 | Em nhỏ | Enum | Có em nhỏ / Sắp sinh em / Không. Trống là chưa hỏi. Sale điền khi app nhắc hỏi em nhỏ |
-| Ngày sinh em | Date | Ngày sinh hoặc dự sinh của em. Chỉ hiện khi Có em nhỏ / Sắp sinh em. Nút **Tạo lead cho em** chép sang Ngày sinh bé của lead em |
+| Ngày sinh em | Date | Ngày sinh hoặc dự sinh của em. Chỉ hiện và bắt buộc khi Có em nhỏ / Sắp sinh em. Nút **Tạo lead cho em** chép sang Ngày sinh bé của lead em |
 
 3 cột cuối (đợt 2) nằm ở cột R – T trên Sheet, sau các cột mà tab `Tổng hợp lead` đọc (A – Q).
 
@@ -172,8 +172,8 @@ Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`)
 | # | Tình huống | Hạn liên hệ tiếp | Giai đoạn |
 |---|---|---|---|
 | 0a | Bé đủ 6 tuổi (Tuổi tối đa) vào ngày cần nhắc (hoặc lead dài hạn, không còn hạn, tới ngày bé đủ 6 tuổi), hoặc lần cuối là Từ chối vì Sai độ tuổi. Không áp dụng khi đã chốt, hay từ chối vì Xa nhà / Sai số điện thoại | Ngày bé đủ 6 tuổi (hoặc ngày liên hệ cuối nếu muộn hơn; Sai độ tuổi: ngày từ chối): **hỏi phụ huynh có em nhỏ / sắp sinh em**. Sale điền ô Em nhỏ → không nhắc | Đang chăm sóc → Dừng khi đã điền Em nhỏ |
-| 0b | Đã đặt cọc, đã gửi thư mời, có Ngày nhập học dự kiến | Ngày nhập học dự kiến + 90 ngày (Sau nhập học): **giới thiệu chương trình đại sứ phụ huynh**. Sale ghi Đã nhập học → không nhắc | Đã chốt |
-| 0c | Bé chưa đủ 15 tháng (Tuổi nhận học) vào lần liên hệ cuối, lần đó là Đang cân nhắc hoặc Từ chối vì Chưa có nhu cầu / Khác, không hẹn ngày. Hoặc lead em nhỏ (Nguồn "Em nhỏ trong gia đình") chưa liên hệ | 30 ngày trước ngày bé đủ tuổi (Nhắc trước tuổi nhận học); liên hệ rồi mà vẫn chưa tới ngày đủ tuổi: đúng ngày đủ tuổi | Dài hạn |
+| 0b | Đã chốt (Đã nhập học, hoặc đặt cọc đã gửi thư mời) và có ngày vào học: Ngày nhập học dự kiến (muộn nhất, ghi lúc đặt cọc), không có thì ngày ghi Đã nhập học lần đầu | Ngày vào học + 90 ngày (Sau nhập học): **giới thiệu chương trình đại sứ phụ huynh**. Có lần chăm sóc vào hoặc sau ngày đó → không nhắc | Đã chốt |
+| 0c | Bé chưa đủ 15 tháng (Tuổi nhận học) vào lần liên hệ cuối, lần đó là Đang cân nhắc không hẹn ngày, hoặc Từ chối vì Chưa có nhu cầu / Khác. Hoặc lead em nhỏ (Nguồn "Em nhỏ trong gia đình") chưa liên hệ | 30 ngày trước ngày bé đủ tuổi (Nhắc trước tuổi nhận học); liên hệ rồi mà vẫn chưa tới ngày đủ tuổi: đúng ngày đủ tuổi | Dài hạn |
 | 1 | Đã nhập học | Không nhắc | Đã chốt |
 | 2 | Từ chối vì Học phí | Không nhắc sale. Lead vào danh sách **Gửi ưu đãi** của chủ | Dài hạn |
 | 3 | Từ chối vì Xa nhà, Sai độ tuổi, Sai số điện thoại | Không nhắc | Dừng |
@@ -190,7 +190,7 @@ Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`)
 | 13 | Lần thứ 2 ngay sau "Đã tham quan" (lần hỏi cảm nhận) | Sau 3 ngày, nhắc chốt (Chốt sau tham quan) | Đang chăm sóc |
 | 14 | Còn lại (Đang cân nhắc, Yêu cầu gọi lại không hẹn ngày…) | L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày | Đang chăm sóc |
 
-**Tuổi bé** (dòng 0a, 0c). Có Ngày sinh bé thì dùng. Không có thì ước tính từ chữ ở ô Tuổi bé, tại ngày nhận lead, lấy điểm giữa: "2 tuổi" là 30 tháng, "3-4 tuổi" 48, "dưới 2 tuổi" 18, "2 tuổi rưỡi" 30, "2 tuổi 8 tháng" 32, "1,5 tuổi" 18, "18 tháng" 18, "dưới 18 tháng" 15, số trần ≤ 7 là tuổi ("2t" 30), lớn hơn là tháng ("18th" 18); ngày sinh = ngày nhận − tháng × 30,44 ngày. Có năm sinh (số ≥ 1900): giữa năm (01/07); có cả tháng ("3/2023"): ngày 15 của tháng đó. Chữ không có số thì không đoán. Lệch vài tuần, trường đã đồng ý.
+**Tuổi bé** (dòng 0a, 0c). Có Ngày sinh bé thì dùng. Không có thì ước tính từ chữ ở ô Tuổi bé, tại ngày nhận lead, lấy điểm giữa: "2 tuổi" là 30 tháng, "3-4 tuổi" 48, "dưới 2 tuổi" 18, "2 tuổi rưỡi" 30, "2 tuổi 8 tháng" 32, "1,5 tuổi" 18, "18 tháng" 18, "dưới 18 tháng" 15, số trần ≤ 7 là tuổi ("2t" 30), lớn hơn là tháng ("18th" 18); ngày sinh = ngày nhận − tháng × 30,44 ngày. "N tháng tuổi" là N tháng. Có năm sinh (số ≥ 1900 trong 3 số đầu): đủ ngày/tháng/năm ("02/12/2025") thì lấy đúng ngày; tháng/năm ("3/2023", "tháng 4 năm 2024") thì ngày 15 của tháng đó; chỉ có năm ("sinh năm 2022", "3 tuổi, sinh 2021") thì giữa năm (01/07). Chữ không có số thì không đoán. Lệch vài tuần, trường đã đồng ý.
 
 **Việc cần làm** (cột ảo của lead, hiện trên thẻ và trong email 8h): Hỏi phụ huynh có em nhỏ hoặc sắp sinh em / Giới thiệu chương trình đại sứ phụ huynh / Bé sắp đủ tuổi nhận học / Bé đủ tuổi nhận học / Liên hệ lần đầu / Viết thư mời tuyển sinh / Xác nhận lịch tham quan / Hỏi cảm nhận sau buổi tham quan / Hẹn lại lịch tham quan / Liên hệ lại sau khi từ chối / Gọi lại.
 
@@ -331,14 +331,14 @@ AND(
 | Hạn cơ bản | Date | `IF(ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), [Lần cuối].[Hạn liên hệ tiếp])` |
 | Chốt rồi | Yes/No | `OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời]))` |
 | Hạn chờ tuổi | Date | `IF(DATE([Liên hệ cuối lúc]) < [Đủ tuổi nhận học] - CH("Nhắc trước tuổi nhận học"), [Đủ tuổi nhận học] - CH("Nhắc trước tuổi nhận học"), [Đủ tuổi nhận học])` |
-| Hạn đại sứ | Date | `IF(AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời], ISNOTBLANK([Lần cuối].[Ngày nhập học dự kiến])), [Lần cuối].[Ngày nhập học dự kiến] + CH("Sau nhập học"), "")` |
+| Hạn đại sứ | Date | `IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày vào học] + CH("Sau nhập học")), [Ngày vào học] + CH("Sau nhập học"), "")` |
 
 **Tháng tuổi lúc nhận** (Decimal):
 
 ```
 IFS(
   OR(COUNT([Số tuổi]) = 0, [Năm trong tuổi] > 0), "",
-  OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")),
+  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND(COUNT([Số tuổi]) = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
     IFS(
       AND(COUNT([Số tuổi]) >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
       OR(CONTAINS([Tuổi bé], "rưỡi"), CONTAINS([Tuổi bé], "ruoi")), [Số 1] * 12 + 6,
@@ -358,7 +358,11 @@ IFS(
 ```
 IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
-  AND([Năm trong tuổi] > 0, COUNT([Số tuổi]) >= 2, [Số 1] >= 1, [Số 1] <= 12),
+  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31),
+    MIN(LIST(
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
+  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"), CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
@@ -392,13 +396,25 @@ AND(
     AND([Nguồn] = "Em nhỏ trong gia đình", DATE([Ngày nhận]) < [Đủ tuổi nhận học]),
     AND(
       DATE([Lần cuối].[Thời gian]) < [Đủ tuổi nhận học],
-      ISBLANK([Lần cuối].[Ngày hẹn]),
       OR(
-        [Lần cuối].[Tình trạng] = "Đang cân nhắc",
+        AND([Lần cuối].[Tình trạng] = "Đang cân nhắc", ISBLANK([Lần cuối].[Ngày hẹn])),
         AND([Lần cuối].[Tình trạng] = "Từ chối", IN([Lần cuối].[Lý do từ chối], LIST("Chưa có nhu cầu", "Khác")))
       )
     )
   )
+)
+```
+
+**Ngày vào học** (Date):
+
+```
+IFS(
+  NOT([Chốt rồi]), "",
+  COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã đặt cọc", ISNOTBLANK([Ngày nhập học dự kiến])))) > 0,
+    MAX(SELECT(Chăm sóc[Ngày nhập học dự kiến], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã đặt cọc", ISNOTBLANK([Ngày nhập học dự kiến])))),
+  COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã nhập học"))) > 0,
+    DATE(MIN(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã nhập học")))),
+  TRUE, ""
 )
 ```
 

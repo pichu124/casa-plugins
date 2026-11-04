@@ -4,7 +4,7 @@ Dành cho app **đã nâng cấp đợt 1** theo `nang-cap-quy-tac-v2.md`. Quy t
 
 - **Bé chưa đủ tuổi nhận học** (dưới 15 tháng): phụ huynh còn cân nhắc, hoặc từ chối vì chưa có nhu cầu / lý do khác → lead **Dài hạn**, app nhắc **30 ngày trước** ngày bé đủ 15 tháng, rồi đúng ngày đủ tuổi.
 - **Bé đã quá tuổi** (đủ 6 tuổi vào lúc cần nhắc), hoặc từ chối vì **Sai độ tuổi** → app nhắc sale hỏi một lần: gia đình có em nhỏ hoặc sắp sinh em không. Sale ghi câu trả lời vào ô **Em nhỏ** → lead **Dừng**. Có em thì bấm **Tạo lead cho em**: lead mới của em, app tự nhắc khi em gần đủ tuổi.
-- **Sau nhập học**: đã gửi thư mời và có **Ngày nhập học dự kiến** → 90 ngày sau ngày đó app nhắc sale giới thiệu **chương trình đại sứ phụ huynh**. Sale ghi một lần **Đã nhập học** là xong.
+- **Sau nhập học**: lead đã chốt (đặt cọc đã gửi thư mời, hoặc Đã nhập học) → 90 ngày sau **ngày vào học** app nhắc sale giới thiệu **chương trình đại sứ phụ huynh**. Ngày vào học là **Ngày nhập học dự kiến** sale điền lúc đặt cọc; không điền thì là ngày sale ghi Đã nhập học lần đầu. Sale ghi lần chăm sóc giới thiệu đại sứ (vào hoặc sau ngày nhắc) là xong.
 - Cột **Việc cần làm** cho sale biết lần nhắc này để làm gì (liên hệ lần đầu, xác nhận lịch, hỏi cảm nhận, viết thư mời, hỏi em nhỏ…), hiện trên thẻ lead và trong email 8h.
 
 Tuổi bé: sale nhập **Ngày sinh bé** khi phụ huynh cho ngày cụ thể. Không có thì app **ước tính** từ chữ ở ô Tuổi bé ("18 tháng", "2 tuổi", "3-4 tuổi", "dưới 2 tuổi", "2 tuổi rưỡi", "sinh năm 2022", "sinh tháng 3/2023"…), lấy điểm giữa, lệch vài tuần (trường đã đồng ý). Chữ không có số ("hai tuổi", "mẫu giáo") thì app không đoán, lead chạy như đợt 1.
@@ -37,7 +37,7 @@ Trên bản sao của bạn:
 |---|---|
 | Ngày sinh bé | Type **Date**; Initial value trống; không Required; Description `Điền khi phụ huynh cho ngày sinh. Để trống thì app ước tính từ Tuổi bé` |
 | Em nhỏ | Type **Enum**, Values `Có em nhỏ`, `Sắp sinh em`, `Không`; Input mode **Buttons**; Initial value trống; Display name `Gia đình có em nhỏ?` |
-| Ngày sinh em | Type **Date**; Show? `IN([Em nhỏ], LIST("Có em nhỏ", "Sắp sinh em"))`; Display name `Ngày sinh (hoặc dự sinh) của em` |
+| Ngày sinh em | Type **Date**; Show? và Required? đều là `IN([Em nhỏ], LIST("Có em nhỏ", "Sắp sinh em"))`; Display name `Ngày sinh (hoặc dự sinh) của em`. Bắt buộc vì không có ngày này thì lead em không được nhắc đúng lúc |
 
 Bấm **SAVE** trước khi sang bước 3 (regenerate mà chưa lưu thì mất).
 
@@ -80,7 +80,7 @@ IF(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, ROUND(MAX(LIST([Số 1], [S�
 ```
 IFS(
   OR(COUNT([Số tuổi]) = 0, [Năm trong tuổi] > 0), "",
-  OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")),
+  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND(COUNT([Số tuổi]) = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
     IFS(
       AND(COUNT([Số tuổi]) >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
       OR(CONTAINS([Tuổi bé], "rưỡi"), CONTAINS([Tuổi bé], "ruoi")), [Số 1] * 12 + 6,
@@ -100,7 +100,11 @@ IFS(
 ```
 IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
-  AND([Năm trong tuổi] > 0, COUNT([Số tuổi]) >= 2, [Số 1] >= 1, [Số 1] <= 12),
+  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31),
+    MIN(LIST(
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
+  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"), CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
@@ -158,9 +162,8 @@ AND(
     AND([Nguồn] = "Em nhỏ trong gia đình", DATE([Ngày nhận]) < [Đủ tuổi nhận học]),
     AND(
       DATE([Lần cuối].[Thời gian]) < [Đủ tuổi nhận học],
-      ISBLANK([Lần cuối].[Ngày hẹn]),
       OR(
-        [Lần cuối].[Tình trạng] = "Đang cân nhắc",
+        AND([Lần cuối].[Tình trạng] = "Đang cân nhắc", ISBLANK([Lần cuối].[Ngày hẹn])),
         AND([Lần cuối].[Tình trạng] = "Từ chối", IN([Lần cuối].[Lý do từ chối], LIST("Chưa có nhu cầu", "Khác")))
       )
     )
@@ -174,10 +177,23 @@ AND(
 IF(DATE([Liên hệ cuối lúc]) < [Đủ tuổi nhận học] - LOOKUP("Nhắc trước tuổi nhận học", "Cấu hình", "Khóa", "Giá trị"), [Đủ tuổi nhận học] - LOOKUP("Nhắc trước tuổi nhận học", "Cấu hình", "Khóa", "Giá trị"), [Đủ tuổi nhận học])
 ```
 
-**15. Hạn đại sứ** (cột ảo, kiểu Date)
+**15. Ngày vào học** (cột ảo, kiểu Date)
 
 ```
-IF(AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời], ISNOTBLANK([Lần cuối].[Ngày nhập học dự kiến])), [Lần cuối].[Ngày nhập học dự kiến] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị"), "")
+IFS(
+  NOT([Chốt rồi]), "",
+  COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã đặt cọc", ISNOTBLANK([Ngày nhập học dự kiến])))) > 0,
+    MAX(SELECT(Chăm sóc[Ngày nhập học dự kiến], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã đặt cọc", ISNOTBLANK([Ngày nhập học dự kiến])))),
+  COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã nhập học"))) > 0,
+    DATE(MIN(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã nhập học")))),
+  TRUE, ""
+)
+```
+
+**16. Hạn đại sứ** (cột ảo, kiểu Date)
+
+```
+IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày vào học] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị")), [Ngày vào học] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị"), "")
 ```
 
 
@@ -185,7 +201,7 @@ IF(AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đ�
 
 **Hạn liên hệ** và **Giai đoạn** đã có: mở từng cột, xoá công thức cũ, dán công thức mới. **Việc cần làm** là cột ảo mới (Show bật).
 
-**16. Hạn liên hệ** (cột ảo, kiểu Date)
+**17. Hạn liên hệ** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -197,7 +213,7 @@ IFS(
 )
 ```
 
-**17. Giai đoạn** (cột ảo, kiểu Text)
+**18. Giai đoạn** (cột ảo, kiểu Text)
 
 ```
 IFS(
@@ -213,7 +229,7 @@ IFS(
 )
 ```
 
-**18. Việc cần làm** (cột ảo, kiểu Text)
+**19. Việc cần làm** (cột ảo, kiểu Text)
 
 ```
 IFS(
@@ -252,7 +268,7 @@ Các cột Mức khẩn, Nhóm, Bỏ quên, Nên gửi ưu đãi, Nên gửi th�
    Position **Prominent**; icon em bé hoặc dấu cộng. Only if:
 
    ```
-   AND(IN([Em nhỏ], LIST("Có em nhỏ", "Sắp sinh em")), COUNT(SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Nguồn] = "Em nhỏ trong gia đình"))) = 0)
+   AND(IN([Em nhỏ], LIST("Có em nhỏ", "Sắp sinh em")), ISNOTBLANK([Ngày sinh em]), COUNT(SELECT(Hồ sơ lead[Mã lead], AND([SĐT] = [_THISROW].[SĐT], [Nguồn] = "Em nhỏ trong gia đình"))) = 0)
    ```
 
    (hết hiện sau khi đã tạo lead em, để không tạo hai lần). Form mở ra đã điền sẵn; sale điền Tên bé nếu đã có rồi lưu.
@@ -273,7 +289,8 @@ Các cột Mức khẩn, Nhóm, Bỏ quên, Nên gửi ưu đãi, Nên gửi th�
 - Phụ huynh cho ngày sinh cụ thể → điền **Ngày sinh bé**. Chỉ nói chung chung → để trống, ghi Tuổi bé như phụ huynh nói (có số: "18 tháng", "2 tuổi rưỡi", "sinh năm 2022").
 - Bé còn nhỏ, phụ huynh hẹn khi nào bé đủ tuổi → ghi **Đang cân nhắc** (đừng chọn Hẹn lại sau): app tự nhắc trước ngày bé đủ 15 tháng.
 - Thẻ lead ghi **Hỏi phụ huynh có em nhỏ hoặc sắp sinh em** → gọi hỏi, rồi mở lead, bấm sửa (bút chì), chọn **Gia đình có em nhỏ?** và ngày sinh / dự sinh của em. Không cần ghi thêm lần chăm sóc nếu chỉ hỏi chuyện này. Có em → bấm **Tạo lead cho em**.
-- Đặt cọc → điền **Ngày nhập học dự kiến** ngay trong lần ghi nhận Đã đặt cọc. 90 ngày sau ngày đó app nhắc **Giới thiệu chương trình đại sứ phụ huynh**; giới thiệu xong ghi một lần **Đã nhập học** để kết thúc.
+- Đặt cọc → điền **Ngày nhập học dự kiến** ngay trong lần ghi nhận Đã đặt cọc. Ngày bé vào học cứ ghi **Đã nhập học** như trước (tab Thống kê đếm theo lần ghi này).
+- 90 ngày sau ngày vào học, thẻ lead ghi **Giới thiệu chương trình đại sứ phụ huynh**. Gọi giới thiệu xong, ghi một lần chăm sóc tình trạng **Đã nhập học**, Phản hồi ví dụ `Đã giới thiệu đại sứ`: app thôi nhắc.
 
 ## Bước 7. Kiểm tra
 
@@ -296,6 +313,8 @@ Các cột Mức khẩn, Nhóm, Bỏ quên, Nên gửi ưu đãi, Nên gửi th�
 | 1,5 tuổi | 18 | | 18th | 18 |
 | 2 tuổi 8 tháng | 32 | | sinh năm 2020 | trống (Ngày sinh dùng 01/07/2020) |
 | 2 tuổi rưỡi | 30 | | sinh tháng 3/2023 | trống (Ngày sinh dùng 15/03/2023) |
+| 10 tháng tuổi | 10 | | sinh 02/12/2025 | trống (Ngày sinh dùng 02/12/2025) |
+| 30 tháng tuổi | 30 | | 3 tuổi, sinh 2021 | trống (Ngày sinh dùng 01/07/2021) |
 
 Chữ nào ra khác bảng thì chụp màn hình gửi lại: AppSheet đọc số trong chữ (EXTRACTNUMBERS) có thể khác với dự tính ở các chữ như "2t", "3-4".
 
@@ -304,7 +323,8 @@ Chữ nào ra khác bảng thì chụp màn hình gửi lại: AppSheet đọc s
 1. Thêm lead **Thử Nhỏ**, Tuổi bé `10 tháng`, ghi nhận **Đang cân nhắc** → Dài hạn, Hạn **05/03/2027**, Việc: Bé sắp đủ tuổi nhận học.
 2. Thêm lead **Thử Lớn**, Ngày sinh bé `04/11/2020` (đủ 6 tuổi hôm nay) → Hạn hôm nay, Việc: Hỏi phụ huynh có em nhỏ… Sửa lead: Gia đình có em nhỏ? = **Sắp sinh em**, ngày `15/01/2027` → Giai đoạn **Dừng**, nút **Tạo lead cho em** hiện ra. Bấm, lưu form → lead mới nguồn Em nhỏ trong gia đình: Dài hạn, Hạn **16/03/2028**. Email chủ **không** nhận "Lead trùng SĐT". Nút Tạo lead cho em ở lead Thử Lớn biến mất.
 3. Lead **Thử Lớn 2**, Tuổi bé `3 tuổi`, ghi nhận **Từ chối**, lý do **Sai độ tuổi** → Đang chăm sóc, Hạn hôm nay, Việc: Hỏi phụ huynh có em nhỏ… Chọn Em nhỏ = **Không** → Dừng.
-4. Lead **Thử Cọc**, ghi nhận **Đã đặt cọc**, Ngày nhập học dự kiến `01/12/2026` → bấm **Đã gửi thư mời** → Đã chốt, Hạn **01/03/2027**, Việc: Giới thiệu chương trình đại sứ phụ huynh. Ghi nhận **Đã nhập học** → Hạn trống, vẫn Đã chốt.
+4. Lead **Thử Cọc**, ghi nhận **Đã đặt cọc**, Ngày nhập học dự kiến `01/12/2026` → bấm **Đã gửi thư mời** → Đã chốt, Hạn **01/03/2027**, Việc: Giới thiệu chương trình đại sứ phụ huynh. Ghi nhận **Đã nhập học** (giả như bé vào học) → Hạn **vẫn 01/03/2027**. (Ghi lần chăm sóc vào hoặc sau 01/03/2027 thì hạn trống; hôm nay chưa thử được.)
+5. Lead **Thử Vào Học**, ghi nhận thẳng **Đã nhập học** hôm nay → Đã chốt, Hạn **02/02/2027** (04/11 + 90 ngày).
 
 Thử xong xoá các lead Thử… (và lần chăm sóc của chúng) trên Sheet.
 
@@ -313,3 +333,4 @@ Thử xong xoá các lead Thử… (và lần chăm sóc của chúng) trên She
 - Tab `Tổng hợp lead` trên Sheet vẫn tính hạn theo đợt 1 (chưa biết tuổi bé): lead chờ đủ tuổi, hỏi em nhỏ, nhắc đại sứ có thể hiện hạn khác app. App là chuẩn.
 - Lead **Tạm dừng** vẫn Dừng, không nhắc gì.
 - Lead từ chối vì **Xa nhà** hoặc **Sai số điện thoại** không bị nhắc hỏi em nhỏ.
+- **Ngay sau khi nâng cấp**, các lead cũ sau đây đổi cùng lúc và hiện ở màn Hôm nay, email 8h, danh sách Bỏ quên: lead từ chối vì Sai độ tuổi (trước là Dừng, nay nhắc hỏi em nhỏ), lead có bé đã đủ 6 tuổi (nhắc hỏi em nhỏ), lead đã nhập học hơn 90 ngày (nhắc đại sứ, quá hạn). Lead hỏi em nhỏ ở giai đoạn Đang chăm sóc nên cũng có thể vào danh sách Gửi ưu đãi. Hiện app chỉ có dữ liệu giả nên không sao; khi chuyển sang dữ liệu thật, báo trước cho sale, hoặc điền ô Em nhỏ = `Không` cho những lead không cần hỏi.

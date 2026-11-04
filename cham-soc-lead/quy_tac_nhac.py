@@ -286,7 +286,7 @@ def thang_tuoi_luc_nhan(tuoi_be: str) -> float | None:
     if not so or max(so[:3]) >= 1900:
         return None
     a = so[0]
-    if _co(tuoi_be, "tuổi", "tuoi"):
+    if _co(tuoi_be, "tuổi", "tuoi") and not (len(so) == 1 and _co(tuoi_be, "tháng", "thang")):
         if len(so) >= 2 and _co(tuoi_be, "tháng", "thang"):
             return a * 12 + so[1]  # "2 tuổi 8 tháng"
         if _co(tuoi_be, "rưỡi", "ruoi"):
@@ -315,12 +315,16 @@ def ngay_sinh_uoc_tinh(tuoi_be: str, ngay_nhan: date) -> date | None:
     so = _so_trong(tuoi_be)
     if not so:
         return None
-    if max(so[:3]) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023". AppSheet chỉ xét 3 số đầu
-        nam = round(max(so[:3]))
+    s1, s2, s3 = (so + [0, 0, 0])[:3]  # AppSheet chỉ xét 3 số đầu
+    if max(s1, s2, s3) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023", "02/12/2025"
+        nam = round(max(s1, s2, s3))
         lech = (nam - ngay_nhan.year) * 12 - ngay_nhan.month
-        if len(so) >= 2 and 1 <= so[0] <= 12:
-            return _eomonth(ngay_nhan, lech + round(so[0]) - 1) + timedelta(days=15)
-        return _eomonth(ngay_nhan, lech + 6) + timedelta(days=1)  # giữa năm: 01/07
+        if s3 >= 1900 and 1 <= s2 <= 12 and 1 <= s1 <= 31:  # ngày/tháng/năm
+            k = lech + round(s2)
+            return min(_eomonth(ngay_nhan, k - 1) + timedelta(days=round(s1)), _eomonth(ngay_nhan, k))
+        if s2 >= 1900 and 1 <= s1 <= 12 and (_co(tuoi_be, "tháng", "thang", "/", "-")):  # tháng/năm
+            return _eomonth(ngay_nhan, lech + round(s1) - 1) + timedelta(days=15)
+        return _eomonth(ngay_nhan, lech + 6) + timedelta(days=1)  # chỉ có năm: giữa năm, 01/07
     thang = thang_tuoi_luc_nhan(tuoi_be)
     if thang is None:
         return None
@@ -351,8 +355,9 @@ def trang_thai_lead(lead: Lead, lich_su: list[LanChamSoc], hom_nay: date,
     Thêm vào quy tắc đợt 1 (theo thứ tự ưu tiên):
     - Hỏi về em nhỏ: bé đủ "Tuổi tối đa" tại thời điểm nhắc, hoặc từ chối vì Sai độ tuổi: nhắc sale hỏi
       phụ huynh có em nhỏ / sắp sinh em một lần. Sale ghi câu trả lời (ô Em nhỏ) thì lead Dừng.
-    - Sau nhập học: đã gửi thư mời và có ngày nhập học dự kiến: nhắc giới thiệu chương trình đại sứ sau
-      "Sau nhập học" ngày. Sale ghi một lần "Đã nhập học" là xong.
+    - Sau nhập học: lead đã chốt (Đã nhập học, hoặc đặt cọc đã gửi thư mời) có ngày vào học (ngày nhập học
+      dự kiến, hoặc lần ghi "Đã nhập học" đầu tiên): "Sau nhập học" ngày sau ngày vào học, nhắc giới thiệu
+      chương trình đại sứ. Sale ghi một lần chăm sóc vào hoặc sau ngày đó là xong.
     - Chờ đủ tuổi: bé chưa đủ "Tuổi nhận học" khi liên hệ (Đang cân nhắc, hoặc từ chối vì Chưa có nhu cầu /
       Khác), hoặc lead em nhỏ mới tạo: nhắc trước ngày đủ tuổi "Nhắc trước tuổi nhận học" ngày, rồi đúng
       ngày đủ tuổi. Giai đoạn Dài hạn.
@@ -384,18 +389,24 @@ def trang_thai_lead(lead: Lead, lich_su: list[LanChamSoc], hom_nay: date,
         return TrangThai(toi(moc_hoi_em), GD_DANG, "Hỏi phụ huynh có em nhỏ hoặc sắp sinh em")
 
     if chot:
-        if cuoi.tinh_trang == DAT_COC and cuoi.ngay_nhap_hoc:
-            return TrangThai(toi(cuoi.ngay_nhap_hoc + timedelta(days=ch["Sau nhập học"])), GD_CHOT,
-                             "Giới thiệu chương trình đại sứ phụ huynh")
+        # Ngày vào học: ngày nhập học dự kiến (muộn nhất) ghi lúc đặt cọc; không có thì lần ghi "Đã nhập học" đầu.
+        du_kien = [x.ngay_nhap_hoc for x in ls if x.tinh_trang == DAT_COC and x.ngay_nhap_hoc]
+        nhap = [x.thoi_gian.date() for x in ls if x.tinh_trang == NHAP_HOC]
+        vao = max(du_kien) if du_kien else (min(nhap) if nhap else None)
+        if vao is not None:
+            dai_su = vao + timedelta(days=ch["Sau nhập học"])
+            if lien_he_cuoi < dai_su:  # liên hệ vào hoặc sau mốc (giới thiệu xong) thì thôi
+                return TrangThai(toi(dai_su), GD_CHOT, "Giới thiệu chương trình đại sứ phụ huynh")
         return TrangThai(None, GD_CHOT, "")
 
     if du_tuoi:
         if cuoi is None:
             cho = lead.nguon == NGUON_EM_NHO and lead.ngay_nhan.date() < du_tuoi
         else:
-            cho = (cuoi.thoi_gian.date() < du_tuoi and not cuoi.ngay_hen_goi_lai and (
-                cuoi.tinh_trang == CAN_NHAC
-                or (cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi in (LD_CHUA_NHU_CAU, LD_KHAC))))
+            # Hẹn ngày chỉ tính khi Đang cân nhắc: lúc Từ chối, ô Hẹn lại sau bị ẩn mà có thể còn giá trị cũ.
+            cho = cuoi.thoi_gian.date() < du_tuoi and (
+                (cuoi.tinh_trang == CAN_NHAC and not cuoi.ngay_hen_goi_lai)
+                or (cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi in (LD_CHUA_NHU_CAU, LD_KHAC)))
         if cho:
             truoc = du_tuoi - timedelta(days=ch["Nhắc trước tuổi nhận học"])
             if lien_he_cuoi < truoc:
