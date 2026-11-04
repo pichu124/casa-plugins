@@ -1,6 +1,18 @@
 Khóa,Giá trị,Ý nghĩa
-L1,1,Số ngày nhắc lần 1 sau lần liên hệ trước
+L1,1,"Số ngày nhắc lần 1 (sau lần liên hệ đầu, hoặc sau mốc)"
 L2,3,Số ngày nhắc lần 2
-L3,7,Số ngày nhắc lần 3. Sau lần 3 chưa chốt thì đề xuất tạm dừng
-Bỏ quên,3,Quá chừng này ngày không cập nhật thì vào danh sách bỏ quên của chủ
-Hạn đặt cọc,7,Số ngày sau đặt cọc thì nhắc hoàn tất thủ tục nhập học
+L3,7,Số ngày nhắc lần 3. Hết L3 chưa chốt thì chuyển dài hạn
+Chưa liên lạc tối đa,3,"Số lần ""Chưa liên lạc được"" liên tiếp thì chuyển dài hạn"
+Sau tham quan,1,Số ngày sau buổi tham quan thì nhắc hỏi cảm nhận
+Chốt sau tham quan,3,Số ngày sau lần hỏi cảm nhận thì nhắc chốt
+Từ chối trường khác,180,"Từ chối vì chọn trường khác: nhắc lại sau chừng này ngày (hoặc đầu năm học, mốc nào đến trước)"
+Từ chối trường khác tối thiểu,30,Nhưng không sớm hơn chừng này ngày sau khi từ chối
+Đầu năm học tháng,7,Tháng bắt đầu năm học
+Đầu năm học ngày,1,Ngày bắt đầu năm học
+Từ chối chưa nhu cầu,90,Từ chối vì chưa có nhu cầu: nhắc lại sau chừng này ngày
+Từ chối khác,90,Từ chối vì lý do khác: nhắc lại sau chừng này ngày
+Ưu đãi lần đầu,60,Nhóm băn khoăn học phí: gửi ưu đãi lần đầu sau chừng này ngày kể từ lần liên hệ cuối
+Ưu đãi cách nhau,60,Hai lần gửi ưu đãi cách nhau ít nhất chừng này ngày
+Ưu đãi tối đa,2,Nhóm băn khoăn học phí: gửi ưu đãi tối đa chừng này lần
+Ưu đãi lần 2 trong vòng,180,Nhóm băn khoăn học phí: quá chừng này ngày sau lần 1 mà chưa gửi lần 2 thì thôi
+Thông tin dài hạn,30,Lead dài hạn: gửi thông tin hoạt động cách nhau chừng này ngày
