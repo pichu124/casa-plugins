@@ -159,7 +159,7 @@ IFS([Tạm dừng], "", ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 
 **5. Giai đoạn** (cột ảo, kiểu Text)
 
 ```
-IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")
+IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Đã đặt cọc", "Đang chăm sóc", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")
 ```
 
 **6. Mức khẩn** (cột ảo, kiểu Text)

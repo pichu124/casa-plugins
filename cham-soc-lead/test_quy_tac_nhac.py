@@ -255,6 +255,10 @@ class ChuTuGui(unittest.TestCase):
 
 
 class GiaiDoan(unittest.TestCase):
+    def test_dat_coc_chua_gui_thu_moi_luon_dang_cham_soc(self):
+        # Dữ liệu lệch (vd sửa tay trên Sheet làm mất hạn) cũng không được đẩy lead đặt cọc sang Dài hạn.
+        self.assertEqual(q.giai_doan(lan(4, 9, q.DAT_COC), None), q.GD_DANG)
+
     def test_tam_dung_cua_chu(self):
         self.assertEqual(q.giai_doan(lan(2, 9, q.CAN_NHAC), D(2026, 11, 3), tam_dung=True), q.GD_DUNG)
 

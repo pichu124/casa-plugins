@@ -237,6 +237,8 @@ def giai_doan(cuoi: LanChamSoc | None, han: date | None, tam_dung: bool = False)
         return GD_DANG
     if cuoi.tinh_trang == NHAP_HOC or (cuoi.tinh_trang == DAT_COC and cuoi.da_gui_thu_moi):
         return GD_CHOT
+    if cuoi.tinh_trang == DAT_COC:
+        return GD_DANG  # chờ viết thư mời
     if cuoi.tinh_trang == TU_CHOI:
         return GD_DUNG if cuoi.ly_do_tu_choi in LY_DO_DUNG else GD_DAI_HAN
     return GD_DANG if han is not None else GD_DAI_HAN

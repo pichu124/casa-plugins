@@ -263,7 +263,7 @@ IFS(
 | Tình trạng hiện tại | Text | `IF(ISBLANK([Lần cuối]), "Mới", [Lần cuối].[Tình trạng])` |
 | Mức quan tâm hiện tại | Text | `[Lần cuối].[Mức quan tâm]` |
 | Hạn liên hệ | Date | `IFS([Tạm dừng], "", ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), TRUE, [Lần cuối].[Hạn liên hệ tiếp])` |
-| Giai đoạn | Text | `IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")` |
+| Giai đoạn | Text | `IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Đã đặt cọc", "Đang chăm sóc", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")` |
 | Mức khẩn | Text | `IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")` |
 | Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
 | Ngày không cập nhật | Decimal | `HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24` |
