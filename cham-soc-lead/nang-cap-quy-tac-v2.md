@@ -46,14 +46,13 @@ Sửa cột có sẵn, thêm cột ảo mới (nút **+** → Add virtual column
 | Mốc gần nhất | ảo (sửa cột có sẵn) | Ref → `Chăm sóc` | `ANY(ORDERBY(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]))), [Thời gian], TRUE))` |
 | Lần thứ | App formula (sửa cột có sẵn) | Number | `IF(OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]), 1, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])))))` |
 | Liên lạc được trước | ảo | DateTime | `MAX(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được")))` |
-| Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] <= [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` |
+| Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` (đếm hàng **trước** rồi cộng 1 cho chính nó: lúc thêm mới qua form, hàng đang lưu chưa có trong bảng) |
 | Ngày hẹn | ảo | Date | `IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", EDATE(DATE([Thời gian]), 1), [Hẹn lại sau] = "3 tháng", EDATE(DATE([Thời gian]), 3), TRUE, [Ngày hẹn gọi lại])` |
 | Đầu năm học tới | ảo | Date | xem dưới |
 | Hạn thô | ảo | Date | xem dưới |
-| Dời lùi | ảo | Yes/No | `AND([Tình trạng] = "Đã hẹn tham quan / học thử", ISNOTBLANK([Ngày hẹn tham quan]), ISBLANK([Ngày hẹn]), DATE([Thời gian]) < [Ngày hẹn tham quan] - 1)` |
-| Hạn liên hệ tiếp | App formula (sửa cột có sẵn) | Date | `IF(ISBLANK([Hạn thô]), "", IF([Dời lùi], WORKDAY([Hạn thô] + 1, -1, Ngày nghỉ[Ngày]), WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày])))` |
+| Hạn liên hệ tiếp | App formula (sửa cột có sẵn) | Date | `IF(ISBLANK([Hạn thô]), "", WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày]))` |
 
-`WORKDAY(ngày, n, danh sách ngày lễ)` bỏ qua thứ 7, Chủ nhật và ngày lễ. `WORKDAY(d - 1, 1, …)` ra chính `d` nếu `d` là ngày làm việc, không thì ngày làm việc kế tiếp; `WORKDAY(d + 1, -1, …)` ra ngày làm việc liền trước hoặc bằng `d`.
+`WORKDAY(ngày, n, danh sách ngày lễ)` bỏ qua thứ 7, Chủ nhật và ngày lễ. `WORKDAY(d - 1, 1, …)` ra chính `d` nếu `d` là ngày làm việc, không thì ngày làm việc kế tiếp. `WORKDAY(d, -1, …)` ra ngày làm việc liền trước `d` (dùng cho ngày xác nhận lịch tham quan).
 
 **Đầu năm học tới** (ngày đầu năm học gần nhất sau ngày ghi nhận):
 
@@ -78,10 +77,12 @@ IFS(
   AND([Tình trạng] = "Từ chối", [Lý do từ chối] = "Chưa có nhu cầu"), DATE([Thời gian]) + LOOKUP("Từ chối chưa nhu cầu", "Cấu hình", "Khóa", "Giá trị"),
   [Tình trạng] = "Từ chối", DATE([Thời gian]) + LOOKUP("Từ chối khác", "Cấu hình", "Khóa", "Giá trị"),
   [Tình trạng] = "Đã đặt cọc", IF([Đã gửi thư mời], "", DATE([Thời gian])),
+  [Tình trạng] = "Hẹn nhưng không đến", DATE([Thời gian]),
   ISNOTBLANK([Ngày hẹn]), [Ngày hẹn],
   AND([Tình trạng] = "Đã hẹn tham quan / học thử", ISNOTBLANK([Ngày hẹn tham quan])),
-    IF(DATE([Thời gian]) < [Ngày hẹn tham quan] - 1, [Ngày hẹn tham quan] - 1, [Ngày hẹn tham quan] + LOOKUP("Sau tham quan", "Cấu hình", "Khóa", "Giá trị")),
-  [Tình trạng] = "Hẹn nhưng không đến", DATE([Thời gian]),
+    IF(DATE([Thời gian]) < WORKDAY([Ngày hẹn tham quan], -1, Ngày nghỉ[Ngày]),
+      WORKDAY([Ngày hẹn tham quan], -1, Ngày nghỉ[Ngày]),
+      [Ngày hẹn tham quan] + LOOKUP("Sau tham quan", "Cấu hình", "Khóa", "Giá trị")),
   [Tình trạng] = "Chưa liên lạc được",
     IF([Chưa LL liên tiếp] >= LOOKUP("Chưa liên lạc tối đa", "Cấu hình", "Khóa", "Giá trị"), "", DATE([Thời gian]) + 1),
   [Tình trạng] = "Đã tham quan / học thử", DATE([Thời gian]) + LOOKUP("Sau tham quan", "Cấu hình", "Khóa", "Giá trị"),
@@ -217,10 +218,10 @@ Nếu mọi hàng đều lệch đúng kiểu "không dời qua thứ 7, Chủ n
 
 **9c. Thử thao tác** (trên một lead thử, ví dụ thêm lead "Thử V2" của bạn; nhớ ghi ngày hôm nay là thứ mấy):
 
-1. Ghi **Chưa liên lạc được** 3 lần (sửa Thời gian trên Sheet thành 3 ngày khác nhau nếu muốn): lần 1, 2 có hạn là ngày làm việc kế tiếp; lần 3 hạn trống, Giai đoạn **Dài hạn**, lead vào màn Gửi thông tin.
+1. Ghi **Chưa liên lạc được** 3 lần **bằng form** (bấm Ghi nhận 3 lần liền cũng được): lần 1, 2 có hạn là ngày làm việc kế tiếp; lần 3 hạn trống, Giai đoạn **Dài hạn**, lead vào màn Gửi thông tin. Ca này phải thử bằng form, vì nút Test chỉ chạy trên các hàng đã lưu.
 2. Ghi tiếp một lần bật **PH chủ động**, Đang cân nhắc: hạn là ngày làm việc kế tiếp (L1), Giai đoạn **Đang chăm sóc**.
 3. Ghi **Yêu cầu gọi lại sau**, Hẹn lại sau **1 tuần**: hạn đúng 7 ngày sau (dời nếu rơi vào cuối tuần).
-4. Ghi **Đã hẹn tham quan**, ngày tham quan là **thứ 2 tuần sau**: hạn là **thứ 6 tuần này** (lùi, không phải Chủ nhật).
+4. Ghi **Đã hẹn tham quan**, ngày tham quan là **thứ 2 tuần sau**: hạn là **thứ 6 tuần này** (ngày làm việc liền trước, không phải Chủ nhật). Nếu hôm nay đã là thứ 6 đó (gọi xác nhận xong, ghi lại một lần Đã hẹn tham quan): hạn chuyển sang **thứ 3** (hỏi cảm nhận sau buổi tham quan).
 5. Ghi **Hẹn nhưng không đến**: hạn hôm nay (hoặc thứ 2 nếu hôm nay là cuối tuần).
 6. Ghi **Đã đặt cọc**, để Đã gửi thư mời tắt: lead hiện ở màn **Hôm nay**, trong chi tiết có nút **Đã gửi thư mời**. Bấm nút: Giai đoạn **Đã chốt**, lead rời màn Hôm nay.
 7. Thêm lead thử khác, ghi **Từ chối** vì **Chọn trường khác**: hạn khoảng 6 tháng sau, nhưng không quá 01/07 kế tiếp. Vì **Xa nhà**: hạn trống, Giai đoạn **Dừng**.

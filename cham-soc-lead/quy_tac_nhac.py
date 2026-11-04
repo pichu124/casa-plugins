@@ -165,60 +165,60 @@ def dau_nam_hoc_toi(ngay: date, ch: dict[str, int] = CAU_HINH_MAC_DINH) -> date:
 
 # ---------------------------------------------------------------- hạn liên hệ tiếp
 
-def han_tho(c: LanChamSoc, truoc: list[LanChamSoc], ch: dict[str, int] = CAU_HINH_MAC_DINH) -> tuple[date | None, bool]:
-    """(Ngày nhắc trước khi dời qua ngày nghỉ, có dời lùi không). None: không nhắc sale.
+def han_tho(c: LanChamSoc, truoc: list[LanChamSoc], ch: dict[str, int] = CAU_HINH_MAC_DINH,
+            nghi: set[date] = frozenset()) -> date | None:
+    """Ngày nhắc trước khi dời qua ngày nghỉ. None: không nhắc sale.
 
-    Dời lùi chỉ dùng cho nhắc TRƯỚC một việc (xác nhận lịch tham quan): rơi vào ngày nghỉ thì lùi về
-    ngày làm việc trước, để không nhắc sau buổi tham quan. Mọi nhắc khác dời tới ngày làm việc kế tiếp.
+    Riêng nhắc xác nhận lịch tham quan đã là ngày làm việc liền trước buổi tham quan (lùi qua ngày nghỉ),
+    để không nhắc sau buổi tham quan. AppSheet: WORKDAY([Ngày hẹn tham quan], -1, nghỉ).
     """
     ngay = c.thoi_gian.date()
     d = timedelta
     if c.tinh_trang == NHAP_HOC:
-        return None, False
+        return None
     if c.tinh_trang == TU_CHOI:
         ly_do = c.ly_do_tu_choi
         if ly_do in LY_DO_DUNG or ly_do == LD_HOC_PHI:
-            return None, False  # học phí: chủ gửi ưu đãi (danh sách "Gửi ưu đãi"), sale không nhắc
+            return None  # học phí: chủ gửi ưu đãi (danh sách "Gửi ưu đãi"), sale không nhắc
         if ly_do == LD_TRUONG_KHAC:
             sau_6_thang = ngay + d(days=ch["Từ chối trường khác"])
             som_nhat = ngay + d(days=ch["Từ chối trường khác tối thiểu"])
-            return max(min(sau_6_thang, dau_nam_hoc_toi(ngay, ch)), som_nhat), False
+            return max(min(sau_6_thang, dau_nam_hoc_toi(ngay, ch)), som_nhat)
         if ly_do == LD_CHUA_NHU_CAU:
-            return ngay + d(days=ch["Từ chối chưa nhu cầu"]), False
-        return ngay + d(days=ch["Từ chối khác"]), False  # "Khác" hoặc để trống
+            return ngay + d(days=ch["Từ chối chưa nhu cầu"])
+        return ngay + d(days=ch["Từ chối khác"])  # "Khác" hoặc để trống
     if c.tinh_trang == DAT_COC:
-        return (None, False) if c.da_gui_thu_moi else (ngay, False)  # nhắc viết thư mời ngay trong ngày
-    if c.ngay_hen_goi_lai:
-        return c.ngay_hen_goi_lai, False
-    if c.tinh_trang == DA_HEN and c.ngay_hen_tham_quan:
-        xac_nhan = c.ngay_hen_tham_quan - d(days=1)
-        if ngay < xac_nhan:
-            return xac_nhan, True
-        return c.ngay_hen_tham_quan + d(days=ch["Sau tham quan"]), False
+        return None if c.da_gui_thu_moi else ngay  # nhắc viết thư mời ngay trong ngày
     if c.tinh_trang == KHONG_DEN:
-        return ngay, False  # hẹn lại ngay trong ngày (hoặc sáng hôm sau nếu ghi ngoài giờ)
+        # Đứng trước nhánh ngày hẹn: ô "Hẹn lại sau" bị ẩn nhưng AppSheet vẫn giữ giá trị cũ, phải bỏ qua.
+        return ngay  # hẹn lại ngay trong ngày (hoặc sáng hôm sau nếu ghi ngoài giờ)
+    if c.ngay_hen_goi_lai:
+        return c.ngay_hen_goi_lai
+    if c.tinh_trang == DA_HEN and c.ngay_hen_tham_quan:
+        xac_nhan = ngay_lam_viec_lui(c.ngay_hen_tham_quan - d(days=1), nghi)
+        if ngay < xac_nhan:
+            return xac_nhan
+        return c.ngay_hen_tham_quan + d(days=ch["Sau tham quan"])
     if c.tinh_trang == CHUA_LIEN_LAC:
         if chua_lien_lac_lien_tiep(truoc, c) >= ch["Chưa liên lạc tối đa"]:
-            return None, False  # chuyển dài hạn
-        return ngay + d(days=1), False
+            return None  # chuyển dài hạn
+        return ngay + d(days=1)
     if c.tinh_trang == DA_THAM_QUAN:
-        return ngay + d(days=ch["Sau tham quan"]), False
+        return ngay + d(days=ch["Sau tham quan"])
     n = lan_thu(truoc, c)
     if n > 3:
-        return None, False  # sau L3 chưa chốt: chuyển dài hạn
+        return None  # sau L3 chưa chốt: chuyển dài hạn
     m = moc_gan_nhat(truoc, c)
     if n == 2 and m is not None and m.tinh_trang == DA_THAM_QUAN:
-        return ngay + d(days=ch["Chốt sau tham quan"]), False
-    return ngay + d(days=ch[f"L{n}"]), False
+        return ngay + d(days=ch["Chốt sau tham quan"])
+    return ngay + d(days=ch[f"L{n}"])
 
 
 def han_lien_he_tiep(c: LanChamSoc, truoc: list[LanChamSoc], ch: dict[str, int] = CAU_HINH_MAC_DINH,
                      nghi: set[date] = frozenset()) -> date | None:
     """Ngày sale cần liên hệ tiếp sau lần `c`, đã dời qua thứ 7, Chủ nhật, ngày lễ. None: không nhắc."""
-    tho, lui = han_tho(c, truoc, ch)
-    if tho is None:
-        return None
-    return ngay_lam_viec_lui(tho, nghi) if lui else ngay_lam_viec_toi(tho, nghi)
+    tho = han_tho(c, truoc, ch, nghi)
+    return None if tho is None else ngay_lam_viec_toi(tho, nghi)
 
 
 def han_lead_moi(ngay_nhan: datetime, nghi: set[date] = frozenset()) -> date:

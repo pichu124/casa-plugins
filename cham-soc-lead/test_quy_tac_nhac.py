@@ -133,6 +133,24 @@ class C_ThamQuan(unittest.TestCase):
         # gọi xác nhận xong (thứ 6): nhắc hỏi cảm nhận sau buổi thứ 7 -> CN -> thứ 2
         self.assertEqual(han([lan(13, 9, q.DA_HEN, tham_quan=D(2026, 11, 14))]), D(2026, 11, 16))
 
+    def test_goi_xac_nhan_xong_thi_nhac_cam_nhan(self):
+        # Hẹn thứ 2 16/11: xác nhận thứ 6 13/11. Gọi xác nhận đúng 13/11 thì chuyển sang hỏi cảm nhận 17/11.
+        self.assertEqual(han([lan(13, 9, q.DA_HEN, tham_quan=D(2026, 11, 16))]), D(2026, 11, 17))
+
+    def test_ghi_cuoi_tuan_khong_ra_han_qua_khu(self):
+        # Ghi thứ 7 07/11, hẹn thứ 2 09/11: ngày xác nhận (thứ 6 06/11) đã qua, nhắc hỏi cảm nhận 10/11.
+        self.assertEqual(han([lan(7, 11, q.DA_HEN, tham_quan=D(2026, 11, 9))]), D(2026, 11, 10))
+
+    def test_xac_nhan_qua_ngay_le(self):
+        # Hẹn thứ 3 10/11, thứ 2 09/11 là ngày lễ: xác nhận lùi về thứ 6 06/11.
+        c = lan(4, 9, q.DA_HEN, tham_quan=D(2026, 11, 10))
+        self.assertEqual(q.han_lien_he_tiep(c, [], nghi={D(2026, 11, 9)}), D(2026, 11, 6))
+
+    def test_khong_den_bo_qua_hen_lai_cu(self):
+        # Ô "Hẹn lại sau" bị ẩn khi Hẹn nhưng không đến nhưng AppSheet vẫn giữ giá trị cũ.
+        c = lan(5, 17, q.KHONG_DEN, goi_lai=D(2026, 11, 12))
+        self.assertEqual(han([c]), D(2026, 11, 5))
+
     def test_hen_ma_khong_den(self):
         self.assertEqual(han([lan(5, 17, q.KHONG_DEN)]), D(2026, 11, 5))
         self.assertEqual(han([lan(7, 11, q.KHONG_DEN)]), D(2026, 11, 9))  # buổi thứ 7: hẹn lại thứ 2

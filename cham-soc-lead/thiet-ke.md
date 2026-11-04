@@ -156,7 +156,7 @@ Chỉ có công thức, không ai gõ vào tab này. Công thức và cách tín
 
 Mỗi lần sale lưu một lần chăm sóc, app tính **Hạn liên hệ tiếp** cho lần đó. Hạn của một lead là hạn của **lần chăm sóc mới nhất**. Lead chưa có lần chăm sóc nào thì hạn là **ngày nhận** (liên hệ ngay khi được giao).
 
-**Ngày nghỉ.** Thứ 7, Chủ nhật và các ngày trong tab `Ngày nghỉ` không nhắc sale chủ động liên hệ (sale vẫn trả lời khi phụ huynh tự nhắn). Nhắc rơi vào ngày nghỉ thì **dời tới ngày làm việc kế tiếp**. Riêng nhắc **xác nhận lịch tham quan** (trước buổi tham quan 1 ngày) thì **lùi về ngày làm việc liền trước**, để không nhắc sau buổi tham quan. Số ngày trong quy tắc là ngày lịch, dời sau khi cộng.
+**Ngày nghỉ.** Thứ 7, Chủ nhật và các ngày trong tab `Ngày nghỉ` không nhắc sale chủ động liên hệ (sale vẫn trả lời khi phụ huynh tự nhắn). Nhắc rơi vào ngày nghỉ thì **dời tới ngày làm việc kế tiếp**. Riêng nhắc **xác nhận lịch tham quan** là **ngày làm việc liền trước buổi tham quan** (tham quan thứ 2 thì xác nhận thứ 6), để không nhắc sau buổi tham quan; gọi xác nhận vào hoặc sau ngày đó thì chuyển sang nhắc hỏi cảm nhận. Số ngày trong quy tắc là ngày lịch, dời sau khi cộng.
 
 Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`):
 
@@ -169,9 +169,9 @@ Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`)
 | 5 | Từ chối vì Chưa có nhu cầu / Khác | Sau 90 ngày | Dài hạn |
 | 6 | Đã đặt cọc, chưa gửi thư mời | **Ngay trong ngày**: viết thư mời tuyển sinh | Đang chăm sóc |
 | 6b | Đã đặt cọc, đã gửi thư mời | Không nhắc (thủ tục nhập học do văn phòng cơ sở lo) | Đã chốt |
-| 7 | Phụ huynh hẹn ngày (Hẹn lại sau) | Đúng ngày hẹn: +7, +14 ngày, +1, +3 tháng, hoặc ngày sale chọn | Đang chăm sóc |
-| 8 | Đã hẹn tham quan / học thử | Trước buổi tham quan 1 ngày (xác nhận lịch). Đã qua ngày đó (gọi xác nhận xong): sau buổi tham quan 1 ngày (Sau tham quan) | Đang chăm sóc |
-| 9 | Hẹn nhưng không đến | Ngay trong ngày (hẹn lại) | Đang chăm sóc |
+| 7 | Hẹn nhưng không đến | Ngay trong ngày (hẹn lại) | Đang chăm sóc |
+| 7b | Phụ huynh hẹn ngày (Hẹn lại sau) | Đúng ngày hẹn: +7, +14 ngày, +1, +3 tháng, hoặc ngày sale chọn | Đang chăm sóc |
+| 8 | Đã hẹn tham quan / học thử | Ngày làm việc liền trước buổi tham quan (xác nhận lịch). Ghi nhận vào hoặc sau ngày đó (gọi xác nhận xong): sau buổi tham quan 1 ngày (Sau tham quan) | Đang chăm sóc |
 | 10 | Chưa liên lạc được | Ngày làm việc kế tiếp. Lần thứ 3 liên tiếp (Chưa liên lạc tối đa): không nhắc | Đang chăm sóc / Dài hạn |
 | 11 | Đã tham quan / học thử | Sau 1 ngày, hỏi cảm nhận (Sau tham quan) | Đang chăm sóc |
 | 12 | Lần thứ > 3 | Không nhắc | Dài hạn |
@@ -209,14 +209,13 @@ Cộng trừ ngày: `Date + số` ra Date; so sánh hai ngày bằng `TODAY() >=
 | Mốc gần nhất | ảo | Ref → `Chăm sóc` | `ANY(ORDERBY(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]))), [Thời gian], TRUE))` |
 | Lần thứ | App formula | Number | `IF(OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]), 1, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])))))` |
 | Liên lạc được trước | ảo | DateTime | `MAX(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được")))` |
-| Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] <= [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` |
+| Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` (đếm hàng **trước** rồi cộng 1 cho chính nó: lúc thêm mới qua form, hàng đang lưu chưa có trong bảng) |
 | Ngày hẹn | ảo | Date | `IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", EDATE(DATE([Thời gian]), 1), [Hẹn lại sau] = "3 tháng", EDATE(DATE([Thời gian]), 3), TRUE, [Ngày hẹn gọi lại])` |
 | Đầu năm học tới | ảo | Date | xem dưới |
 | Hạn thô | ảo | Date | xem dưới |
-| Dời lùi | ảo | Yes/No | `AND([Tình trạng] = "Đã hẹn tham quan / học thử", ISNOTBLANK([Ngày hẹn tham quan]), ISBLANK([Ngày hẹn]), DATE([Thời gian]) < [Ngày hẹn tham quan] - 1)` |
-| Hạn liên hệ tiếp | App formula | Date | `IF(ISBLANK([Hạn thô]), "", IF([Dời lùi], WORKDAY([Hạn thô] + 1, -1, Ngày nghỉ[Ngày]), WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày])))` |
+| Hạn liên hệ tiếp | App formula | Date | `IF(ISBLANK([Hạn thô]), "", WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày]))` |
 
-`WORKDAY(ngày, n, danh sách ngày lễ)` bỏ qua thứ 7, Chủ nhật và ngày lễ. `WORKDAY(d - 1, 1, …)` ra chính `d` nếu `d` là ngày làm việc, không thì ngày làm việc kế tiếp; `WORKDAY(d + 1, -1, …)` ra ngày làm việc liền trước hoặc bằng `d`.
+`WORKDAY(ngày, n, danh sách ngày lễ)` bỏ qua thứ 7, Chủ nhật và ngày lễ. `WORKDAY(d - 1, 1, …)` ra chính `d` nếu `d` là ngày làm việc, không thì ngày làm việc kế tiếp. `WORKDAY(d, -1, …)` ra ngày làm việc liền trước `d` (dùng cho ngày xác nhận lịch tham quan).
 
 **Đầu năm học tới** (ngày đầu năm học gần nhất sau ngày ghi nhận):
 
@@ -241,10 +240,12 @@ IFS(
   AND([Tình trạng] = "Từ chối", [Lý do từ chối] = "Chưa có nhu cầu"), DATE([Thời gian]) + CH("Từ chối chưa nhu cầu"),
   [Tình trạng] = "Từ chối", DATE([Thời gian]) + CH("Từ chối khác"),
   [Tình trạng] = "Đã đặt cọc", IF([Đã gửi thư mời], "", DATE([Thời gian])),
+  [Tình trạng] = "Hẹn nhưng không đến", DATE([Thời gian]),
   ISNOTBLANK([Ngày hẹn]), [Ngày hẹn],
   AND([Tình trạng] = "Đã hẹn tham quan / học thử", ISNOTBLANK([Ngày hẹn tham quan])),
-    IF(DATE([Thời gian]) < [Ngày hẹn tham quan] - 1, [Ngày hẹn tham quan] - 1, [Ngày hẹn tham quan] + CH("Sau tham quan")),
-  [Tình trạng] = "Hẹn nhưng không đến", DATE([Thời gian]),
+    IF(DATE([Thời gian]) < WORKDAY([Ngày hẹn tham quan], -1, Ngày nghỉ[Ngày]),
+      WORKDAY([Ngày hẹn tham quan], -1, Ngày nghỉ[Ngày]),
+      [Ngày hẹn tham quan] + CH("Sau tham quan")),
   [Tình trạng] = "Chưa liên lạc được",
     IF([Chưa LL liên tiếp] >= CH("Chưa liên lạc tối đa"), "", DATE([Thời gian]) + 1),
   [Tình trạng] = "Đã tham quan / học thử", DATE([Thời gian]) + CH("Sau tham quan"),
@@ -373,5 +374,5 @@ Khi app chạy, plugin `casa-ops` (skill `bao-cao-tuan`) đọc thêm tab `Hồ 
 
 1. Dựng app trên **Sheet mẫu** (dữ liệu giả), theo [huong-dan-appsheet.md](huong-dan-appsheet.md).
 2. Thử với 1 – 2 sale trong một tuần, sửa theo phản hồi.
-3. Thêm 7 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
+3. Thêm 9 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
 4. Mở cho cả 6 sale.
