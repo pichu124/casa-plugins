@@ -301,7 +301,7 @@ AND(
 2. **Đã gửi thư mời** (bảng **Hồ sơ lead**): Do this **Data: execute an action on a set of rows**; Referenced table **Chăm sóc**; Referenced rows `LIST([Lần cuối])`; Referenced action **Đánh dấu thư mời**; Position **Prominent**; icon phong bì. Only if: `AND([Tình trạng hiện tại] = "Đã đặt cọc", NOT([Lần cuối].[Đã gửi thư mời]))`.
 3. **Đã gửi ưu đãi** (bảng **Hồ sơ lead**): Do this **Data: add a new row to another table using values from this row**; Table **Gửi thông tin**; Set: `Mã lead` = `[Mã lead]`, `Loại` = `"Ưu đãi học phí"` (các cột khác tự điền); Position **Prominent**. Only if: công thức "chỉ chủ". Behavior: Needs confirmation `Đánh dấu đã gửi ưu đãi cho phụ huynh này?`
 4. **Đã gửi thông tin**: như nút 3, `Loại` = `"Thông tin hoạt động"`, confirmation `Đánh dấu đã gửi thông tin hoạt động?`
-5. View **Gửi ưu đãi**: Actions **Manual**, giữ **Mở Zalo**, **Đã gửi ưu đãi**. View **Gửi thông tin**: **Mở Zalo**, **Đã gửi thông tin**. Màn table cho chọn nhiều dòng (biểu tượng ☑ ở góc trên) rồi bấm nút một lần.
+5. Màn kiểu table không có mục Actions: bấm một dòng thì trang chi tiết lead mở ra, có nút **Zalo** và **Đã gửi ưu đãi** / **Đã gửi thông tin** (Prominent). Gửi nhiều lead một lúc: bấm biểu tượng ☑ ở góc trên màn table, chọn nhiều dòng, rồi bấm nút trên thanh trên cùng.
 
 ## Bước 8. Bảo mật và email
 
