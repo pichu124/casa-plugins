@@ -84,8 +84,10 @@ App giúp sale ghi kết quả chăm sóc và giúp chủ xem tổng hợp, làm
 
 **Chất lượng lead** (sale đánh giá sau lần tư vấn đầu): Tốt / Trung bình / Kém. Lead trung bình hoặc kém có thêm lý do: Sai độ tuổi / Ở quá xa / Sai hoặc thiếu SĐT / Chỉ để lại thông tin xem thử / Học phí vượt khả năng / Trùng lead / Khác.
 
-**Quy tắc nhắc** (ứng dụng làm, plugin không làm): nhắc đúng ngày hẹn; không hẹn thì nhắc L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày, sau L3 chuyển `Tạm dừng`.
+**Quy tắc nhắc v2** (ứng dụng làm, plugin không làm; chi tiết ở `cham-soc-lead/thiet-ke.md` mục 4): nhắc đúng ngày hẹn; không hẹn thì L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày, hết L3 chuyển **Dài hạn**; chưa liên lạc được 3 lần liên tiếp cũng chuyển Dài hạn; từ chối thì nhắc lại theo lý do; không nhắc vào thứ 7, Chủ nhật, ngày lễ. Mỗi lead có cột ảo **Giai đoạn**: Đang chăm sóc / Dài hạn / Đã chốt / Dừng. Tab `Gửi thông tin` ghi các lần chủ gửi ưu đãi học phí hoặc thông tin hoạt động.
+
+**Tình trạng** có thêm `Hẹn nhưng không đến`. **Lý do từ chối** có thêm `Sai độ tuổi`, `Sai số điện thoại`.
 
 **Phễu chủ cần xem:** Lead mới → Đã tư vấn → Đã tham quan → Đặt cọc → Nhập học.
 
-Khi có dữ liệu này, báo cáo tuần thêm: số lead và tỷ lệ chốt theo sale, lead bị bỏ quên (quá hạn nhắc hoặc quá 3 ngày chưa cập nhật), lead "Rất quan tâm" chưa chốt, lý do từ chối phổ biến, chất lượng lead theo nguồn và chiến dịch.
+Khi có dữ liệu này, báo cáo tuần thêm: số lead và tỷ lệ chốt theo sale, lead bị bỏ quên (đang chăm sóc mà quá hạn nhắc), lead "Rất quan tâm" chưa chốt, lý do từ chối phổ biến, chất lượng lead theo nguồn và chiến dịch.

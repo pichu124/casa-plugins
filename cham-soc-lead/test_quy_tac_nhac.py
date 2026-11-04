@@ -213,15 +213,15 @@ class ChuTuGui(unittest.TestCase):
         self.assertFalse(q.nen_gui_uu_dai(q.GD_DAI_HAN, True, True, lc, g2, D(2027, 6, 1)))  # đủ 2 lần
 
     def test_lead_khac_thi_thoang(self):
-        self.assertTrue(q.nen_gui_uu_dai(q.GD_DANG, True, False, None, [], D(2026, 11, 4)))
+        self.assertTrue(q.nen_gui_uu_dai(q.GD_DANG, True, False, datetime(2026, 11, 1, 9), [], D(2026, 11, 4)))
         g = self.ud((2026, 9, 6))
-        self.assertFalse(q.nen_gui_uu_dai(q.GD_DANG, True, False, None, g, D(2026, 11, 4)))
-        self.assertTrue(q.nen_gui_uu_dai(q.GD_DANG, True, False, None, g, D(2026, 11, 5)))
+        self.assertFalse(q.nen_gui_uu_dai(q.GD_DANG, True, False, datetime(2026, 11, 1, 9), g, D(2026, 11, 4)))
+        self.assertTrue(q.nen_gui_uu_dai(q.GD_DANG, True, False, datetime(2026, 11, 1, 9), g, D(2026, 11, 5)))
 
     def test_khong_gui(self):
         for gd, sdt, coc in ((q.GD_CHOT, True, False), (q.GD_DUNG, True, False), (q.GD_DANG, False, False), (q.GD_DANG, True, True)):
             with self.subTest(gd=gd, sdt=sdt, coc=coc):
-                self.assertFalse(q.nen_gui_uu_dai(gd, sdt, False, None, [], D(2026, 11, 4), da_dat_coc=coc))
+                self.assertFalse(q.nen_gui_uu_dai(gd, sdt, False, datetime(2026, 9, 1, 9), [], D(2026, 11, 4), da_dat_coc=coc))
 
     def test_bang_khoan_hoc_phi(self):
         self.assertTrue(q.bang_khoan_hoc_phi(None, "Học phí vượt khả năng", []))
@@ -266,8 +266,8 @@ class ThongKeThang(unittest.TestCase):
 
     def test_mau_thang_10(self):
         goc = Path(__file__).resolve().parent / "mau"
-        h = list(csv.DictReader(open(goc / "ho-so-lead.csv", encoding="utf-8")))
-        c = list(csv.DictReader(open(goc / "cham-soc.csv", encoding="utf-8")))
+        h = list(csv.DictReader((goc / "ho-so-lead.csv").read_text(encoding="utf-8").splitlines()))
+        c = list(csv.DictReader((goc / "cham-soc.csv").read_text(encoding="utf-8").splitlines()))
         self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10").values()), [7, 7, 1, 1, 0])
         self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Chùa Láng").values()), [3, 3, 0, 0, 0])
         self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Mỹ Đình").values()), [2, 2, 1, 1, 0])
@@ -286,7 +286,7 @@ class DuLieuMau(unittest.TestCase):
 
     def test_moi_trang_thai_mau(self):
         goc = Path(__file__).resolve().parent / "mau"
-        rows = list(csv.DictReader(open(goc / "cham-soc.csv", encoding="utf-8")))
+        rows = list(csv.DictReader((goc / "cham-soc.csv").read_text(encoding="utf-8").splitlines()))
         cuoi = {}
         for r in rows:
             cuoi[r["Mã lead"]] = r

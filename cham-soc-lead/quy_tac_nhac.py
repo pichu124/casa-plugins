@@ -272,7 +272,7 @@ def bang_khoan_hoc_phi(cuoi: LanChamSoc | None, ly_do_chat_luong: str, phan_hoi:
     return any("học phí" in (p or "").lower() for p in phan_hoi)
 
 
-def nen_gui_uu_dai(gd: str, co_sdt: bool, hoc_phi: bool, lan_cuoi: datetime | None, gui: list[LanGui],
+def nen_gui_uu_dai(gd: str, co_sdt: bool, hoc_phi: bool, lan_cuoi: datetime, gui: list[LanGui],
                    hom_nay: date, ch: dict[str, int] = CAU_HINH_MAC_DINH, da_dat_coc: bool = False) -> bool:
     """Lead có vào danh sách "Gửi ưu đãi" của chủ hôm nay không.
 
@@ -289,7 +289,7 @@ def nen_gui_uu_dai(gd: str, co_sdt: bool, hoc_phi: bool, lan_cuoi: datetime | No
     if not hoc_phi:
         return not ud or hom_nay - ud[-1] >= cach
     if not ud:
-        return lan_cuoi is None or hom_nay - lan_cuoi.date() >= timedelta(days=ch["Ưu đãi lần đầu"])
+        return hom_nay - lan_cuoi.date() >= timedelta(days=ch["Ưu đãi lần đầu"])
     if len(ud) >= ch["Ưu đãi tối đa"]:
         return False
     return cach <= hom_nay - ud[-1] <= timedelta(days=ch["Ưu đãi lần 2 trong vòng"])
@@ -458,6 +458,8 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
     nghi = {r[0] for r in NGAY_NGHI_MAU}
     cham_soc, da_co = [], {}
     for i, (ma_lead, tg, sale, pt, tt, muc, ph, ly_do, goi_lai, tham_quan, chu_dong, hen_nhanh, thu_moi, nhap_hoc) in enumerate(sorted(lan, key=lambda r: r[1]), 1):
+        if goi_lai and not hen_nhanh:
+            hen_nhanh = HEN_CHON_NGAY
         c = LanChamSoc(tg, tt, goi_lai, tham_quan, ly_do, chu_dong, thu_moi)
         truoc = da_co.get(ma_lead, [])
         n = lan_thu(truoc, c)
