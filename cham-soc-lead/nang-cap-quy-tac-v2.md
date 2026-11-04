@@ -371,3 +371,28 @@ Thử xong xoá các lead và hàng thử trên Sheet.
 - Hạn liên hệ tiếp là App formula: chỉ tính lại khi hàng Chăm sóc được lưu. Các hàng cũ trên Sheet giữ hạn tính theo quy tắc cũ cho tới khi có lần chăm sóc mới (đó là lý do bước 1 chép lại dữ liệu mẫu v2).
 - Tab `Tổng hợp lead`: muốn lọc được tình trạng "Hẹn nhưng không đến" thì thêm chữ đó vào danh sách ở ô `V1` (xem `mau/tong-hop-lead-cong-thuc.md`). Không thêm cũng không sao.
 - Bot Telegram không đổi.
+
+## Việc để sau: hiện ngày kiểu dd/mm/yyyy
+
+App hiện ngày kiểu tháng/ngày/năm (`11/2/2026`). Đã thử và không đổi được bằng: Data locale của bảng (English (United Kingdom)), ngôn ngữ Chrome, ngôn ngữ điện thoại. Cách chắc chắn là thêm cột ảo **dạng chữ** dùng `TEXT()` (luôn ra đúng định dạng, không phụ thuộc máy), rồi dùng cột đó ở các màn thay cho cột ngày. **Giữ nguyên các cột ngày gốc**: công thức nhắc và sắp xếp dùng chúng.
+
+Cột ảo, **Type = Text**, đặt **Display name** như cột gốc:
+
+| Bảng | Column name | App formula | Display name |
+|---|---|---|---|
+| Hồ sơ lead | `Hạn hiển thị` | `IF(ISBLANK([Hạn liên hệ]), "", TEXT([Hạn liên hệ], "DD/MM/YYYY"))` | Hạn liên hệ |
+| Hồ sơ lead | `Chủ nhắc hiển thị` | `IF(ISBLANK([Chủ nhắc lúc]), "", TEXT([Chủ nhắc lúc], "DD/MM/YYYY HH:MM"))` (Show? `ISNOTBLANK([Chủ nhắc lúc])`) | Chủ đã nhắc lúc |
+| Hồ sơ lead | `Ưu đãi cuối hiển thị` | `IF(ISBLANK([Gửi ưu đãi cuối]), "", TEXT([Gửi ưu đãi cuối], "DD/MM/YYYY"))` | Gửi ưu đãi cuối |
+| Hồ sơ lead | `Thông tin cuối hiển thị` | `IF(ISBLANK([Gửi thông tin cuối]), "", TEXT([Gửi thông tin cuối], "DD/MM/YYYY"))` | Gửi thông tin cuối |
+| Chăm sóc | `Lúc` | `TEXT([Thời gian], "DD/MM/YYYY HH:MM")` | Thời gian |
+
+Thay trong Column order:
+
+- `Hồ sơ lead_Detail`: Hạn liên hệ → Hạn hiển thị; Chủ nhắc lúc → Chủ nhắc hiển thị.
+- `Chăm sóc_Inline` (dòng thời gian): Thời gian → Lúc. **Sort by** vẫn để `Thời gian` (cột ngày thật).
+- Màn Gửi ưu đãi: Gửi ưu đãi cuối → Ưu đãi cuối hiển thị. Màn Gửi thông tin: Gửi thông tin cuối → Thông tin cuối hiển thị.
+- Màn Bỏ quên, Rất quan tâm chưa chốt: Chủ nhắc lúc (và Hạn liên hệ nếu có) → cột hiển thị tương ứng.
+
+Kiểm tra: trang Hoa Thử hiện Hạn liên hệ **02/11/2026**. Ô chọn ngày trong form vẫn theo kiểu của máy (bộ chọn ngày của điện thoại/trình duyệt), không đổi được.
+
+Data locale đã đổi sang English (United Kingdom) ở các bảng: kiểm tra một lần ghi nhận mới, cột Thời gian trên Sheet phải đúng ngày (vd ghi ngày 5 tháng 11 thì không được thành 11 tháng 5). Sai thì đổi Data locale về như cũ.
