@@ -13,3 +13,4 @@ C0011,L0002,2026-10-28 14:00:00,sale1@example.com,Zalo,Yêu cầu gọi lại sa
 C0012,L0003,2026-10-29 16:00:00,sale5@example.com,Gọi điện,Đang cân nhắc,Quan tâm bình thường,"Hỏi thực đơn, đang so sánh trường khác",,,,1,2026-10-30,FALSE,,FALSE,
 C0013,L0004,2026-10-30 10:00:00,sale4@example.com,Gặp trực tiếp tại trường,Đã tham quan / học thử,Rất quan tâm,"Bé thích lớp, phụ huynh hỏi lịch nhập học",,,,1,2026-11-02,FALSE,,FALSE,
 C0014,L0004,2026-11-01 09:00:00,sale4@example.com,Gọi điện,Đã đặt cọc,Rất quan tâm,Đã chuyển khoản đặt cọc,,,,1,2026-11-02,FALSE,,FALSE,2026-12-01
+C0015,L0010,2026-11-02 07:30:00,sale2@example.com,Gọi điện,Đang cân nhắc,Quan tâm bình thường,"Bé còn nhỏ, chờ bé đủ 15 tháng",,,,1,2026-11-03,FALSE,,FALSE,

@@ -290,8 +290,8 @@ class ThongKeThang(unittest.TestCase):
         goc = Path(__file__).resolve().parent / "mau"
         h = list(csv.DictReader((goc / "ho-so-lead.csv").read_text(encoding="utf-8").splitlines()))
         c = list(csv.DictReader((goc / "cham-soc.csv").read_text(encoding="utf-8").splitlines()))
-        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10").values()), [7, 7, 1, 1, 0])
-        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Chùa Láng").values()), [3, 3, 0, 0, 0])
+        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10").values()), [9, 8, 1, 1, 0])  # có L0009, L0010 của đợt 2
+        self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Chùa Láng").values()), [4, 4, 0, 0, 0])
         self.assertEqual(list(q.thong_ke_thang(h, c, "2026-10", "Mỹ Đình").values()), [2, 2, 1, 1, 0])
         self.assertEqual(list(q.thong_ke_thang(h, c, "2026-11").values()), [1, 0, 0, 0, 0])
 
@@ -320,6 +320,199 @@ class DuLieuMau(unittest.TestCase):
         self.assertEqual(cuoi["L0006"]["Lần thứ"], "4")  # hết L3: dài hạn
         self.assertEqual(cuoi["L0006"]["Hạn liên hệ tiếp"], "")
         self.assertEqual(cuoi["L0004"]["Hạn liên hệ tiếp"], "2026-11-02")  # đặt cọc CN: viết thư mời thứ 2
+
+
+# ---------------------------------------------------------------- đợt 2: tuổi bé, em nhỏ, sau nhập học
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "casa-ops" / "scripts"))
+import casa_chung  # noqa: E402
+
+
+def lead(ngay_nhan=D(2026, 11, 2), tuoi="", sinh=None, nguon="", em="", tam_dung=False):
+    return q.Lead(datetime.combine(ngay_nhan, datetime.min.time()).replace(hour=9), tuoi, sinh, nguon, tam_dung, em)
+
+
+def tt(ld, lich_su, hom_nay=D(2026, 11, 4)):
+    return q.trang_thai_lead(ld, lich_su, hom_nay)
+
+
+def lan_ngay(d, gio, tinh_trang, **kw):
+    """Như `lan` nhưng nhận cả ngày (date), cho các mốc xa."""
+    c = q.LanChamSoc(datetime.combine(d, datetime.min.time()).replace(hour=gio), tinh_trang)
+    for k, v in kw.items():
+        setattr(c, k, v)
+    return c
+
+
+class E_TuoiBe(unittest.TestCase):
+    def test_khop_nhom_tuoi_cua_bao_cao(self):
+        """Ước tính tháng tuổi lệch điểm giữa của casa-ops (khoang_thang) không quá 1 tháng."""
+        goc = datetime(2026, 11, 2)
+        for chu in ["2 tuổi", "3 tuổi", "3-4 tuổi", "dưới 2 tuổi", "1,5 tuổi", "2 tuổi 8 tháng",
+                    "2 tuổi rưỡi", "18 tháng", "dưới 18 tháng", "2t", "18th", "5 tuổi", "6 tuổi"]:
+            with self.subTest(chu=chu):
+                thap, cao = casa_chung.khoang_thang(chu, goc)
+                self.assertLessEqual(abs(q.thang_tuoi_luc_nhan(chu) - (thap + cao) / 2), 1)
+
+    def test_nam_sinh(self):
+        nhan = D(2026, 11, 2)
+        self.assertEqual(q.ngay_sinh_uoc_tinh("sinh năm 2020", nhan), D(2020, 7, 1))
+        self.assertEqual(q.ngay_sinh_uoc_tinh("sn 2022", nhan), D(2022, 7, 1))
+        self.assertEqual(q.ngay_sinh_uoc_tinh("sinh tháng 3/2023", nhan), D(2023, 3, 15))
+        self.assertEqual(q.ngay_sinh_uoc_tinh("12/2024", nhan), D(2024, 12, 15))
+
+    def test_thang_tuoi_ra_ngay_sinh(self):
+        nhan = D(2026, 11, 2)
+        self.assertEqual(q.ngay_sinh_uoc_tinh("18 tháng", nhan), D(2025, 5, 3))  # 18 × 30,44 = 548 ngày
+        self.assertEqual(q.ngay_sinh_uoc_tinh("10 tháng", nhan), D(2026, 1, 2))
+
+    def test_khong_hieu(self):
+        for chu in ["", "bé học mẫu giáo", "hai tuổi"]:
+            self.assertIsNone(q.ngay_sinh_uoc_tinh(chu, D(2026, 11, 2)))
+
+
+class E_ChoDuTuoi(unittest.TestCase):
+    def test_be_nho_cho_den_truoc_tuoi_nhan_hoc(self):
+        # sinh 02/01/2026, đủ 15 tháng 02/04/2027: nhắc trước 30 ngày, 03/03/2027 (thứ 4)
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.CAN_NHAC)])
+        self.assertEqual((r.han, r.giai_doan, r.viec), (D(2027, 3, 3), q.GD_DAI_HAN, "Bé sắp đủ tuổi nhận học"))
+
+    def test_lien_he_lan_truoc_roi_thi_nhac_dung_ngay_du_tuoi(self):
+        ls = [lan(2, 9, q.CAN_NHAC), lan_ngay(D(2027, 3, 3), 9, q.CAN_NHAC)]
+        r = tt(lead(tuoi="10 tháng"), ls, D(2027, 3, 3))
+        self.assertEqual((r.han, r.viec), (D(2027, 4, 2), "Bé đủ tuổi nhận học"))
+
+    def test_ngay_sinh_that_uu_tien(self):
+        r = tt(lead(tuoi="2 tuổi", sinh=D(2026, 3, 20)), [lan(2, 9, q.CAN_NHAC)])
+        self.assertEqual(r.han, D(2027, 5, 21))  # đủ tuổi 20/06/2027, trước 30 ngày: thứ 6 21/05
+
+    def test_co_hen_thi_theo_hen(self):
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.GOI_LAI, goi_lai=D(2026, 11, 16))])
+        self.assertEqual((r.han, r.giai_doan), (D(2026, 11, 16), q.GD_DANG))
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.CAN_NHAC, goi_lai=D(2026, 11, 20))])  # "Hẹn lại sau"
+        self.assertEqual((r.han, r.giai_doan), (D(2026, 11, 20), q.GD_DANG))
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.DA_HEN, tham_quan=D(2026, 11, 10))])
+        self.assertEqual(r.han, D(2026, 11, 9))
+
+    def test_tu_choi_chua_nhu_cau_cung_cho(self):
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.TU_CHOI, ly_do=q.LD_CHUA_NHU_CAU)])
+        self.assertEqual((r.han, r.giai_doan), (D(2027, 3, 3), q.GD_DAI_HAN))
+        # Từ chối vì học phí: theo quy tắc từ chối của đợt 1, không chờ tuổi.
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.TU_CHOI, ly_do=q.LD_KHAC)])
+        self.assertEqual(r.han, D(2027, 3, 3))
+        r = tt(lead(tuoi="10 tháng"), [lan(2, 9, q.TU_CHOI, ly_do=q.LD_HOC_PHI)])
+        self.assertEqual(r.han, q.han_lien_he_tiep(lan(2, 9, q.TU_CHOI, ly_do=q.LD_HOC_PHI), []))
+
+    def test_be_du_tuoi_thi_nhu_cu(self):
+        c = lan(2, 9, q.CAN_NHAC)
+        r = tt(lead(tuoi="18 tháng"), [c])
+        self.assertEqual((r.han, r.giai_doan, r.viec), (D(2026, 11, 3), q.GD_DANG, "Gọi lại"))
+
+    def test_lead_em_nho_moi_tao(self):
+        # Sắp sinh 15/08/2026 (tạo bằng nút "Tạo lead cho em"): chưa gọi, chờ tới trước 15/11/2027 30 ngày.
+        r = tt(lead(sinh=D(2026, 8, 15), nguon=q.NGUON_EM_NHO), [])
+        self.assertEqual((r.han, r.giai_doan), (D(2027, 10, 18), q.GD_DAI_HAN))  # 16/10 thứ 7 -> thứ 2
+        # Lead thường chưa gọi vẫn nhắc liên hệ ngay, kể cả bé còn nhỏ.
+        r = tt(lead(tuoi="10 tháng"), [])
+        self.assertEqual((r.han, r.giai_doan, r.viec), (D(2026, 11, 2), q.GD_DANG, "Liên hệ lần đầu"))
+
+
+class F_HoiEmNho(unittest.TestCase):
+    def test_lead_moi_be_qua_tuoi(self):
+        r = tt(lead(ngay_nhan=D(2026, 10, 31), tuoi="sinh năm 2020"), [])  # nhận thứ 7
+        self.assertEqual((r.han, r.giai_doan, r.viec),
+                         (D(2026, 11, 2), q.GD_DANG, "Hỏi phụ huynh có em nhỏ hoặc sắp sinh em"))
+
+    def test_be_du_6_tuoi_luc_nhac(self):
+        ls = [lan(2, 9, q.CAN_NHAC), lan(3, 9, q.CAN_NHAC), lan(4, 9, q.CAN_NHAC)]  # lần 3: +7 = 11/11
+        r = tt(lead(sinh=D(2020, 11, 10)), ls)
+        self.assertEqual((r.han, r.viec), (D(2026, 11, 10), "Hỏi phụ huynh có em nhỏ hoặc sắp sinh em"))
+        r = tt(lead(sinh=D(2020, 11, 11)), ls)  # đủ 6 tuổi đúng ngày nhắc
+        self.assertEqual((r.han, r.viec), (D(2026, 11, 11), "Hỏi phụ huynh có em nhỏ hoặc sắp sinh em"))
+        r = tt(lead(sinh=D(2020, 11, 20)), ls)  # chưa đủ 6 tuổi khi nhắc: như cũ
+        self.assertEqual((r.han, r.viec), (D(2026, 11, 11), "Gọi lại"))
+
+    def test_dai_han_toi_ngay_du_6_tuoi(self):
+        ls = [lan(n, 9, q.CAN_NHAC, thang=9) for n in (1, 2, 3, 4)]  # hết L3: dài hạn
+        self.assertEqual(tt(lead(sinh=D(2020, 12, 1)), ls).giai_doan, q.GD_DAI_HAN)
+        r = tt(lead(sinh=D(2020, 10, 1)), ls)
+        self.assertEqual((r.han, r.giai_doan), (D(2026, 10, 1), q.GD_DANG))
+        self.assertEqual(tt(lead(sinh=D(2020, 11, 4)), ls).giai_doan, q.GD_DANG)  # đủ 6 tuổi hôm nay
+        self.assertEqual(tt(lead(sinh=D(2020, 11, 5)), ls).giai_doan, q.GD_DAI_HAN)
+
+    def test_tu_choi_sai_do_tuoi(self):
+        r = tt(lead(tuoi="3 tuổi"), [lan(4, 9, q.TU_CHOI, ly_do=q.LD_SAI_TUOI)])
+        self.assertEqual((r.han, r.giai_doan), (D(2026, 11, 4), q.GD_DANG))
+
+    def test_hoi_roi_thi_dung(self):
+        for em in q.EM_NHO:
+            with self.subTest(em=em):
+                r = tt(lead(tuoi="3 tuổi", em=em), [lan(4, 9, q.TU_CHOI, ly_do=q.LD_SAI_TUOI)])
+                self.assertEqual((r.han, r.giai_doan), (None, q.GD_DUNG))
+
+    def test_da_chot_khong_hoi(self):
+        r = tt(lead(tuoi="sinh năm 2020"), [lan(4, 9, q.NHAP_HOC)])
+        self.assertEqual((r.han, r.giai_doan), (None, q.GD_CHOT))
+
+
+class F_SauNhapHoc(unittest.TestCase):
+    def test_nhac_dai_su_sau_90_ngay(self):
+        c = lan(4, 9, q.DAT_COC, thu_moi=True)
+        c.ngay_nhap_hoc = D(2026, 12, 1)
+        r = tt(lead(tuoi="3 tuổi"), [c])
+        self.assertEqual((r.han, r.giai_doan, r.viec),
+                         (D(2027, 3, 1), q.GD_CHOT, "Giới thiệu chương trình đại sứ phụ huynh"))
+
+    def test_ghi_nhap_hoc_la_xong(self):
+        c = lan(4, 9, q.DAT_COC, thu_moi=True)
+        c.ngay_nhap_hoc = D(2026, 12, 1)
+        r = tt(lead(tuoi="3 tuổi"), [c, lan_ngay(D(2027, 3, 1), 9, q.NHAP_HOC)], D(2027, 3, 1))
+        self.assertEqual((r.han, r.giai_doan), (None, q.GD_CHOT))
+        # Dòng "Đã nhập học" có điền ngày nhập học dự kiến cũng là xong.
+        r = tt(lead(tuoi="3 tuổi"), [lan(4, 9, q.NHAP_HOC, thu_moi=True)])
+        r2 = tt(lead(tuoi="3 tuổi"), [lan_ngay(D(2026, 11, 4), 9, q.NHAP_HOC, ngay_nhap_hoc=D(2026, 12, 1))])
+        self.assertEqual((r.han, r2.han), (None, None))
+
+    def test_chua_co_ngay_nhap_hoc(self):
+        r = tt(lead(tuoi="3 tuổi"), [lan(4, 9, q.DAT_COC, thu_moi=True)])
+        self.assertEqual((r.han, r.giai_doan), (None, q.GD_CHOT))
+
+    def test_chua_gui_thu_moi(self):
+        c = lan(4, 9, q.DAT_COC)
+        c.ngay_nhap_hoc = D(2026, 12, 1)
+        r = tt(lead(tuoi="3 tuổi"), [c])
+        self.assertEqual((r.han, r.giai_doan, r.viec), (D(2026, 11, 4), q.GD_DANG, "Viết thư mời tuyển sinh"))
+
+
+class TrangThaiLead(unittest.TestCase):
+    def test_tam_dung(self):
+        r = tt(lead(tuoi="sinh năm 2020", tam_dung=True), [])
+        self.assertEqual((r.han, r.giai_doan), (None, q.GD_DUNG))
+
+    def test_mau_khop_dot_1_khi_khong_dinh_tuoi(self):
+        """Lead mẫu không chạm quy tắc tuổi: hạn và giai đoạn đúng như đợt 1."""
+        goc = Path(__file__).resolve().parent / "mau"
+        rows = list(csv.DictReader((goc / "cham-soc.csv").read_text(encoding="utf-8").splitlines()))
+        hom_nay = D(2026, 11, 2)
+        for h in csv.DictReader((goc / "ho-so-lead.csv").read_text(encoding="utf-8").splitlines()):
+            ls = [r for r in rows if r["Mã lead"] == h["Mã lead"]]
+            ld = q.Lead(datetime.fromisoformat(h["Ngày nhận"]), h["Tuổi bé"])
+            ls_c = [q.LanChamSoc(datetime.fromisoformat(r["Thời gian"]), r["Tình trạng"],
+                                 D.fromisoformat(r["Ngày hẹn gọi lại"]) if r["Ngày hẹn gọi lại"] else None,
+                                 D.fromisoformat(r["Ngày hẹn tham quan"]) if r["Ngày hẹn tham quan"] else None,
+                                 r["Lý do từ chối"], r["PH chủ động"] == "TRUE", r["Đã gửi thư mời"] == "TRUE")
+                    for r in ls]
+            r = q.trang_thai_lead(ld, ls_c, hom_nay)
+            with self.subTest(lead=h["Mã lead"]):
+                if h["Mã lead"] == "L0009":
+                    self.assertEqual((r.han, r.giai_doan), (D(2026, 11, 2), q.GD_DANG))
+                elif h["Mã lead"] == "L0010":  # "10 tháng" nhận 28/10: sinh 28/12/2025, đủ tuổi 28/03/2027
+                    self.assertEqual((r.han, r.giai_doan), (D(2027, 2, 26), q.GD_DAI_HAN))
+                else:
+                    cu = D.fromisoformat(ls[-1]["Hạn liên hệ tiếp"]) if ls and ls[-1]["Hạn liên hệ tiếp"] else (
+                        None if ls else q.han_lead_moi(ld.ngay_nhan))
+                    self.assertEqual(r.han, cu)
+                    self.assertEqual(r.giai_doan, q.giai_doan(ls_c[-1] if ls_c else None, cu))
 
 
 if __name__ == "__main__":

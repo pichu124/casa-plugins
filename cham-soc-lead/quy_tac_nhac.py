@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -66,7 +67,12 @@ CAU_HINH_MAC_DINH = {
     "Từ chối chưa nhu cầu": 90, "Từ chối khác": 90,
     "Ưu đãi lần đầu": 60, "Ưu đãi cách nhau": 60, "Ưu đãi tối đa": 2, "Ưu đãi lần 2 trong vòng": 180,
     "Thông tin dài hạn": 30,
+    "Tuổi nhận học (tháng)": 15, "Nhắc trước tuổi nhận học": 30, "Tuổi tối đa (tháng)": 72,
+    "Sau nhập học": 90,
 }
+
+NGUON_EM_NHO = "Em nhỏ trong gia đình"  # lead tạo bằng nút "Tạo lead cho em"
+EM_NHO = ["Có em nhỏ", "Sắp sinh em", "Không"]
 
 
 @dataclass
@@ -78,6 +84,7 @@ class LanChamSoc:
     ly_do_tu_choi: str = ""
     ph_chu_dong: bool = False
     da_gui_thu_moi: bool = False
+    ngay_nhap_hoc: date | None = None  # "Ngày nhập học dự kiến", sale điền khi đặt cọc
 
 
 def la_moc(c: LanChamSoc) -> bool:
@@ -259,6 +266,164 @@ def bo_quen(gd: str, khan: str) -> bool:
     return gd == GD_DANG and khan == "Quá hạn"
 
 
+# ---------------------------------------------------------------- tuổi bé (đợt 2)
+
+def _so_trong(chu: str) -> list[float]:
+    """Như EXTRACTNUMBERS(SUBSTITUTE(chữ, ",", ".")) của AppSheet, lấy trị tuyệt đối ("3-4" ra 3, 4)."""
+    return [abs(float(x)) for x in re.findall(r"\d+(?:\.\d+)?", (chu or "").replace(",", "."))]
+
+
+def _co(chu: str, *tu: str) -> bool:
+    c = (chu or "").lower()
+    return any(t in c for t in tu)
+
+
+def thang_tuoi_luc_nhan(tuoi_be: str) -> float | None:
+    """Tháng tuổi ước tính (điểm giữa) từ chữ phụ huynh viết, tại ngày nhận lead. Bản sao đúng của
+    công thức AppSheet "Tháng tuổi lúc nhận". None: không hiểu, hoặc chữ là năm sinh (xem ngay_sinh_uoc_tinh).
+    """
+    so = _so_trong(tuoi_be)
+    if not so or max(so) >= 1900:
+        return None
+    a = so[0]
+    if _co(tuoi_be, "tuổi", "tuoi"):
+        if len(so) >= 2 and _co(tuoi_be, "tháng", "thang"):
+            return a * 12 + so[1]  # "2 tuổi 8 tháng"
+        if _co(tuoi_be, "rưỡi", "ruoi"):
+            return a * 12 + 6  # "2 tuổi rưỡi"
+        if len(so) >= 2:
+            return (a + so[1] + 1) * 6  # "3-4 tuổi": điểm giữa của [36, 60)
+        if _co(tuoi_be, "dưới", "duoi"):
+            return a * 12 - 6  # "dưới 2 tuổi": [12, 24)
+        if a != int(a):
+            return a * 12  # "1.5 tuổi"
+        return a * 12 + 6  # "2 tuổi": [24, 36)
+    if _co(tuoi_be, "tháng", "thang"):
+        return a - 3 if _co(tuoi_be, "dưới", "duoi") else a
+    return a * 12 + 6 if a <= 7 else a  # "2t" là 2 tuổi, "18" là 18 tháng
+
+
+def _eomonth(d: date, n: int) -> date:
+    """EOMONTH của AppSheet: ngày cuối của tháng n tháng sau d."""
+    y, m = divmod(d.month - 1 + n, 12)
+    y, m = d.year + y, m + 1
+    return date(y + (m == 12), m % 12 + 1, 1) - timedelta(days=1)
+
+
+def ngay_sinh_uoc_tinh(tuoi_be: str, ngay_nhan: date) -> date | None:
+    """Ngày sinh ước tính khi sale chưa nhập ngày sinh thật. Lệch vài tuần cũng được (trường đồng ý)."""
+    so = _so_trong(tuoi_be)
+    if not so:
+        return None
+    if max(so) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023"
+        nam = round(max(so))
+        lech = (nam - ngay_nhan.year) * 12 - ngay_nhan.month
+        if len(so) >= 2 and 1 <= so[0] <= 12:
+            return _eomonth(ngay_nhan, lech + round(so[0]) - 1) + timedelta(days=15)
+        return _eomonth(ngay_nhan, lech + 6) + timedelta(days=1)  # giữa năm: 01/07
+    thang = thang_tuoi_luc_nhan(tuoi_be)
+    if thang is None:
+        return None
+    return ngay_nhan - timedelta(days=int(thang * 30.44 + 0.5))  # ROUND của AppSheet (làm tròn lên ở .5)
+
+
+@dataclass
+class Lead:
+    ngay_nhan: datetime
+    tuoi_be: str = ""
+    ngay_sinh: date | None = None  # sale nhập khi phụ huynh cho ngày sinh cụ thể
+    nguon: str = ""
+    tam_dung: bool = False
+    em_nho: str = ""  # "Có em nhỏ" / "Sắp sinh em" / "Không"; trống là chưa hỏi
+
+
+@dataclass
+class TrangThai:
+    han: date | None
+    giai_doan: str
+    viec: str
+
+
+def trang_thai_lead(lead: Lead, lich_su: list[LanChamSoc], hom_nay: date,
+                    ch: dict[str, int] = CAU_HINH_MAC_DINH, nghi: set[date] = frozenset()) -> TrangThai:
+    """Hạn liên hệ, giai đoạn và việc cần làm của một lead (cột ảo của "Hồ sơ lead" trong AppSheet).
+
+    Thêm vào quy tắc đợt 1 (theo thứ tự ưu tiên):
+    - Hỏi về em nhỏ: bé đủ "Tuổi tối đa" tại thời điểm nhắc, hoặc từ chối vì Sai độ tuổi: nhắc sale hỏi
+      phụ huynh có em nhỏ / sắp sinh em một lần. Sale ghi câu trả lời (ô Em nhỏ) thì lead Dừng.
+    - Sau nhập học: đã gửi thư mời và có ngày nhập học dự kiến: nhắc giới thiệu chương trình đại sứ sau
+      "Sau nhập học" ngày. Sale ghi một lần "Đã nhập học" là xong.
+    - Chờ đủ tuổi: bé chưa đủ "Tuổi nhận học" khi liên hệ (Đang cân nhắc, hoặc từ chối vì Chưa có nhu cầu /
+      Khác), hoặc lead em nhỏ mới tạo: nhắc trước ngày đủ tuổi "Nhắc trước tuổi nhận học" ngày, rồi đúng
+      ngày đủ tuổi. Giai đoạn Dài hạn.
+    """
+    ls = sorted(lich_su, key=lambda x: x.thoi_gian)
+    cuoi = ls[-1] if ls else None
+    toi = lambda d: ngay_lam_viec_toi(d, nghi)  # noqa: E731
+    co_ban = han_lien_he_tiep(cuoi, ls[:-1], ch, nghi) if cuoi else han_lead_moi(lead.ngay_nhan, nghi)
+    lien_he_cuoi = (cuoi.thoi_gian if cuoi else lead.ngay_nhan).date()
+    if lead.tam_dung:
+        return TrangThai(None, GD_DUNG, "")
+
+    sinh = lead.ngay_sinh or ngay_sinh_uoc_tinh(lead.tuoi_be, lead.ngay_nhan.date())
+    du_tuoi = cong_thang(sinh, ch["Tuổi nhận học (tháng)"]) if sinh else None
+    het_tuoi = cong_thang(sinh, ch["Tuổi tối đa (tháng)"]) if sinh else None
+    chot = cuoi is not None and (cuoi.tinh_trang == NHAP_HOC or (cuoi.tinh_trang == DAT_COC and cuoi.da_gui_thu_moi))
+
+    moc_hoi_em = None
+    if not chot:
+        if cuoi is not None and cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi == LD_SAI_TUOI:
+            moc_hoi_em = cuoi.thoi_gian.date()
+        elif het_tuoi and ((co_ban is not None and co_ban >= het_tuoi) or (co_ban is None and hom_nay >= het_tuoi)):
+            moc_hoi_em = max(het_tuoi, lien_he_cuoi)
+    if moc_hoi_em is not None:
+        if lead.em_nho:
+            return TrangThai(None, GD_DUNG, "")
+        return TrangThai(toi(moc_hoi_em), GD_DANG, "Hỏi phụ huynh có em nhỏ hoặc sắp sinh em")
+
+    if chot:
+        if cuoi.tinh_trang == DAT_COC and cuoi.ngay_nhap_hoc:
+            return TrangThai(toi(cuoi.ngay_nhap_hoc + timedelta(days=ch["Sau nhập học"])), GD_CHOT,
+                             "Giới thiệu chương trình đại sứ phụ huynh")
+        return TrangThai(None, GD_CHOT, "")
+
+    if du_tuoi:
+        if cuoi is None:
+            cho = lead.nguon == NGUON_EM_NHO and lead.ngay_nhan.date() < du_tuoi
+        else:
+            cho = (cuoi.thoi_gian.date() < du_tuoi and not cuoi.ngay_hen_goi_lai and (
+                cuoi.tinh_trang == CAN_NHAC
+                or (cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi in (LD_CHUA_NHU_CAU, LD_KHAC))))
+        if cho:
+            truoc = du_tuoi - timedelta(days=ch["Nhắc trước tuổi nhận học"])
+            if lien_he_cuoi < truoc:
+                return TrangThai(toi(truoc), GD_DAI_HAN, "Bé sắp đủ tuổi nhận học")
+            return TrangThai(toi(du_tuoi), GD_DAI_HAN, "Bé đủ tuổi nhận học")
+
+    gd = giai_doan(cuoi, co_ban)
+    return TrangThai(co_ban, gd, viec_can_lam(cuoi, co_ban))
+
+
+def viec_can_lam(cuoi: LanChamSoc | None, han: date | None) -> str:
+    """Một câu ngắn cho sale biết lần nhắc này để làm gì (cột ảo "Việc cần làm")."""
+    if han is None:
+        return ""
+    if cuoi is None:
+        return "Liên hệ lần đầu"
+    tt = cuoi.tinh_trang
+    if tt == DAT_COC:
+        return "Viết thư mời tuyển sinh"
+    if tt == DA_HEN and cuoi.ngay_hen_tham_quan and han < cuoi.ngay_hen_tham_quan:
+        return "Xác nhận lịch tham quan"
+    if tt in (DA_HEN, DA_THAM_QUAN):
+        return "Hỏi cảm nhận sau buổi tham quan"
+    if tt == KHONG_DEN:
+        return "Hẹn lại lịch tham quan"
+    if tt == TU_CHOI:
+        return "Liên hệ lại sau khi từ chối"
+    return "Gọi lại"
+
+
 # ---------------------------------------------------------------- danh sách chủ tự gửi
 
 @dataclass
@@ -360,6 +525,8 @@ COT_HO_SO = [
     "Mã lead", "Ngày nhận", "Tên phụ huynh", "Tên bé", "Tuổi bé", "SĐT", "Cơ sở", "Nguồn", "Chiến dịch",
     "PH quan tâm", "Sale phụ trách", "Customer ID", "Chất lượng lead", "Lý do chất lượng", "Ghi chú", "Tạm dừng",
     "Chủ nhắc lúc",
+    # đợt 2, thêm ở cuối: tab Tổng hợp lead đọc A2:Q nên không phải sửa
+    "Ngày sinh bé", "Em nhỏ", "Ngày sinh em",
 ]
 COT_CHAM_SOC = [
     "Mã", "Mã lead", "Thời gian", "Sale", "Phương thức", "Tình trạng", "Mức quan tâm", "Phản hồi",
@@ -390,7 +557,7 @@ SALE_MAU = [
 
 DANH_MUC_MAU = (
     [["Cơ sở", x] for x in ["Chùa Láng", "Mỹ Đình", "Kim Mã"]]
-    + [["Nguồn", x] for x in ["Facebook Messenger", "Facebook", "Zalo", "Gọi hotline", "Website", "Tự tìm hiểu", "Giới thiệu", "Đến trực tiếp", "Sự kiện", "Khác"]]
+    + [["Nguồn", x] for x in ["Facebook Messenger", "Facebook", "Zalo", "Gọi hotline", "Website", "Tự tìm hiểu", "Giới thiệu", "Đến trực tiếp", "Sự kiện", NGUON_EM_NHO, "Khác"]]
     + [["Mối quan tâm", x] for x in ["Học phí", "Chương trình", "Giờ học", "Đưa đón", "Ăn uống", "Cơ sở vật chất", "Giáo viên", "Tiếng Anh", "Khác"]]
     + [["Lý do từ chối", x] for x in LY_DO_TU_CHOI]
     + [["Lý do chất lượng", x] for x in [
@@ -416,6 +583,10 @@ Y_NGHIA_CAU_HINH = {
     "Ưu đãi tối đa": "Nhóm băn khoăn học phí: gửi ưu đãi tối đa chừng này lần",
     "Ưu đãi lần 2 trong vòng": "Nhóm băn khoăn học phí: quá chừng này ngày sau lần 1 mà chưa gửi lần 2 thì thôi",
     "Thông tin dài hạn": "Lead dài hạn: gửi thông tin hoạt động cách nhau chừng này ngày",
+    "Tuổi nhận học (tháng)": "Bé nhỏ hơn tuổi này (tháng) thì chờ, nhắc khi bé sắp đủ tuổi",
+    "Nhắc trước tuổi nhận học": "Nhắc trước ngày bé đủ tuổi nhận học chừng này ngày",
+    "Tuổi tối đa (tháng)": "Bé đủ tuổi này (tháng) thì nhắc sale hỏi phụ huynh về em nhỏ",
+    "Sau nhập học": "Chừng này ngày sau ngày nhập học dự kiến thì nhắc giới thiệu chương trình đại sứ",
 }
 CAU_HINH_MAU = [[k, v, Y_NGHIA_CAU_HINH[k]] for k, v in CAU_HINH_MAC_DINH.items()]
 
@@ -441,6 +612,8 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         ["L0006", d(20), "Thu Thử", "Bé Cún", "3 tuổi", "0900000606", "Kim Mã", "Sự kiện", "", "Chương trình", "sale6@example.com", "", "Tốt", "", ""],
         ["L0007", d(0, 8), "Quang Thử", "Bé Tin", "2 tuổi", "0900000607", "Mỹ Đình", "Đến trực tiếp", "", "", "sale3@example.com", "", "", "", "Mới nhận sáng nay, chưa gọi"],
         ["L0008", d(15), "Đào Thử", "Bé Gạo", "4 tuổi", "0900000608", "Chùa Láng", "Facebook Messenger", "QC Cambridge T10", "Học phí", "sale1@example.com", "GIA-M2", "Trung bình", "Học phí vượt khả năng", ""],
+        ["L0009", d(2), "Tú Thử", "Bé Bơ", "sinh năm 2020", "0900000609", "Kim Mã", "Zalo", "", "Chương trình", "sale5@example.com", "", "Kém", "Sai độ tuổi", "Bé lớn, hỏi xem có em nhỏ không"],
+        ["L0010", d(5), "Vy Thử", "Bé Mỡ", "10 tháng", "0900000610", "Chùa Láng", "Facebook", "", "Giờ học", "sale2@example.com", "", "Trung bình", "Sai độ tuổi", ""],
     ]
     # mã lead, thời gian, sale, phương thức, tình trạng, mức quan tâm, phản hồi, lý do từ chối, ngày hẹn gọi lại, ngày hẹn tham quan
     lan = [
@@ -458,6 +631,8 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         ["L0006", d(16, 9), "sale6@example.com", "Gọi điện", CAN_NHAC, "Hời hợt", "Hẹn suy nghĩ thêm", "", None, None],
         ["L0006", d(9, 9), "sale6@example.com", "Zalo", CAN_NHAC, "Hời hợt", "Chưa phản hồi", "", None, None],
         ["L0008", d(15, 10), "sale1@example.com", "Messenger (Facebook)", CAN_NHAC, "Quan tâm bình thường", "Hỏi học phí lớp 4 tuổi", "", None, None],
+        # đợt 2: giờ sau mọi dòng cũ để mã C0001–C0014 giữ nguyên
+        ["L0010", d(0, 7, 30), "sale2@example.com", "Gọi điện", CAN_NHAC, "Quan tâm bình thường", "Bé còn nhỏ, chờ bé đủ 15 tháng", "", None, None],
     ]
     lan = [r + [False, "", False, None][len(r) - 10:] for r in lan]  # mặc định cho 4 cột mới
     nghi = {r[0] for r in NGAY_NGHI_MAU}
@@ -482,7 +657,7 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         [d(10, 9), "SĐT mới", "Lan Thử", "GIA-M1", "0900000601", "Bé Na", "3 tuổi", "Mỹ Đình", "", "", "", "QC Cambridge T10", "Đã có SĐT", "0900000601", d(10, 8), d(10, 9)],
     ]
     bang = {
-        "ho-so-lead.csv": (COT_HO_SO, [r + ["FALSE", ""] for r in ho_so]),
+        "ho-so-lead.csv": (COT_HO_SO, [r + ["FALSE", "", "", "", ""] for r in ho_so]),
         "cham-soc.csv": (COT_CHAM_SOC, cham_soc),
         "sale.csv": (COT_SALE, SALE_MAU),
         "danh-muc.csv": (COT_DANH_MUC, DANH_MUC_MAU),
