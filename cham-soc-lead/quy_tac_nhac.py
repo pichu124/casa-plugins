@@ -278,20 +278,31 @@ def _co(chu: str, *tu: str) -> bool:
     return any(t in c for t in tu)
 
 
+def _so_dem(so: list[float]) -> int:
+    """Số con số nói về tuổi: mọi số nếu không có năm sinh, còn có năm thì chỉ các số đứng trước năm
+    (trong 3 số đầu). Như cột AppSheet "Số đếm"."""
+    s1, s2, s3 = (so + [0, 0, 0])[:3]
+    if max(s1, s2, s3) < 1900:
+        return len(so)
+    return 0 if s1 >= 1900 else 1 if s2 >= 1900 else 2
+
+
 def thang_tuoi_luc_nhan(tuoi_be: str) -> float | None:
     """Tháng tuổi ước tính (điểm giữa) từ chữ phụ huynh viết, tại ngày nhận lead. Bản sao đúng của
-    công thức AppSheet "Tháng tuổi lúc nhận". None: không hiểu, hoặc chữ là năm sinh (xem ngay_sinh_uoc_tinh).
+    công thức AppSheet "Tháng tuổi lúc nhận". Có năm sinh thì chỉ đọc các số đứng trước năm
+    ("8 tháng, sinh 2026"). None: không hiểu, hoặc không có số nào trước năm.
     """
     so = _so_trong(tuoi_be)
-    if not so or max(so[:3]) >= 1900:
+    n = _so_dem(so)
+    if n == 0:
         return None
     a = so[0]
-    if _co(tuoi_be, "tuổi", "tuoi") and not (len(so) == 1 and _co(tuoi_be, "tháng", "thang")):
-        if len(so) >= 2 and _co(tuoi_be, "tháng", "thang"):
+    if _co(tuoi_be, "tuổi", "tuoi") and not (n == 1 and _co(tuoi_be, "tháng", "thang")):
+        if n >= 2 and _co(tuoi_be, "tháng", "thang"):
             return a * 12 + so[1]  # "2 tuổi 8 tháng"
         if _co(tuoi_be, "rưỡi", "ruoi"):
             return a * 12 + 6  # "2 tuổi rưỡi"
-        if len(so) >= 2:
+        if n >= 2:
             return (a + so[1] + 1) * 6  # "3-4 tuổi": điểm giữa của [36, 60)
         if _co(tuoi_be, "dưới", "duoi"):
             return a * 12 - 6  # "dưới 2 tuổi": [12, 24)
@@ -299,7 +310,7 @@ def thang_tuoi_luc_nhan(tuoi_be: str) -> float | None:
             return a * 12  # "1.5 tuổi"
         return a * 12 + 6  # "2 tuổi": [24, 36)
     if _co(tuoi_be, "tháng", "thang"):
-        return a - 3 if _co(tuoi_be, "dưới", "duoi") else a
+        return max(0, a - 3) if _co(tuoi_be, "dưới", "duoi") else a  # không ra ngày sinh tương lai
     return a * 12 + 6 if a <= 7 else a  # "2t" là 2 tuổi, "18" là 18 tháng
 
 
@@ -319,11 +330,14 @@ def ngay_sinh_uoc_tinh(tuoi_be: str, ngay_nhan: date) -> date | None:
     if max(s1, s2, s3) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023", "02/12/2025"
         nam = round(max(s1, s2, s3))
         lech = (nam - ngay_nhan.year) * 12 - ngay_nhan.month
-        if s3 >= 1900 and 1 <= s2 <= 12 and 1 <= s1 <= 31:  # ngày/tháng/năm
+        if s3 >= 1900 and 1 <= s2 <= 12 and 1 <= s1 <= 31 and _co(tuoi_be, "/", "-"):  # ngày/tháng/năm
             k = lech + round(s2)
             return min(_eomonth(ngay_nhan, k - 1) + timedelta(days=round(s1)), _eomonth(ngay_nhan, k))
-        if s2 >= 1900 and 1 <= s1 <= 12 and (_co(tuoi_be, "tháng", "thang", "/", "-")):  # tháng/năm
-            return _eomonth(ngay_nhan, lech + round(s1) - 1) + timedelta(days=15)
+        if s2 >= 1900 and 1 <= s1 <= 12 and _co(tuoi_be, "/", "-", f"tháng {round(s1)}", f"thang {round(s1)}"):
+            return _eomonth(ngay_nhan, lech + round(s1) - 1) + timedelta(days=15)  # tháng/năm
+        thang = thang_tuoi_luc_nhan(tuoi_be)  # "8 tháng, sinh 2026": tuổi chính xác hơn năm
+        if thang is not None:
+            return ngay_nhan - timedelta(days=int(thang * 30.44 + 0.5))
         return _eomonth(ngay_nhan, lech + 6) + timedelta(days=1)  # chỉ có năm: giữa năm, 01/07
     thang = thang_tuoi_luc_nhan(tuoi_be)
     if thang is None:
@@ -599,7 +613,7 @@ Y_NGHIA_CAU_HINH = {
     "Tuổi nhận học (tháng)": "Bé nhỏ hơn tuổi này (tháng) thì chờ, nhắc khi bé sắp đủ tuổi",
     "Nhắc trước tuổi nhận học": "Nhắc trước ngày bé đủ tuổi nhận học chừng này ngày",
     "Tuổi tối đa (tháng)": "Bé đủ tuổi này (tháng) thì nhắc sale hỏi phụ huynh về em nhỏ",
-    "Sau nhập học": "Chừng này ngày sau ngày nhập học dự kiến thì nhắc giới thiệu chương trình đại sứ",
+    "Sau nhập học": "Chừng này ngày sau ngày bé vào học thì nhắc giới thiệu chương trình đại sứ",
 }
 CAU_HINH_MAU = [[k, v, Y_NGHIA_CAU_HINH[k]] for k, v in CAU_HINH_MAC_DINH.items()]
 

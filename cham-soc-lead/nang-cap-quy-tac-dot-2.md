@@ -7,7 +7,7 @@ Dành cho app **đã nâng cấp đợt 1** theo `nang-cap-quy-tac-v2.md`. Quy t
 - **Sau nhập học**: lead đã chốt (đặt cọc đã gửi thư mời, hoặc Đã nhập học) → 90 ngày sau **ngày vào học** app nhắc sale giới thiệu **chương trình đại sứ phụ huynh**. Ngày vào học là **Ngày nhập học dự kiến** sale điền lúc đặt cọc; không điền thì là ngày sale ghi Đã nhập học lần đầu. Sale ghi lần chăm sóc giới thiệu đại sứ (vào hoặc sau ngày nhắc) là xong.
 - Cột **Việc cần làm** cho sale biết lần nhắc này để làm gì (liên hệ lần đầu, xác nhận lịch, hỏi cảm nhận, viết thư mời, hỏi em nhỏ…), hiện trên thẻ lead và trong email 8h.
 
-Tuổi bé: sale nhập **Ngày sinh bé** khi phụ huynh cho ngày cụ thể. Không có thì app **ước tính** từ chữ ở ô Tuổi bé ("18 tháng", "2 tuổi", "3-4 tuổi", "dưới 2 tuổi", "2 tuổi rưỡi", "sinh năm 2022", "sinh tháng 3/2023"…), lấy điểm giữa, lệch vài tuần (trường đã đồng ý). Chữ không có số ("hai tuổi", "mẫu giáo") thì app không đoán, lead chạy như đợt 1.
+Tuổi bé: sale nhập **Ngày sinh bé** khi phụ huynh cho ngày cụ thể. Không có thì app **ước tính** từ chữ ở ô Tuổi bé ("18 tháng", "10 tháng tuổi", "2 tuổi", "3-4 tuổi", "dưới 2 tuổi", "2 tuổi rưỡi", "sinh năm 2022", "sinh tháng 3/2023", "02/12/2025"…; có cả tuổi lẫn năm như "8 tháng, sinh 2026" thì dùng tuổi), lấy điểm giữa, lệch vài tuần (trường đã đồng ý). Chữ không có số ("hai tuổi", "mẫu giáo") thì app không đoán, lead chạy như đợt 1.
 
 Mọi công thức đã viết đầy đủ để dán thẳng. Ô công thức nào cũng **gõ `=` trước** rồi dán (hoặc dán vào Expression Assistant). Làm đúng thứ tự: cột sau dùng cột trước. Ước tính: 1 – 1,5 giờ.
 
@@ -23,7 +23,7 @@ Trên bản sao của bạn:
    | Tuổi nhận học (tháng) | 15 | Bé nhỏ hơn tuổi này (tháng) thì chờ, nhắc khi bé sắp đủ tuổi |
    | Nhắc trước tuổi nhận học | 30 | Nhắc trước ngày bé đủ tuổi nhận học chừng này ngày |
    | Tuổi tối đa (tháng) | 72 | Bé đủ tuổi này (tháng) thì nhắc sale hỏi phụ huynh về em nhỏ |
-   | Sau nhập học | 90 | Chừng này ngày sau ngày nhập học dự kiến thì nhắc giới thiệu chương trình đại sứ |
+   | Sau nhập học | 90 | Chừng này ngày sau ngày bé vào học thì nhắc giới thiệu chương trình đại sứ |
 
    Gõ khóa **y hệt** (kể cả "(tháng)"): công thức tra đúng chữ này.
 3. Tab **`Danh mục`**: thêm hàng `Nguồn` | `Em nhỏ trong gia đình`.
@@ -75,69 +75,75 @@ IF(COUNT([Số tuổi]) >= 3, ABS(INDEX([Số tuổi], 3)), 0)
 IF(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)
 ```
 
-**6. Tháng tuổi lúc nhận** (cột ảo, kiểu Decimal)
+**6. Số đếm** (cột ảo, kiểu Number)
+
+```
+IFS([Năm trong tuổi] = 0, COUNT([Số tuổi]), [Số 1] >= 1900, 0, [Số 2] >= 1900, 1, TRUE, 2)
+```
+
+**7. Tháng tuổi lúc nhận** (cột ảo, kiểu Decimal)
 
 ```
 IFS(
-  OR(COUNT([Số tuổi]) = 0, [Năm trong tuổi] > 0), "",
-  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND(COUNT([Số tuổi]) = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
+  [Số đếm] = 0, "",
+  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND([Số đếm] = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
     IFS(
-      AND(COUNT([Số tuổi]) >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
+      AND([Số đếm] >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
       OR(CONTAINS([Tuổi bé], "rưỡi"), CONTAINS([Tuổi bé], "ruoi")), [Số 1] * 12 + 6,
-      COUNT([Số tuổi]) >= 2, ([Số 1] + [Số 2] + 1) * 6,
+      [Số đếm] >= 2, ([Số 1] + [Số 2] + 1) * 6,
       OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), [Số 1] * 12 - 6,
       [Số 1] <> FLOOR([Số 1]), [Số 1] * 12,
       TRUE, [Số 1] * 12 + 6
     ),
-  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), [Số 1] - 3, [Số 1]),
+  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), MAX(LIST(0, [Số 1] - 3)), [Số 1]),
   [Số 1] <= 7, [Số 1] * 12 + 6,
   TRUE, [Số 1]
 )
 ```
 
-**7. Ngày sinh dùng** (cột ảo, kiểu Date)
+**8. Ngày sinh dùng** (cột ảo, kiểu Date)
 
 ```
 IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
-  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31),
+  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     MIN(LIST(
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
-  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"), CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
+  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
+  ISNOTBLANK([Tháng tuổi lúc nhận]), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
-  ISNOTBLANK([Tháng tuổi lúc nhận]), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
   TRUE, ""
 )
 ```
 
-**8. Đủ tuổi nhận học** (cột ảo, kiểu Date)
+**9. Đủ tuổi nhận học** (cột ảo, kiểu Date)
 
 ```
 IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi nhận học (tháng)", "Cấu hình", "Khóa", "Giá trị") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi nhận học (tháng)", "Cấu hình", "Khóa", "Giá trị")))))
 ```
 
-**9. Hết tuổi** (cột ảo, kiểu Date)
+**10. Hết tuổi** (cột ảo, kiểu Date)
 
 ```
 IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi tối đa (tháng)", "Cấu hình", "Khóa", "Giá trị") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi tối đa (tháng)", "Cấu hình", "Khóa", "Giá trị")))))
 ```
 
-**10. Hạn cơ bản** (cột ảo, kiểu Date)
+**11. Hạn cơ bản** (cột ảo, kiểu Date)
 
 ```
 IF(ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), [Lần cuối].[Hạn liên hệ tiếp])
 ```
 
-**11. Chốt rồi** (cột ảo, kiểu Yes/No)
+**12. Chốt rồi** (cột ảo, kiểu Yes/No)
 
 ```
 OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời]))
 ```
 
-**12. Mốc hỏi em** (cột ảo, kiểu Date)
+**13. Mốc hỏi em** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -151,7 +157,7 @@ IFS(
 )
 ```
 
-**13. Chờ đủ tuổi** (cột ảo, kiểu Yes/No)
+**14. Chờ đủ tuổi** (cột ảo, kiểu Yes/No)
 
 ```
 AND(
@@ -171,13 +177,13 @@ AND(
 )
 ```
 
-**14. Hạn chờ tuổi** (cột ảo, kiểu Date)
+**15. Hạn chờ tuổi** (cột ảo, kiểu Date)
 
 ```
 IF(DATE([Liên hệ cuối lúc]) < [Đủ tuổi nhận học] - LOOKUP("Nhắc trước tuổi nhận học", "Cấu hình", "Khóa", "Giá trị"), [Đủ tuổi nhận học] - LOOKUP("Nhắc trước tuổi nhận học", "Cấu hình", "Khóa", "Giá trị"), [Đủ tuổi nhận học])
 ```
 
-**15. Ngày vào học** (cột ảo, kiểu Date)
+**16. Ngày vào học** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -190,7 +196,7 @@ IFS(
 )
 ```
 
-**16. Hạn đại sứ** (cột ảo, kiểu Date)
+**17. Hạn đại sứ** (cột ảo, kiểu Date)
 
 ```
 IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày vào học] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị")), [Ngày vào học] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị"), "")
@@ -201,7 +207,7 @@ IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày v
 
 **Hạn liên hệ** và **Giai đoạn** đã có: mở từng cột, xoá công thức cũ, dán công thức mới. **Việc cần làm** là cột ảo mới (Show bật).
 
-**17. Hạn liên hệ** (cột ảo, kiểu Date)
+**18. Hạn liên hệ** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -213,7 +219,7 @@ IFS(
 )
 ```
 
-**18. Giai đoạn** (cột ảo, kiểu Text)
+**19. Giai đoạn** (cột ảo, kiểu Text)
 
 ```
 IFS(
@@ -229,7 +235,7 @@ IFS(
 )
 ```
 
-**19. Việc cần làm** (cột ảo, kiểu Text)
+**20. Việc cần làm** (cột ảo, kiểu Text)
 
 ```
 IFS(
@@ -314,7 +320,9 @@ Các cột Mức khẩn, Nhóm, Bỏ quên, Nên gửi ưu đãi, Nên gửi th�
 | 2 tuổi 8 tháng | 32 | | sinh năm 2020 | trống (Ngày sinh dùng 01/07/2020) |
 | 2 tuổi rưỡi | 30 | | sinh tháng 3/2023 | trống (Ngày sinh dùng 15/03/2023) |
 | 10 tháng tuổi | 10 | | sinh 02/12/2025 | trống (Ngày sinh dùng 02/12/2025) |
-| 30 tháng tuổi | 30 | | 3 tuổi, sinh 2021 | trống (Ngày sinh dùng 01/07/2021) |
+| 30 tháng tuổi | 30 | | sinh 2021 | trống (Ngày sinh dùng 01/07/2021) |
+| 8 tháng, sinh 2026 | 8 | | tháng 4 năm 2024 | trống (Ngày sinh dùng 15/04/2024) |
+| dưới 2 tháng | 0 | | 2 tuổi 3 tháng, sinh 2024 | 27 |
 
 Chữ nào ra khác bảng thì chụp màn hình gửi lại: AppSheet đọc số trong chữ (EXTRACTNUMBERS) có thể khác với dự tính ở các chữ như "2t", "3-4".
 

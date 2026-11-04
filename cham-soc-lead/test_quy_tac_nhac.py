@@ -7,7 +7,7 @@ import csv
 import sys
 import tempfile
 import unittest
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -363,8 +363,20 @@ class E_TuoiBe(unittest.TestCase):
         self.assertEqual(q.ngay_sinh_uoc_tinh("12/2024", nhan), D(2024, 12, 15))
         self.assertEqual(q.ngay_sinh_uoc_tinh("sinh 02/12/2025", nhan), D(2025, 12, 2))  # ngày/tháng/năm
         self.assertEqual(q.ngay_sinh_uoc_tinh("31/2/2024", nhan), D(2024, 2, 29))  # ngày không có: cuối tháng
-        self.assertEqual(q.ngay_sinh_uoc_tinh("3 tuổi, sinh 2021", nhan), D(2021, 7, 1))  # số đầu không phải tháng
+        self.assertEqual(q.ngay_sinh_uoc_tinh("sinh 2021", nhan), D(2021, 7, 1))
         self.assertEqual(q.ngay_sinh_uoc_tinh("tháng 4 năm 2024", nhan), D(2024, 4, 15))
+
+    def test_tuoi_va_nam_sinh_cung_luc(self):
+        """Có cả tuổi lẫn năm sinh: số tuổi không bị đọc thành tháng sinh; dùng tuổi (chính xác hơn năm)."""
+        nhan = D(2026, 11, 2)
+        for chu, thang in [("8 tháng, sinh 2026", 8), ("10 tháng tuổi, sinh 2026", 10),
+                           ("2 tuổi 3 tháng, sinh 2024", 27), ("5 tuổi, sinh 2021", 66),
+                           ("bé 8 tháng sinh tháng 3 năm 2026", 8)]:
+            with self.subTest(chu=chu):
+                self.assertEqual(q.ngay_sinh_uoc_tinh(chu, nhan), nhan - timedelta(days=round(thang * 30.44 + 1e-9)))
+
+    def test_khong_ra_ngay_sinh_tuong_lai(self):
+        self.assertEqual(q.ngay_sinh_uoc_tinh("dưới 2 tháng", D(2026, 11, 2)), D(2026, 11, 2))
 
     def test_thang_tuoi_ra_ngay_sinh(self):
         nhan = D(2026, 11, 2)
@@ -507,6 +519,13 @@ class F_SauNhapHoc(unittest.TestCase):
         c.ngay_nhap_hoc = D(2026, 12, 1)
         r = tt(lead(tuoi="3 tuổi"), [c, lan_ngay(D(2026, 12, 5), 9, q.NHAP_HOC)], D(2026, 12, 5))
         self.assertEqual(r.han, D(2027, 3, 1))
+
+    def test_nhieu_lan_dat_coc_lay_ngay_du_kien_muon_nhat(self):
+        c1 = lan(2, 9, q.DAT_COC)
+        c1.ngay_nhap_hoc = D(2026, 12, 1)
+        c2 = lan(4, 9, q.DAT_COC, thu_moi=True)  # phụ huynh dời ngày vào học
+        c2.ngay_nhap_hoc = D(2027, 1, 4)
+        self.assertEqual(tt(lead(tuoi="3 tuổi"), [c1, c2]).han, D(2027, 4, 5))  # 04/04 là Chủ nhật
 
     def test_nhap_hoc_khong_qua_dat_coc(self):
         # Không có ngày nhập học dự kiến: lấy ngày ghi "Đã nhập học" đầu tiên (04/11 + 90 = 02/02/2027)

@@ -128,7 +128,7 @@ Form chỉ có **3 chỗ bắt buộc phải bấm**: Phương thức, Tình tr�
 | Tuổi nhận học (tháng) | 15 (tháng) | Bé nhỏ hơn tuổi này thì chờ, nhắc khi bé sắp đủ tuổi |
 | Nhắc trước tuổi nhận học | 30 | Nhắc trước ngày bé đủ tuổi nhận học chừng này ngày |
 | Tuổi tối đa (tháng) | 72 (tháng) | Bé đủ tuổi này thì nhắc sale hỏi phụ huynh về em nhỏ |
-| Sau nhập học | 90 | Chừng này ngày sau ngày nhập học dự kiến thì nhắc giới thiệu chương trình đại sứ |
+| Sau nhập học | 90 | Chừng này ngày sau ngày bé vào học thì nhắc giới thiệu chương trình đại sứ |
 
   Giờ gửi email buổi sáng (8h) đặt trong AppSheet (Automation), không đặt được từ Sheet.
 - `Ngày nghỉ`: cột **Ngày** (Date, Key), **Tên**. Chỉ ghi ngày lễ, nghỉ bù, nghỉ Tết của trường; thứ 7 và Chủ nhật app tự coi là ngày nghỉ. Sheet mẫu có sẵn các ngày lễ dương lịch 2027; Tết và Giỗ Tổ chủ điền theo thông báo của trường.
@@ -190,7 +190,7 @@ Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`)
 | 13 | Lần thứ 2 ngay sau "Đã tham quan" (lần hỏi cảm nhận) | Sau 3 ngày, nhắc chốt (Chốt sau tham quan) | Đang chăm sóc |
 | 14 | Còn lại (Đang cân nhắc, Yêu cầu gọi lại không hẹn ngày…) | L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày | Đang chăm sóc |
 
-**Tuổi bé** (dòng 0a, 0c). Có Ngày sinh bé thì dùng. Không có thì ước tính từ chữ ở ô Tuổi bé, tại ngày nhận lead, lấy điểm giữa: "2 tuổi" là 30 tháng, "3-4 tuổi" 48, "dưới 2 tuổi" 18, "2 tuổi rưỡi" 30, "2 tuổi 8 tháng" 32, "1,5 tuổi" 18, "18 tháng" 18, "dưới 18 tháng" 15, số trần ≤ 7 là tuổi ("2t" 30), lớn hơn là tháng ("18th" 18); ngày sinh = ngày nhận − tháng × 30,44 ngày. "N tháng tuổi" là N tháng. Có năm sinh (số ≥ 1900 trong 3 số đầu): đủ ngày/tháng/năm ("02/12/2025") thì lấy đúng ngày; tháng/năm ("3/2023", "tháng 4 năm 2024") thì ngày 15 của tháng đó; chỉ có năm ("sinh năm 2022", "3 tuổi, sinh 2021") thì giữa năm (01/07). Chữ không có số thì không đoán. Lệch vài tuần, trường đã đồng ý.
+**Tuổi bé** (dòng 0a, 0c). Có Ngày sinh bé thì dùng. Không có thì ước tính từ chữ ở ô Tuổi bé, tại ngày nhận lead, lấy điểm giữa: "2 tuổi" là 30 tháng, "3-4 tuổi" 48, "dưới 2 tuổi" 18, "2 tuổi rưỡi" 30, "2 tuổi 8 tháng" 32, "1,5 tuổi" 18, "18 tháng" 18, "dưới 18 tháng" 15, số trần ≤ 7 là tuổi ("2t" 30), lớn hơn là tháng ("18th" 18); ngày sinh = ngày nhận − tháng × 30,44 ngày. "N tháng tuổi" là N tháng; "dưới N tháng" là N − 3, không dưới 0. Có năm sinh (số ≥ 1900 trong 3 số đầu): ngày/tháng/năm có "/" hoặc "-" ("02/12/2025") thì lấy đúng ngày; tháng/năm ("3/2023", "tháng 4 năm 2024") thì ngày 15 của tháng đó; có tuổi đứng trước năm ("8 tháng, sinh 2026", "2 tuổi 3 tháng, sinh 2024") thì dùng tuổi, chỉ đọc các số trước năm; chỉ có năm ("sinh năm 2022") thì giữa năm (01/07). Chữ không có số thì không đoán. Lệch vài tuần, trường đã đồng ý.
 
 **Việc cần làm** (cột ảo của lead, hiện trên thẻ và trong email 8h): Hỏi phụ huynh có em nhỏ hoặc sắp sinh em / Giới thiệu chương trình đại sứ phụ huynh / Bé sắp đủ tuổi nhận học / Bé đủ tuổi nhận học / Liên hệ lần đầu / Viết thư mời tuyển sinh / Xác nhận lịch tham quan / Hỏi cảm nhận sau buổi tham quan / Hẹn lại lịch tham quan / Liên hệ lại sau khi từ chối / Gọi lại.
 
@@ -326,6 +326,7 @@ AND(
 | Số 2 | Decimal | `IF(COUNT([Số tuổi]) >= 2, ABS(INDEX([Số tuổi], 2)), 0)` |
 | Số 3 | Decimal | `IF(COUNT([Số tuổi]) >= 3, ABS(INDEX([Số tuổi], 3)), 0)` |
 | Năm trong tuổi | Number | `IF(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)` |
+| Số đếm | Number | `IFS([Năm trong tuổi] = 0, COUNT([Số tuổi]), [Số 1] >= 1900, 0, [Số 2] >= 1900, 1, TRUE, 2)` |
 | Đủ tuổi nhận học | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)")))))` |
 | Hết tuổi | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi tối đa (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi tối đa (tháng)")))))` |
 | Hạn cơ bản | Date | `IF(ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), [Lần cuối].[Hạn liên hệ tiếp])` |
@@ -337,17 +338,17 @@ AND(
 
 ```
 IFS(
-  OR(COUNT([Số tuổi]) = 0, [Năm trong tuổi] > 0), "",
-  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND(COUNT([Số tuổi]) = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
+  [Số đếm] = 0, "",
+  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND([Số đếm] = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
     IFS(
-      AND(COUNT([Số tuổi]) >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
+      AND([Số đếm] >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
       OR(CONTAINS([Tuổi bé], "rưỡi"), CONTAINS([Tuổi bé], "ruoi")), [Số 1] * 12 + 6,
-      COUNT([Số tuổi]) >= 2, ([Số 1] + [Số 2] + 1) * 6,
+      [Số đếm] >= 2, ([Số 1] + [Số 2] + 1) * 6,
       OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), [Số 1] * 12 - 6,
       [Số 1] <> FLOOR([Số 1]), [Số 1] * 12,
       TRUE, [Số 1] * 12 + 6
     ),
-  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), [Số 1] - 3, [Số 1]),
+  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), MAX(LIST(0, [Số 1] - 3)), [Số 1]),
   [Số 1] <= 7, [Số 1] * 12 + 6,
   TRUE, [Số 1]
 )
@@ -358,15 +359,15 @@ IFS(
 ```
 IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
-  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31),
+  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     MIN(LIST(
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
-  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"), CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
+  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
+  ISNOTBLANK([Tháng tuổi lúc nhận]), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
-  ISNOTBLANK([Tháng tuổi lúc nhận]), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
   TRUE, ""
 )
 ```
