@@ -41,16 +41,52 @@ Tab `Hồ sơ lead`, `Sale`, `Leads`, `Thống kê`, `Tổng hợp lead` giữ n
 
 Sửa cột có sẵn, thêm cột ảo mới (nút **+** → Add virtual column), đúng thứ tự:
 
-| Cột | Loại | Kiểu | Công thức |
-|---|---|---|---|
-| Mốc gần nhất | ảo (sửa cột có sẵn) | Ref → `Chăm sóc` | `ANY(ORDERBY(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]))), [Thời gian], TRUE))` |
-| Lần thứ | App formula (sửa cột có sẵn) | Number | `IF(OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]), 1, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])))))` |
-| Liên lạc được trước | ảo | DateTime | `MAX(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được")))` |
-| Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` (đếm hàng **trước** rồi cộng 1 cho chính nó: lúc thêm mới qua form, hàng đang lưu chưa có trong bảng) |
-| Ngày hẹn | ảo | Date | `IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", EDATE(DATE([Thời gian]), 1), [Hẹn lại sau] = "3 tháng", EDATE(DATE([Thời gian]), 3), TRUE, [Ngày hẹn gọi lại])` |
-| Đầu năm học tới | ảo | Date | xem dưới |
-| Hạn thô | ảo | Date | xem dưới |
-| Hạn liên hệ tiếp | App formula (sửa cột có sẵn) | Date | `IF(ISBLANK([Hạn thô]), "", WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày]))` |
+**1. Mốc gần nhất** (ảo (sửa cột có sẵn), kiểu Ref → `Chăm sóc`)
+
+```
+ANY(ORDERBY(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]))), [Thời gian], TRUE))
+```
+
+**2. Lần thứ** (App formula (sửa cột có sẵn), kiểu Number)
+
+```
+IF(OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]), 1, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])))))
+```
+
+**3. Liên lạc được trước** (ảo, kiểu DateTime)
+
+```
+MAX(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được")))
+```
+
+**4. Chưa LL liên tiếp** (ảo, kiểu Number)
+
+```
+IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))
+```
+
+(đếm hàng **trước** rồi cộng 1 cho chính nó: lúc thêm mới qua form, hàng đang lưu chưa có trong bảng)
+
+**5. Ngày hẹn** (ảo, kiểu Date)
+
+```
+IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", EDATE(DATE([Thời gian]), 1), [Hẹn lại sau] = "3 tháng", EDATE(DATE([Thời gian]), 3), TRUE, [Ngày hẹn gọi lại])
+```
+
+**6. Đầu năm học tới** (ảo, kiểu Date)
+
+Công thức: xem dưới
+
+**7. Hạn thô** (ảo, kiểu Date)
+
+Công thức: xem dưới
+
+**8. Hạn liên hệ tiếp** (App formula (sửa cột có sẵn), kiểu Date)
+
+```
+IF(ISBLANK([Hạn thô]), "", WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày]))
+```
+
 
 `WORKDAY(ngày, n, danh sách ngày lễ)` bỏ qua thứ 7, Chủ nhật và ngày lễ. `WORKDAY(d - 1, 1, …)` ra chính `d` nếu `d` là ngày làm việc, không thì ngày làm việc kế tiếp. `WORKDAY(d, -1, …)` ra ngày làm việc liền trước `d` (dùng cho ngày xác nhận lịch tham quan).
 
@@ -96,28 +132,124 @@ IFS(
 
 Sửa các cột đã có, thêm các cột mới, theo thứ tự trong bảng. Cột **Đề xuất tạm dừng** sẽ xoá ở bước 6, sau khi bỏ slice, view và quy tắc tô màu đang dùng nó.
 
-| Cột ảo | Kiểu | Công thức |
-|---|---|---|
-| Lần cuối | Ref → `Chăm sóc` | `ANY(ORDERBY([Related Chăm sócs], [Thời gian], TRUE))` |
-| Tình trạng hiện tại | Text | `IF(ISBLANK([Lần cuối]), "Mới", [Lần cuối].[Tình trạng])` |
-| Mức quan tâm hiện tại | Text | `[Lần cuối].[Mức quan tâm]` |
-| Hạn liên hệ | Date | `IFS([Tạm dừng], "", ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), TRUE, [Lần cuối].[Hạn liên hệ tiếp])` |
-| Giai đoạn | Text | `IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")` |
-| Mức khẩn | Text | `IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")` |
-| Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
-| Ngày không cập nhật | Decimal | `HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24` |
-| Đã kết thúc | Yes/No | `IN([Giai đoạn], LIST("Đã chốt", "Dừng"))` |
-| Bỏ quên | Yes/No | `AND([Giai đoạn] = "Đang chăm sóc", [Mức khẩn] = "Quá hạn")` |
-| Lead mới chưa liên hệ | Yes/No | `AND(ISBLANK([Lần cuối]), NOT([Tạm dừng]), [Mức khẩn] = "Quá hạn")` |
-| Số ngày quá hạn | Number | `IF([Mức khẩn] = "Quá hạn", HOUR(TODAY() - [Hạn liên hệ]) / 24, 0)` |
-| Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], IF(ISBLANK([Lần cuối].[Phản hồi]), "", CONCATENATE(" · ", [Lần cuối].[Phản hồi]))))` |
-| Liên hệ cuối lúc | DateTime | `IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])` |
-| Băn khoăn học phí | Yes/No | `OR(AND([Lần cuối].[Tình trạng] = "Từ chối", [Lần cuối].[Lý do từ chối] = "Học phí"), [Lý do chất lượng] = "Học phí vượt khả năng", COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], CONTAINS([Phản hồi], "học phí")))) > 0)` |
-| Số lần gửi ưu đãi | Number | `COUNT(SELECT(Gửi thông tin[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Ưu đãi học phí")))` |
-| Gửi ưu đãi cuối | DateTime | `MAX(SELECT(Gửi thông tin[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Ưu đãi học phí")))` |
-| Gửi thông tin cuối | DateTime | `MAX(SELECT(Gửi thông tin[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Thông tin hoạt động")))` |
-| Nên gửi ưu đãi | Yes/No | xem dưới |
-| Nên gửi thông tin | Yes/No | `AND([Giai đoạn] = "Dài hạn", ISNOTBLANK([SĐT]), OR(ISBLANK([Gửi thông tin cuối]), TODAY() >= DATE([Gửi thông tin cuối]) + LOOKUP("Thông tin dài hạn", "Cấu hình", "Khóa", "Giá trị")))` |
+**1. Lần cuối** (cột ảo, kiểu Ref → `Chăm sóc`)
+
+```
+ANY(ORDERBY([Related Chăm sócs], [Thời gian], TRUE))
+```
+
+**2. Tình trạng hiện tại** (cột ảo, kiểu Text)
+
+```
+IF(ISBLANK([Lần cuối]), "Mới", [Lần cuối].[Tình trạng])
+```
+
+**3. Mức quan tâm hiện tại** (cột ảo, kiểu Text)
+
+```
+[Lần cuối].[Mức quan tâm]
+```
+
+**4. Hạn liên hệ** (cột ảo, kiểu Date)
+
+```
+IFS([Tạm dừng], "", ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), TRUE, [Lần cuối].[Hạn liên hệ tiếp])
+```
+
+**5. Giai đoạn** (cột ảo, kiểu Text)
+
+```
+IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")
+```
+
+**6. Mức khẩn** (cột ảo, kiểu Text)
+
+```
+IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")
+```
+
+**7. Nhóm** (cột ảo, kiểu Text)
+
+```
+IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))
+```
+
+**8. Ngày không cập nhật** (cột ảo, kiểu Decimal)
+
+```
+HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24
+```
+
+**9. Đã kết thúc** (cột ảo, kiểu Yes/No)
+
+```
+IN([Giai đoạn], LIST("Đã chốt", "Dừng"))
+```
+
+**10. Bỏ quên** (cột ảo, kiểu Yes/No)
+
+```
+AND([Giai đoạn] = "Đang chăm sóc", [Mức khẩn] = "Quá hạn")
+```
+
+**11. Lead mới chưa liên hệ** (cột ảo, kiểu Yes/No)
+
+```
+AND(ISBLANK([Lần cuối]), NOT([Tạm dừng]), [Mức khẩn] = "Quá hạn")
+```
+
+**12. Số ngày quá hạn** (cột ảo, kiểu Number)
+
+```
+IF([Mức khẩn] = "Quá hạn", HOUR(TODAY() - [Hạn liên hệ]) / 24, 0)
+```
+
+**13. Lần cuối tóm tắt** (cột ảo, kiểu Text)
+
+```
+IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], IF(ISBLANK([Lần cuối].[Phản hồi]), "", CONCATENATE(" · ", [Lần cuối].[Phản hồi]))))
+```
+
+**14. Liên hệ cuối lúc** (cột ảo, kiểu DateTime)
+
+```
+IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])
+```
+
+**15. Băn khoăn học phí** (cột ảo, kiểu Yes/No)
+
+```
+OR(AND([Lần cuối].[Tình trạng] = "Từ chối", [Lần cuối].[Lý do từ chối] = "Học phí"), [Lý do chất lượng] = "Học phí vượt khả năng", COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], CONTAINS([Phản hồi], "học phí")))) > 0)
+```
+
+**16. Số lần gửi ưu đãi** (cột ảo, kiểu Number)
+
+```
+COUNT(SELECT(Gửi thông tin[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Ưu đãi học phí")))
+```
+
+**17. Gửi ưu đãi cuối** (cột ảo, kiểu DateTime)
+
+```
+MAX(SELECT(Gửi thông tin[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Ưu đãi học phí")))
+```
+
+**18. Gửi thông tin cuối** (cột ảo, kiểu DateTime)
+
+```
+MAX(SELECT(Gửi thông tin[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Thông tin hoạt động")))
+```
+
+**19. Nên gửi ưu đãi** (cột ảo, kiểu Yes/No)
+
+Công thức: xem dưới
+
+**20. Nên gửi thông tin** (cột ảo, kiểu Yes/No)
+
+```
+AND([Giai đoạn] = "Dài hạn", ISNOTBLANK([SĐT]), OR(ISBLANK([Gửi thông tin cuối]), TODAY() >= DATE([Gửi thông tin cuối]) + LOOKUP("Thông tin dài hạn", "Cấu hình", "Khóa", "Giá trị")))
+```
+
 
 **Nên gửi ưu đãi**:
 
