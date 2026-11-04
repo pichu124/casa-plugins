@@ -92,8 +92,8 @@ Chủ đổi tháng, cơ sở, sale trong menu **Settings** của app; màn **T�
 | Lead của tôi | Hồ sơ lead | `[Sale phụ trách] = USEREMAIL()` |
 | Bỏ quên | Hồ sơ lead | `[Bỏ quên]` |
 | Rất quan tâm chưa chốt | Hồ sơ lead | `AND([Mức quan tâm hiện tại] = "Rất quan tâm", NOT([Đã kết thúc]), [Tình trạng hiện tại] <> "Đã đặt cọc")` |
-| Gửi ưu đãi | Hồ sơ lead | `[Nên gửi ưu đãi]` |
-| Gửi thông tin | Hồ sơ lead | `[Nên gửi thông tin]` |
+| Cần gửi ưu đãi | Hồ sơ lead | `[Nên gửi ưu đãi]` |
+| Cần gửi thông tin | Hồ sơ lead | `[Nên gửi thông tin]` (không đặt tên `Gửi thông tin`: trùng tên bảng) |
 | Messenger chưa nhận | Messenger | `AND(ISNOTBLANK([SĐT]), NOT(IN([Customer ID], Hồ sơ lead[Customer ID])), [Giai đoạn] <> "Không quan tâm")` |
 | Tháng đang chọn | Thống kê | `AND([Tháng] = USERSETTINGS("Tháng"), [Cơ sở] = USERSETTINGS("Cơ sở"))` |
 | Lead theo bộ lọc | Hồ sơ lead | `AND(OR(USERSETTINGS("Cơ sở") = "Tất cả", [Cơ sở] = USERSETTINGS("Cơ sở")), OR(USERSETTINGS("Sale") = "Tất cả", [Sale phụ trách].[Tên] = USERSETTINGS("Sale")))` |
@@ -111,8 +111,8 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
 | Rất quan tâm chưa chốt | Rất quan tâm chưa chốt | Table | menu | Group by `Sale phụ trách`; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Tình trạng hiện tại, Hạn liên hệ, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
-| Gửi ưu đãi | Gửi ưu đãi | Table | menu | Xem bước 6 của `nang-cap-quy-tac-v2.md` |
-| Gửi thông tin | Gửi thông tin | Table | menu | Xem bước 6 của `nang-cap-quy-tac-v2.md` |
+| Gửi ưu đãi | Cần gửi ưu đãi | Table | menu | Xem bước 6 của `nang-cap-quy-tac-v2.md` |
+| Gửi thông tin | Cần gửi thông tin | Table | menu | Xem bước 6 của `nang-cap-quy-tac-v2.md` |
 | Tất cả lead | Lead theo bộ lọc | Deck | menu | **Chỉ chủ** (Show if là công thức "ai là chủ"). Ô tìm kiếm có sẵn ở góc trên; lọc Cơ sở, Sale bằng User settings (bước 4a). Hiện Tên phụ huynh, Tên bé, Cơ sở, Sale phụ trách, Mức khẩn, Tình trạng hiện tại. Bấm vào mở trang chi tiết có dòng thời gian tư vấn (xem dưới) |
 | Báo cáo tháng | Tháng đang chọn | Detail | menu | Hiện Tháng, Cơ sở, Lead mới, Lead mới tháng trước, rồi từng bước kèm tỷ lệ. Thêm cột ảo nếu muốn % so với bước trước, vd `IF([Đã tư vấn] = 0, 0, [Đã tham quan] / [Đã tư vấn])` |
 | Lead của tháng | Lead tháng đang chọn | Table | menu | Danh sách lead của tháng và cơ sở đang chọn, cột Tình trạng hiện tại, Nguồn, Sale phụ trách |

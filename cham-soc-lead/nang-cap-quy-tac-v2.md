@@ -284,11 +284,13 @@ AND(
 1. **Format rules**: quy tắc **Đề xuất tạm dừng** đổi tên thành `Dài hạn`, điều kiện `[Giai đoạn] = "Dài hạn"` (giữ màu xanh dương).
 2. **Views**: xoá view **Đề xuất tạm dừng**. **Data**: xoá slice **Đề xuất tạm dừng**, rồi xoá cột ảo **Đề xuất tạm dừng** của `Hồ sơ lead`.
 3. Hai slice mới trên bảng `Hồ sơ lead`:
-   - `Gửi ưu đãi`: `[Nên gửi ưu đãi]`
-   - `Gửi thông tin`: `[Nên gửi thông tin]`
+   - `Cần gửi ưu đãi`: `[Nên gửi ưu đãi]`
+   - `Cần gửi thông tin`: `[Nên gửi thông tin]`
+
+   Đừng đặt tên slice là `Gửi thông tin`: trùng tên bảng `Gửi thông tin`, AppSheet sẽ tự đổi thành "Gửi thông tin 2".
 4. Hai view mới ở **MENU NAVIGATION**, kiểu **table**, Show if là công thức "chỉ chủ" (`LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"`), Behavior → Row Selected = **Mở hồ sơ**:
-   - `Gửi ưu đãi` (slice Gửi ưu đãi): Sort by `Băn khoăn học phí` **Descending**; Column order: Tên phụ huynh, Cơ sở, Sale phụ trách, Băn khoăn học phí, Số lần gửi ưu đãi, Gửi ưu đãi cuối, Lần cuối tóm tắt.
-   - `Gửi thông tin` (slice Gửi thông tin): Group by `Cơ sở`; Column order: Tên phụ huynh, Cơ sở, Sale phụ trách, Gửi thông tin cuối, Lần cuối tóm tắt.
+   - `Gửi ưu đãi` (slice Cần gửi ưu đãi): Sort by `Băn khoăn học phí` **Descending**; Column order: Tên phụ huynh, Cơ sở, Sale phụ trách, Băn khoăn học phí, Số lần gửi ưu đãi, Gửi ưu đãi cuối, Lần cuối tóm tắt.
+   - `Gửi thông tin` (slice Cần gửi thông tin; **không** chọn bảng Gửi thông tin): Group by `Cơ sở`; Column order: Tên phụ huynh, Cơ sở, Sale phụ trách, Gửi thông tin cuối, Lần cuối tóm tắt.
 5. **`Chăm sóc_Form`**, Column order: Phương thức, PH chủ động, Tình trạng, Mức quan tâm, Phản hồi, Lý do từ chối, Hẹn lại sau, Ngày hẹn gọi lại, Ngày hẹn tham quan, Đã gửi thư mời, Ngày nhập học dự kiến.
 6. **`Hồ sơ lead_Detail`**: thêm **Giai đoạn** ngay sau Mức khẩn; thêm **Related Gửi thông tins** ở cuối (sau Related Chăm sócs).
 7. Thẻ deck của sale: nếu muốn, đổi **Secondary header** của màn Hôm nay thành `Tình trạng hiện tại` để sale thấy ngay lead nào là "Đã đặt cọc" (cần viết thư mời).
