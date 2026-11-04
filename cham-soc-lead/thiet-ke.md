@@ -1,6 +1,6 @@
 # Thiết kế ứng dụng chăm sóc lead (AppSheet)
 
-Dựa trên "Mô tả yêu cầu phần mềm quản lý và chăm sóc lead phụ huynh" của trường và khảo sát ngày 02/11/2026. Trường dùng Google Workspace có sẵn **AppSheet Core**, nên app làm bằng AppSheet, không tốn thêm phí.
+Dựa trên "Mô tả yêu cầu phần mềm quản lý và chăm sóc lead phụ huynh" của trường, khảo sát ngày 02/11/2026, và phản hồi của trường về quy tắc follow-up (11/2026, quy tắc nhắc v2). Trường dùng Google Workspace có sẵn **AppSheet Core**, nên app làm bằng AppSheet, không tốn thêm phí.
 
 ## 1. Mục tiêu và người dùng
 
@@ -13,7 +13,7 @@ Dựa trên "Mô tả yêu cầu phần mềm quản lý và chăm sóc lead ph�
 Các tab của app được thêm vào **cùng file Google Sheet mà bot Messenger đang ghi** (file có tab `Leads` và `Chủ đề`), để một file có đủ mọi thứ.
 
 - Tab **`Leads` của bot giữ nguyên**: app chỉ **đọc**, không sửa, không thêm cột. Script của bot ghi lại cả cột A đến P của một hàng mỗi lần có sự kiện, và dừng ghi nếu có người chiếm cột bot cần dùng sau này (`docs/google-sheet-leads.md` của repo bot, mục 5).
-- App có 7 tab riêng, đặt tên khác hẳn tab của bot để khỏi nhầm:
+- App có 9 tab riêng, đặt tên khác hẳn tab của bot để khỏi nhầm:
 
 | Tab | Mỗi hàng là | Ai ghi |
 |---|---|---|
@@ -22,6 +22,8 @@ Các tab của app được thêm vào **cùng file Google Sheet mà bot Messeng
 | `Sale` | Một người dùng app | Chủ |
 | `Danh mục` | Một lựa chọn trong danh sách (cơ sở, nguồn, lý do…) | Chủ |
 | `Cấu hình` | Một con số trong quy tắc nhắc | Chủ |
+| `Ngày nghỉ` | Một ngày lễ (thứ 7, Chủ nhật tự nghỉ, không cần ghi) | Chủ |
+| `Gửi thông tin` | Một lần chủ gửi ưu đãi học phí hoặc thông tin hoạt động cho phụ huynh | App, khi chủ bấm "Đã gửi" |
 | `Thống kê` | Một tháng của một cơ sở (hoặc "Tất cả"): phễu và tỷ lệ chuyển đổi | Công thức trong Sheet, tự tính |
 | `Tổng hợp lead` | Mọi lead đang có, lọc theo cơ sở, sale, tình trạng, mức khẩn, kèm quá trình tư vấn | Công thức trong Sheet, cho chủ xem trên máy tính |
 
@@ -58,7 +60,7 @@ Tên cột là tên tiêu đề trên Sheet. Kiểu là kiểu cần chọn tron
 | Chất lượng lead | Enum | Tốt / Trung bình / Kém. Sale chọn sau lần tư vấn đầu |
 | Lý do chất lượng | Enum | `Danh mục` loại "Lý do chất lượng". Chỉ hiện khi Trung bình hoặc Kém |
 | Ghi chú | LongText | |
-| Tạm dừng | Yes/No | Chỉ chủ đổi. Bật thì ngừng nhắc |
+| Tạm dừng | Yes/No | Chỉ chủ đổi. Bật thì lead chuyển giai đoạn **Dừng**, ngừng nhắc. Giá trị đầu `FALSE`, không bắt buộc |
 | Chủ nhắc lúc | DateTime | Nút **Nhắc sale** của chủ ghi giờ vào đây; app gửi email nhắc sale phụ trách (mục 6). Sale thấy dòng "Chủ đã nhắc lúc…" trong chi tiết lead |
 
 ### `Chăm sóc`
@@ -70,16 +72,22 @@ Tên cột là tên tiêu đề trên Sheet. Kiểu là kiểu cần chọn tron
 | Thời gian | DateTime | `NOW()`, tự ghi, sale không nhập |
 | Sale | Ref → `Sale` | `USEREMAIL()`, tự ghi, sale không nhập |
 | Phương thức | Enum, nút bấm | Gọi điện / Zalo / Messenger (Facebook) / SMS / Gặp trực tiếp tại trường |
-| Tình trạng | Enum, nút bấm | Chưa liên lạc được / Đang cân nhắc / Yêu cầu gọi lại sau / Đã hẹn tham quan / học thử / Đã tham quan / học thử / Đã đặt cọc / Đã nhập học / Từ chối |
-| Mức quan tâm | Enum, nút bấm | Rất quan tâm / Quan tâm bình thường / Hời hợt. Ẩn khi Từ chối hoặc Chưa liên lạc được |
+| Tình trạng | Enum, nút bấm | Chưa liên lạc được / Đang cân nhắc / Yêu cầu gọi lại sau / Đã hẹn tham quan / học thử / Hẹn nhưng không đến / Đã tham quan / học thử / Đã đặt cọc / Đã nhập học / Từ chối |
+| Mức quan tâm | Enum, nút bấm | Rất quan tâm / Quan tâm bình thường / Hời hợt. Ẩn khi Từ chối, Chưa liên lạc được, Hẹn nhưng không đến |
 | Phản hồi | Text | Ô gõ ngắn, vd "băn khoăn học phí, muốn hỏi thêm chồng" |
-| Lý do từ chối | Enum | `Danh mục` loại "Lý do từ chối". Chỉ hiện và bắt buộc khi Từ chối |
-| Ngày hẹn gọi lại | Date | Tùy chọn. Bắt buộc khi "Yêu cầu gọi lại sau" |
+| Lý do từ chối | Enum | `Danh mục` loại "Lý do từ chối": Học phí / Chọn trường khác / Chưa có nhu cầu / Xa nhà / Sai độ tuổi / Sai số điện thoại / Khác. Chỉ hiện và bắt buộc khi Từ chối |
+| Ngày hẹn gọi lại | Date | Chỉ hiện và bắt buộc khi Hẹn lại sau = "Chọn ngày". Giá trị đầu **để trống** |
 | Ngày hẹn tham quan | Date | Chỉ hiện và bắt buộc khi "Đã hẹn tham quan / học thử" |
 | Lần thứ | Number | **App formula** (mục 4), ẩn trong form |
 | Hạn liên hệ tiếp | Date | **App formula** (mục 4), ẩn trong form |
+| PH chủ động | Yes/No | "Phụ huynh chủ động liên hệ". Bật thì lần này là mốc, đếm L1/L2/L3 lại từ đầu. Giá trị đầu `FALSE` |
+| Hẹn lại sau | Enum, nút bấm | 1 tuần / 2 tuần / 1 tháng / 3 tháng / Chọn ngày. Ẩn khi Từ chối, Đã nhập học, Đã đặt cọc, Hẹn nhưng không đến. Bắt buộc khi "Yêu cầu gọi lại sau" |
+| Đã gửi thư mời | Yes/No | Chỉ hiện khi Đã đặt cọc. Bật thì lead "Đã chốt", thôi nhắc. Giá trị đầu `FALSE` |
+| Ngày nhập học dự kiến | Date | Chỉ hiện khi Đã đặt cọc. Sale điền (thường có trong thư mời). Dùng cho nhắc sau nhập học (đợt 2) |
 
-Form chỉ có **3 chỗ bắt buộc phải bấm**: Phương thức, Tình trạng, Mức quan tâm. Các ô khác hiện ra khi cần.
+4 cột cuối nằm **sau** cột Hạn liên hệ tiếp (cột N – Q trên Sheet), để công thức tab `Thống kê` và `Tổng hợp lead` (dựa vào vị trí cột A – M) không phải sửa.
+
+Form chỉ có **3 chỗ bắt buộc phải bấm**: Phương thức, Tình trạng, Mức quan tâm. Các ô khác hiện ra khi cần. Thứ tự trong form: Phương thức, PH chủ động, Tình trạng, Mức quan tâm, Phản hồi, Lý do từ chối, Hẹn lại sau, Ngày hẹn gọi lại, Ngày hẹn tham quan, Đã gửi thư mời, Ngày nhập học dự kiến.
 
 ### `Sale`
 
@@ -91,10 +99,31 @@ Form chỉ có **3 chỗ bắt buộc phải bấm**: Phương thức, Tình tr�
 | Vai trò | Enum | Sale / Chủ. "Chủ" thấy thêm các màn hình tổng hợp và được phân lead |
 | Đang làm | Yes/No | Người nghỉ thì tắt, không xoá (để giữ lịch sử) |
 
-### `Danh mục` và `Cấu hình`
+### `Danh mục`, `Cấu hình`, `Ngày nghỉ`, `Gửi thông tin`
 
 - `Danh mục`: cột **Loại** và **Giá trị**. Chủ thêm, bớt lựa chọn ngay trên Sheet, không cần sửa app.
-- `Cấu hình`: cột **Khóa**, **Giá trị**, **Ý nghĩa**. Mặc định: L1 = 1, L2 = 3, L3 = 7 (ngày), Bỏ quên = 3 (ngày), Hạn đặt cọc = 7 (ngày). Đổi số ở đây là app nhắc theo số mới (file yêu cầu ghi "số ngày có thể chỉnh sửa").
+- `Cấu hình`: cột **Khóa** (Text, Key), **Giá trị** (Number), **Ý nghĩa**. Đổi số ở đây là app nhắc theo số mới. Mặc định (số ngày, trừ khi ghi khác):
+
+| Khóa | Mặc định | Dùng cho |
+|---|---|---|
+| L1, L2, L3 | 1, 3, 7 | Nhắc lần 1, 2, 3 khi phụ huynh không hẹn ngày |
+| Chưa liên lạc tối đa | 3 (lần) | "Chưa liên lạc được" liên tiếp chừng này lần thì chuyển dài hạn |
+| Sau tham quan | 1 | Hỏi cảm nhận sau buổi tham quan |
+| Chốt sau tham quan | 3 | Nhắc chốt sau lần hỏi cảm nhận |
+| Từ chối trường khác | 180 | Nhắc lại sau chừng này ngày, hoặc đầu năm học (mốc nào đến trước) |
+| Từ chối trường khác tối thiểu | 30 | Nhưng không sớm hơn chừng này ngày sau khi từ chối |
+| Đầu năm học tháng, Đầu năm học ngày | 7, 1 | Đầu năm học 01/07 |
+| Từ chối chưa nhu cầu | 90 | |
+| Từ chối khác | 90 | |
+| Ưu đãi lần đầu | 60 | Nhóm băn khoăn học phí: gửi ưu đãi lần đầu sau chừng này ngày kể từ lần liên hệ cuối |
+| Ưu đãi cách nhau | 60 | Hai lần gửi ưu đãi cách nhau ít nhất chừng này ngày (mọi lead) |
+| Ưu đãi tối đa | 2 (lần) | Nhóm băn khoăn học phí |
+| Ưu đãi lần 2 trong vòng | 180 | Nhóm băn khoăn học phí: quá chừng này ngày sau lần 1 mà chưa gửi lần 2 thì thôi |
+| Thông tin dài hạn | 30 | Lead dài hạn: gửi thông tin hoạt động cách nhau chừng này ngày |
+
+  Giờ gửi email buổi sáng (8h) đặt trong AppSheet (Automation), không đặt được từ Sheet.
+- `Ngày nghỉ`: cột **Ngày** (Date, Key), **Tên**. Chỉ ghi ngày lễ, nghỉ bù, nghỉ Tết của trường; thứ 7 và Chủ nhật app tự coi là ngày nghỉ. Sheet mẫu có sẵn các ngày lễ dương lịch 2027; Tết và Giỗ Tổ chủ điền theo thông báo của trường.
+- `Gửi thông tin`: **Mã** (Key, `UNIQUEID()`), **Mã lead** (Ref → `Hồ sơ lead`), **Thời gian** (DateTime), **Loại** (Ưu đãi học phí / Thông tin hoạt động), **Người gửi** (Email), **Ghi chú**. App thêm một hàng khi chủ bấm **Đã gửi ưu đãi** hoặc **Đã gửi thông tin**. Không làm đổi lịch nhắc của sale; sale thấy các lần chủ đã gửi trong chi tiết lead.
 
 ### `Thống kê`
 
@@ -125,77 +154,106 @@ Chỉ có công thức, không ai gõ vào tab này. Công thức và cách tín
 
 ## 4. Quy tắc nhắc
 
-Mỗi lần sale lưu một lần chăm sóc, app tính **Hạn liên hệ tiếp** cho lần đó. Hạn của một lead là hạn của **lần chăm sóc mới nhất**. Lead chưa có lần chăm sóc nào thì hạn là **ngày nhận** (phải liên hệ ngay trong ngày).
+Mỗi lần sale lưu một lần chăm sóc, app tính **Hạn liên hệ tiếp** cho lần đó. Hạn của một lead là hạn của **lần chăm sóc mới nhất**. Lead chưa có lần chăm sóc nào thì hạn là **ngày nhận** (liên hệ ngay khi được giao).
 
-Theo thứ tự ưu tiên:
+**Ngày nghỉ.** Thứ 7, Chủ nhật và các ngày trong tab `Ngày nghỉ` không nhắc sale chủ động liên hệ (sale vẫn trả lời khi phụ huynh tự nhắn). Nhắc rơi vào ngày nghỉ thì **dời tới ngày làm việc kế tiếp**. Riêng nhắc **xác nhận lịch tham quan** là **ngày làm việc liền trước buổi tham quan** (tham quan thứ 2 thì xác nhận thứ 6), để không nhắc sau buổi tham quan; gọi xác nhận vào hoặc sau ngày đó thì chuyển sang nhắc hỏi cảm nhận. Số ngày trong quy tắc là ngày lịch, dời sau khi cộng.
 
-1. **Từ chối** hoặc **Đã nhập học**: ngừng nhắc.
-2. Sale có điền **Ngày hẹn gọi lại**: nhắc đúng ngày đó.
-3. **Đã hẹn tham quan / học thử**: nhắc **xác nhận lịch trước 1 ngày**. Sau khi đã gọi xác nhận (ghi một lần chăm sóc nữa), nhắc **hỏi cảm nhận sau buổi tham quan 1 ngày**.
-4. **Đã đặt cọc**: nhắc hoàn tất thủ tục nhập học sau 7 ngày (`Cấu hình` › Hạn đặt cọc).
-5. Đã nhắc quá 3 lần mà chưa tiến triển: ngừng nhắc, **đề xuất chủ chuyển "Tạm dừng"**.
-6. **Chưa liên lạc được**: nhắc gọi lại sau 1 ngày.
-7. Còn lại (đang cân nhắc, đã tham quan…): **L1** sau 1 ngày, **L2** sau 3 ngày, **L3** sau 7 ngày.
+Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`):
 
-**Lần thứ** đếm số lần chăm sóc kể từ lần **tiến triển** gần nhất (Đã hẹn tham quan, Đã tham quan, Đã đặt cọc). Lần tiến triển tính là lần 1. Ví dụ: gọi lần đầu → L1; gọi lại vẫn cân nhắc → L2; lần nữa → L3; lần nữa vẫn chưa chốt → đề xuất tạm dừng. Nếu giữa chừng phụ huynh đi tham quan thì đếm lại từ đầu.
+| # | Tình huống | Hạn liên hệ tiếp | Giai đoạn |
+|---|---|---|---|
+| 1 | Đã nhập học | Không nhắc | Đã chốt |
+| 2 | Từ chối vì Học phí | Không nhắc sale. Lead vào danh sách **Gửi ưu đãi** của chủ | Dài hạn |
+| 3 | Từ chối vì Xa nhà, Sai độ tuổi, Sai số điện thoại | Không nhắc | Dừng |
+| 4 | Từ chối vì Chọn trường khác | Sau 180 ngày hoặc đầu năm học (01/07), mốc nào đến trước, nhưng ít nhất 30 ngày | Dài hạn |
+| 5 | Từ chối vì Chưa có nhu cầu / Khác | Sau 90 ngày | Dài hạn |
+| 6 | Đã đặt cọc, chưa gửi thư mời | **Ngay trong ngày**: viết thư mời tuyển sinh | Đang chăm sóc |
+| 6b | Đã đặt cọc, đã gửi thư mời | Không nhắc (thủ tục nhập học do văn phòng cơ sở lo) | Đã chốt |
+| 7 | Hẹn nhưng không đến | Ngay trong ngày (hẹn lại) | Đang chăm sóc |
+| 7b | Phụ huynh hẹn ngày (Hẹn lại sau) | Đúng ngày hẹn: +7, +14 ngày, +1, +3 tháng, hoặc ngày sale chọn | Đang chăm sóc |
+| 8 | Đã hẹn tham quan / học thử | Ngày làm việc liền trước buổi tham quan (xác nhận lịch). Ghi nhận vào hoặc sau ngày đó (gọi xác nhận xong): sau buổi tham quan 1 ngày (Sau tham quan) | Đang chăm sóc |
+| 10 | Chưa liên lạc được | Ngày làm việc kế tiếp. Lần thứ 3 liên tiếp (Chưa liên lạc tối đa): không nhắc | Đang chăm sóc / Dài hạn |
+| 11 | Đã tham quan / học thử | Sau 1 ngày, hỏi cảm nhận (Sau tham quan) | Đang chăm sóc |
+| 12 | Lần thứ > 3 | Không nhắc | Dài hạn |
+| 13 | Lần thứ 2 ngay sau "Đã tham quan" (lần hỏi cảm nhận) | Sau 3 ngày, nhắc chốt (Chốt sau tham quan) | Đang chăm sóc |
+| 14 | Còn lại (Đang cân nhắc, Yêu cầu gọi lại không hẹn ngày…) | L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày | Đang chăm sóc |
+
+**Mốc và Lần thứ.** Mốc là lần chăm sóc có tình trạng Đã hẹn tham quan, Đã tham quan, Đã đặt cọc, Từ chối, hoặc lần có **PH chủ động** bật. Lần thứ đếm các lần chăm sóc kể từ mốc gần nhất, mốc tính là lần 1; lần **Chưa liên lạc được không được đếm**. Ví dụ: gọi không được, gọi không được, gọi được và phụ huynh cân nhắc → L1. Hết L3 vẫn chưa chốt → dài hạn. Phụ huynh tự liên hệ lại → sale bật PH chủ động khi ghi nhận → nhắc cũ bỏ, đếm lại từ L1. Sau một lần Từ chối, lần liên hệ lại tiếp theo là lần 2.
+
+**Giai đoạn** của lead: Tạm dừng bật → Dừng; chưa có lần chăm sóc nào → Đang chăm sóc; còn lại theo bảng trên (lần mới nhất có hạn → Đang chăm sóc, không hạn → Dài hạn).
 
 **Mức khẩn** của lead: hạn trước hôm nay là **Quá hạn** (đỏ), hạn hôm nay là **Hôm nay** (cam), sau hôm nay là **Sắp tới**.
 
-**Bỏ quên** (cho chủ): lead chưa kết thúc, không tạm dừng, và **quá hạn**, hoặc **quá 3 ngày không có cập nhật mà không có ngày hẹn tiếp theo** (`Cấu hình` › Bỏ quên). Lead đã có lịch hẹn sắp tới (hẹn gọi lại, hẹn tham quan) thì chưa tính là bỏ quên dù lâu chưa cập nhật, vì sale đang chờ đúng ngày.
+**Bỏ quên** (cho chủ): lead **Đang chăm sóc** mà **quá hạn**. Lead mới chưa liên hệ lần nào và quá hạn thì báo chủ trong email 8h.
 
-`quy_tac_nhac.py` là bản Python của đúng các quy tắc này, có test. Sửa quy tắc thì sửa cả công thức AppSheet dưới đây lẫn file Python.
+**Danh sách chủ tự gửi** (app không nhắn phụ huynh; chủ gửi qua Zalo rồi bấm **Đã gửi**, chọn nhiều lead một lần được):
+
+- **Gửi ưu đãi**: lead Đang chăm sóc hoặc Dài hạn, có SĐT, không ở tình trạng Đã đặt cọc.
+  - **Nhóm băn khoăn học phí** (Từ chối vì Học phí, hoặc Lý do chất lượng "Học phí vượt khả năng", hoặc một ô Phản hồi có chữ "học phí"): lần 1 sau 60 ngày kể từ lần liên hệ cuối (Ưu đãi lần đầu); lần 2 cách lần 1 ít nhất 60 ngày (Ưu đãi cách nhau) và trong vòng 180 ngày (Ưu đãi lần 2 trong vòng); tối đa 2 lần (Ưu đãi tối đa). Hết lượt thì chỉ còn nhận thông tin hoạt động.
+  - **Lead khác**: cách lần gửi ưu đãi trước ít nhất 60 ngày.
+  - Chủ tự quyết ưu đãi tháng này có đáng gửi không; app không lưu nội dung hay giá trị ưu đãi.
+- **Gửi thông tin** (sự kiện, hội thảo, video giới thiệu): lead Dài hạn, có SĐT, lần gửi thông tin trước cách ít nhất 30 ngày (Thông tin dài hạn). Lọc theo cơ sở.
+
+`quy_tac_nhac.py` là bản Python của đúng các quy tắc này; `test_quy_tac_nhac.py` có một ca thử cho mỗi dòng quy tắc của trường. Sửa quy tắc thì sửa cả công thức AppSheet dưới đây lẫn file Python.
 
 ### Công thức AppSheet
 
-Tên bảng có dấu cách vẫn dùng được trong công thức, vd `Chăm sóc[Mã]`. Nếu AppSheet báo lỗi tên, xem tên bảng đúng như hiện trong mục **Data**.
+Tên bảng có dấu cách vẫn dùng được trong công thức, vd `Chăm sóc[Mã]`. Mọi `LOOKUP` vào `Cấu hình` chỉ tra **chữ cố định** (`LOOKUP("L1", "Cấu hình", "Khóa", "Giá trị")`), không đặt tên cột vào trong `LOOKUP`. Dưới đây `CH("x")` là viết tắt của `LOOKUP("x", "Cấu hình", "Khóa", "Giá trị")`: khi dán vào AppSheet phải viết đầy đủ (bản dán sẵn ở `nang-cap-quy-tac-v2.md`).
 
-**`Chăm sóc` › Mốc gần nhất** (cột ảo, kiểu Ref → `Chăm sóc`):
+AppSheet **không có `EDATE`**: cộng n tháng viết `MIN(LIST(EOMONTH(d, n - 1) + DAY(d), EOMONTH(d, n)))` (ngày không có như 31/02 thì lấy ngày cuối tháng, giống `cong_thang` trong Python). Cộng trừ ngày: `Date + số` ra Date; so sánh hai ngày bằng `TODAY() >= [Ngày] + n` (Date − Date ra Duration, không so trực tiếp với số được).
 
-```
-ANY(ORDERBY(
-  SELECT(Chăm sóc[Mã], AND(
-    [Mã lead] = [_THISROW].[Mã lead],
-    [Thời gian] < [_THISROW].[Thời gian],
-    IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc"))
-  )),
-  [Thời gian], TRUE))
-```
+**`Chăm sóc`**, theo thứ tự (cột sau dùng cột trước):
 
-**`Chăm sóc` › Lần thứ** (App formula):
+| Cột | Loại | Kiểu | Công thức |
+|---|---|---|---|
+| Mốc gần nhất | ảo | Ref → `Chăm sóc` | `ANY(ORDERBY(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]))), [Thời gian], TRUE))` |
+| Lần thứ | App formula | Number | `IF(OR(IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc", "Từ chối")), [PH chủ động]), 1, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])))))` |
+| Liên lạc được trước | ảo | DateTime | `MAX(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] <> "Chưa liên lạc được")))` |
+| Chưa LL liên tiếp | ảo | Number | `IF([Tình trạng] <> "Chưa liên lạc được", 0, 1 + COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Thời gian] < [_THISROW].[Thời gian], [Tình trạng] = "Chưa liên lạc được", OR(ISBLANK([_THISROW].[Liên lạc được trước]), [Thời gian] > [_THISROW].[Liên lạc được trước])))))` (đếm hàng **trước** rồi cộng 1 cho chính nó: lúc thêm mới qua form, hàng đang lưu chưa có trong bảng) |
+| Ngày hẹn | ảo | Date | `IFS([Hẹn lại sau] = "1 tuần", DATE([Thời gian]) + 7, [Hẹn lại sau] = "2 tuần", DATE([Thời gian]) + 14, [Hẹn lại sau] = "1 tháng", MIN(LIST(EOMONTH(DATE([Thời gian]), 0) + DAY(DATE([Thời gian])), EOMONTH(DATE([Thời gian]), 1))), [Hẹn lại sau] = "3 tháng", MIN(LIST(EOMONTH(DATE([Thời gian]), 2) + DAY(DATE([Thời gian])), EOMONTH(DATE([Thời gian]), 3))), TRUE, [Ngày hẹn gọi lại])` |
+| Đầu năm học tới | ảo | Date | xem dưới |
+| Hạn thô | ảo | Date | xem dưới |
+| Hạn liên hệ tiếp | App formula | Date | `IF(ISBLANK([Hạn thô]), "", WORKDAY([Hạn thô] - 1, 1, Ngày nghỉ[Ngày]))` |
+
+`WORKDAY(ngày, n, danh sách ngày lễ)` bỏ qua thứ 7, Chủ nhật và ngày lễ. `WORKDAY(d - 1, 1, …)` ra chính `d` nếu `d` là ngày làm việc, không thì ngày làm việc kế tiếp. `WORKDAY(d, -1, …)` ra ngày làm việc liền trước `d` (dùng cho ngày xác nhận lịch tham quan).
+
+**Đầu năm học tới** (ngày đầu năm học gần nhất sau ngày ghi nhận):
 
 ```
 IF(
-  IN([Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử", "Đã đặt cọc")),
-  1,
-  1 + COUNT(SELECT(Chăm sóc[Mã], AND(
-    [Mã lead] = [_THISROW].[Mã lead],
-    [Thời gian] < [_THISROW].[Thời gian],
-    OR(ISBLANK([_THISROW].[Mốc gần nhất]), [Thời gian] >= [_THISROW].[Mốc gần nhất].[Thời gian])
-  )))
+  EOMONTH(DATE([Thời gian]), CH("Đầu năm học tháng") - MONTH(DATE([Thời gian])) - 1) + CH("Đầu năm học ngày") > DATE([Thời gian]),
+  EOMONTH(DATE([Thời gian]), CH("Đầu năm học tháng") - MONTH(DATE([Thời gian])) - 1) + CH("Đầu năm học ngày"),
+  EOMONTH(DATE([Thời gian]), CH("Đầu năm học tháng") - MONTH(DATE([Thời gian])) + 11) + CH("Đầu năm học ngày")
 )
 ```
 
-**`Chăm sóc` › Hạn liên hệ tiếp** (App formula):
+**Hạn thô** (ngày nhắc trước khi dời qua ngày nghỉ; trống là không nhắc):
 
 ```
 IFS(
-  IN([Tình trạng], LIST("Từ chối", "Đã nhập học")), "",
-  ISNOTBLANK([Ngày hẹn gọi lại]), [Ngày hẹn gọi lại],
-  [Tình trạng] = "Đã hẹn tham quan / học thử",
-    IF(DATE([Thời gian]) < [Ngày hẹn tham quan] - 1, [Ngày hẹn tham quan] - 1, [Ngày hẹn tham quan] + 1),
-  [Tình trạng] = "Đã đặt cọc",
-    DATE([Thời gian]) + LOOKUP("Hạn đặt cọc", "Cấu hình", "Khóa", "Giá trị"),
+  [Tình trạng] = "Đã nhập học", "",
+  AND([Tình trạng] = "Từ chối", IN([Lý do từ chối], LIST("Học phí", "Xa nhà", "Sai độ tuổi", "Sai số điện thoại"))), "",
+  AND([Tình trạng] = "Từ chối", [Lý do từ chối] = "Chọn trường khác"),
+    MAX(LIST(
+      MIN(LIST(DATE([Thời gian]) + CH("Từ chối trường khác"), [Đầu năm học tới])),
+      DATE([Thời gian]) + CH("Từ chối trường khác tối thiểu"))),
+  AND([Tình trạng] = "Từ chối", [Lý do từ chối] = "Chưa có nhu cầu"), DATE([Thời gian]) + CH("Từ chối chưa nhu cầu"),
+  [Tình trạng] = "Từ chối", DATE([Thời gian]) + CH("Từ chối khác"),
+  [Tình trạng] = "Đã đặt cọc", IF([Đã gửi thư mời], "", DATE([Thời gian])),
+  [Tình trạng] = "Hẹn nhưng không đến", DATE([Thời gian]),
+  ISNOTBLANK([Ngày hẹn]), [Ngày hẹn],
+  AND([Tình trạng] = "Đã hẹn tham quan / học thử", ISNOTBLANK([Ngày hẹn tham quan])),
+    IF(DATE([Thời gian]) < WORKDAY([Ngày hẹn tham quan], -1, Ngày nghỉ[Ngày]),
+      WORKDAY([Ngày hẹn tham quan], -1, Ngày nghỉ[Ngày]),
+      [Ngày hẹn tham quan] + CH("Sau tham quan")),
+  [Tình trạng] = "Chưa liên lạc được",
+    IF([Chưa LL liên tiếp] >= CH("Chưa liên lạc tối đa"), "", DATE([Thời gian]) + 1),
+  [Tình trạng] = "Đã tham quan / học thử", DATE([Thời gian]) + CH("Sau tham quan"),
   [Lần thứ] > 3, "",
-  [Tình trạng] = "Chưa liên lạc được", DATE([Thời gian]) + 1,
-  TRUE, DATE([Thời gian]) + SWITCH([Lần thứ],
-    1, LOOKUP("L1", "Cấu hình", "Khóa", "Giá trị"),
-    2, LOOKUP("L2", "Cấu hình", "Khóa", "Giá trị"),
-    3, LOOKUP("L3", "Cấu hình", "Khóa", "Giá trị"),
-    1)
+  AND([Lần thứ] = 2, [Mốc gần nhất].[Tình trạng] = "Đã tham quan / học thử"), DATE([Thời gian]) + CH("Chốt sau tham quan"),
+  TRUE, DATE([Thời gian]) + SWITCH([Lần thứ], 1, CH("L1"), 2, CH("L2"), 3, CH("L3"), 1)
 )
 ```
-
-Công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra chữ cố định (đã chạy đúng trong AppSheet). Đặt tên cột vào trong `LOOKUP` có thể bị AppSheet đọc trên hàng của bảng được tra, nên tránh.
 
 **`Hồ sơ lead`**, các cột ảo. `[Related Chăm sócs]` là danh sách lần chăm sóc AppSheet tự tạo khi `Chăm sóc` có cột Ref tới `Hồ sơ lead`; tên có thể hơi khác, xem trong mục **Columns**.
 
@@ -204,25 +262,54 @@ Công thức trên tách L1/L2/L3 bằng `SWITCH`, mỗi `LOOKUP` chỉ tra ch�
 | Lần cuối | Ref → `Chăm sóc` | `ANY(ORDERBY([Related Chăm sócs], [Thời gian], TRUE))` |
 | Tình trạng hiện tại | Text | `IF(ISBLANK([Lần cuối]), "Mới", [Lần cuối].[Tình trạng])` |
 | Mức quan tâm hiện tại | Text | `[Lần cuối].[Mức quan tâm]` |
-| Hạn liên hệ | Date | `IFS([Tạm dừng], "", ISBLANK([Lần cuối]), DATE([Ngày nhận]), TRUE, [Lần cuối].[Hạn liên hệ tiếp])` |
+| Hạn liên hệ | Date | `IFS([Tạm dừng], "", ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), TRUE, [Lần cuối].[Hạn liên hệ tiếp])` |
+| Giai đoạn | Text | `IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Đã đặt cọc", "Đang chăm sóc", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")` |
 | Mức khẩn | Text | `IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")` |
+| Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
 | Ngày không cập nhật | Decimal | `HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24` |
-| Đã kết thúc | Yes/No | `IN([Tình trạng hiện tại], LIST("Từ chối", "Đã nhập học"))` |
-| Bỏ quên | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), OR([Mức khẩn] = "Quá hạn", AND(ISBLANK([Hạn liên hệ]), [Ngày không cập nhật] > LOOKUP("Bỏ quên", "Cấu hình", "Khóa", "Giá trị"))))` |
-| Đề xuất tạm dừng | Yes/No | `AND(NOT([Tạm dừng]), NOT([Đã kết thúc]), ISNOTBLANK([Lần cuối]), ISBLANK([Hạn liên hệ]))` |
+| Đã kết thúc | Yes/No | `IN([Giai đoạn], LIST("Đã chốt", "Dừng"))` |
+| Bỏ quên | Yes/No | `AND([Giai đoạn] = "Đang chăm sóc", [Mức khẩn] = "Quá hạn")` |
+| Lead mới chưa liên hệ | Yes/No | `AND(ISBLANK([Lần cuối]), NOT([Tạm dừng]), [Mức khẩn] = "Quá hạn")` |
 | Số ngày quá hạn | Number | `IF([Mức khẩn] = "Quá hạn", HOUR(TODAY() - [Hạn liên hệ]) / 24, 0)` |
 | Lần cuối tóm tắt | Text | `IF(ISBLANK([Lần cuối]), "Chưa liên hệ lần nào", CONCATENATE(TEXT([Lần cuối].[Thời gian], "DD/MM"), " · ", [Lần cuối].[Tình trạng], IF(ISBLANK([Lần cuối].[Phản hồi]), "", CONCATENATE(" · ", [Lần cuối].[Phản hồi]))))` |
+| Liên hệ cuối lúc | DateTime | `IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])` |
+| Băn khoăn học phí | Yes/No | `OR(AND([Lần cuối].[Tình trạng] = "Từ chối", [Lần cuối].[Lý do từ chối] = "Học phí"), [Lý do chất lượng] = "Học phí vượt khả năng", COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], CONTAINS([Phản hồi], "học phí")))) > 0)` |
+| Số lần gửi ưu đãi | Number | `COUNT(SELECT(Gửi thông tin[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Ưu đãi học phí")))` |
+| Gửi ưu đãi cuối | DateTime | `MAX(SELECT(Gửi thông tin[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Ưu đãi học phí")))` |
+| Gửi thông tin cuối | DateTime | `MAX(SELECT(Gửi thông tin[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Loại] = "Thông tin hoạt động")))` |
+| Nên gửi ưu đãi | Yes/No | xem dưới |
+| Nên gửi thông tin | Yes/No | `AND([Giai đoạn] = "Dài hạn", ISNOTBLANK([SĐT]), OR(ISBLANK([Gửi thông tin cuối]), TODAY() >= DATE([Gửi thông tin cuối]) + CH("Thông tin dài hạn")))` |
+
+**Nên gửi ưu đãi**:
+
+```
+AND(
+  IN([Giai đoạn], LIST("Đang chăm sóc", "Dài hạn")),
+  ISNOTBLANK([SĐT]),
+  [Tình trạng hiện tại] <> "Đã đặt cọc",
+  IF([Băn khoăn học phí],
+    IFS(
+      [Số lần gửi ưu đãi] = 0, TODAY() >= DATE([Liên hệ cuối lúc]) + CH("Ưu đãi lần đầu"),
+      [Số lần gửi ưu đãi] >= CH("Ưu đãi tối đa"), FALSE,
+      TRUE, AND(
+        TODAY() >= DATE([Gửi ưu đãi cuối]) + CH("Ưu đãi cách nhau"),
+        TODAY() <= DATE([Gửi ưu đãi cuối]) + CH("Ưu đãi lần 2 trong vòng"))
+    ),
+    OR([Số lần gửi ưu đãi] = 0, TODAY() >= DATE([Gửi ưu đãi cuối]) + CH("Ưu đãi cách nhau"))
+  )
+)
+```
 
 **`Sale`**, các cột ảo cho màn hình của chủ:
 
 | Cột ảo | Công thức |
 |---|---|
-| Đang giữ | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], NOT([Tạm dừng]), NOT([Đã kết thúc]))))` |
+| Đang giữ | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Giai đoạn] = "Đang chăm sóc")))` |
 | Liên hệ hôm nay | `COUNT(SELECT(Chăm sóc[Mã], AND([Sale] = [_THISROW].[Email], DATE([Thời gian]) = TODAY())))` |
 | Quá hạn | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Mức khẩn] = "Quá hạn")))` |
 | Tổng lead | `COUNT(SELECT(Hồ sơ lead[Mã lead], [Sale phụ trách] = [_THISROW].[Email]))` |
-| Đã nhập học | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Tình trạng hiện tại] = "Đã nhập học")))` |
-| Tỷ lệ chốt | `IF([Tổng lead] = 0, 0, DECIMAL([Đã nhập học]) / [Tổng lead])`, kiểu Percent. Phải có `DECIMAL`: AppSheet chia hai số nguyên thì làm tròn xuống (1/4 ra 0) |
+| Đã chốt | `COUNT(SELECT(Hồ sơ lead[Mã lead], AND([Sale phụ trách] = [_THISROW].[Email], [Giai đoạn] = "Đã chốt")))` |
+| Tỷ lệ chốt | `IF([Tổng lead] = 0, 0, DECIMAL([Đã chốt]) / [Tổng lead])`, kiểu Percent. Phải có `DECIMAL`: AppSheet chia hai số nguyên thì làm tròn xuống (1/4 ra 0) |
 | Số lần chăm sóc | `COUNT(SELECT(Chăm sóc[Mã], [Sale] = [_THISROW].[Email]))` |
 
 **Ai là chủ** (dùng trong điều kiện hiện màn hình, quyền sửa):
@@ -235,9 +322,9 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 
 ### Sale
 
-1. **Hôm nay cần liên hệ** (màn hình mở đầu): lead của tôi có Mức khẩn là Quá hạn hoặc Hôm nay, xếp theo Hạn liên hệ (cũ nhất trước). Quá hạn tô đỏ.
+1. **Hôm nay cần liên hệ** (màn hình mở đầu): lead của tôi có Mức khẩn là Quá hạn hoặc Hôm nay, xếp theo Hạn liên hệ (cũ nhất trước). Quá hạn tô đỏ. Từ thứ 2 đến thứ 6; nhắc rơi vào thứ 7, Chủ nhật, ngày lễ đã được dời.
 2. **Của tôi**: **chỉ lead mình phụ trách** (sale không thấy lead của người khác), có **ô tìm kiếm** (tên phụ huynh, tên bé, vài số cuối SĐT), nhóm theo Mức khẩn. Khi phụ huynh tự gọi hoặc nhắn tới, sale gõ tìm, mở ra là bấm **Ghi nhận lần chăm sóc**. Không thấy thì bấm **Thêm lead**: nếu SĐT đó đã có trong hệ thống (do sale khác phụ trách), app báo chủ để chủ quyết định giao cho ai (mục 6).
-3. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc; nút **Ghi nhận lần chăm sóc**.
+3. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc và các lần chủ đã gửi ưu đãi / thông tin; nút **Ghi nhận lần chăm sóc**; nút **Đã gửi thư mời** (chỉ hiện khi lần cuối là Đã đặt cọc mà chưa gửi thư mời).
 4. **Form ghi nhận**: các lựa chọn ở mục 3, nút bấm thay vì gõ chữ.
 5. **Thêm lead** (lead tự tìm được: Zalo, hotline, đến trực tiếp…). Sale phụ trách tự điền là chính mình.
 
@@ -248,7 +335,8 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 - **So sánh các tháng / các cơ sở**: bảng tab `Thống kê`, nhóm theo tháng, kèm biểu đồ lead mới theo tháng.
 - **Theo sale**: mỗi sale đang giữ bao nhiêu lead, đã liên hệ hôm nay bao nhiêu, quá hạn bao nhiêu, tỷ lệ chốt, số lần chăm sóc.
 - **Bỏ quên** và **Rất quan tâm chưa chốt**: danh sách chi tiết, **nhóm theo sale phụ trách** để chủ biết nhắc ai. Mỗi lead hiện tên phụ huynh, bé, cơ sở, sale phụ trách, số ngày quá hạn hoặc số ngày chưa cập nhật, và **lần cuối** (ngày · tình trạng · phản hồi). Nút **Nhắc sale** gửi email nhắc cho sale phụ trách và ghi lại thời điểm đã nhắc, để lần sau chủ biết mình đã nhắc chưa.
-- **Đề xuất tạm dừng**: lead đã nhắc 3 lần chưa chốt; chủ quyết định tạm dừng hay giao lại.
+- **Gửi ưu đãi**: lead nên gửi ưu đãi học phí hôm nay (mục 4), nhóm băn khoăn học phí lên đầu, lọc theo cơ sở. Mỗi dòng: tên phụ huynh, bé, cơ sở, sale, số lần đã gửi, lần gửi cuối; nút **Zalo** và **Đã gửi ưu đãi**. Chọn nhiều dòng rồi bấm Đã gửi một lần được.
+- **Gửi thông tin**: lead dài hạn nên gửi thông tin hoạt động (sự kiện, hội thảo, video), lọc theo cơ sở; nút **Zalo** và **Đã gửi thông tin**.
 - **Biểu đồ**: lead theo nguồn, theo cơ sở; lý do từ chối; chất lượng lead theo nguồn.
 - **Phân lead**: sửa Sale phụ trách ngay trong chi tiết lead.
 
@@ -257,7 +345,8 @@ Phân tích sâu hơn (chất lượng theo chiến dịch, hiệu quả từng 
 ## 6. Nhắc việc
 
 - **Trong app**: màn hình mở đầu luôn là danh sách hôm nay, quá hạn tô đỏ.
-- **Email 7h30 sáng** mỗi ngày (AppSheet Automation): gửi mỗi sale số lead cần liên hệ hôm nay và quá hạn, kèm tên phụ huynh. Không ghi SĐT trong email.
+- **Email 8h sáng, thứ 2 đến thứ 6** (AppSheet Automation): gửi mỗi sale số lead cần liên hệ hôm nay và quá hạn, kèm tên phụ huynh. Không ghi SĐT trong email.
+- **Email 8h cho chủ, thứ 2 đến thứ 6**: lead mới chưa liên hệ đã quá hạn (kèm sale phụ trách), số lead bỏ quên, số lead trong danh sách Gửi ưu đãi và Gửi thông tin hôm nay.
 - **Zalo**: chưa làm. Gửi tin Zalo tự động phải qua Zalo OA và dịch vụ tin nhắn trả phí của Zalo; để sau khi app chạy ổn.
 
 - **Chủ nhắc sale**: chủ bấm **Nhắc sale** ở danh sách bỏ quên hoặc rất quan tâm chưa chốt → app gửi ngay email cho sale phụ trách: tên phụ huynh, bé, cơ sở, quá hạn bao lâu, lần cuối liên hệ, kèm link mở lead trong app. Không ghi SĐT trong email.
@@ -265,7 +354,7 @@ Phân tích sâu hơn (chất lượng theo chiến dịch, hiệu quả từng 
 - **Lead trùng**: khi một lead mới được thêm mà SĐT đã có ở lead khác, app gửi email cho chủ (tên hai lead, hai sale phụ trách) để chủ gộp hoặc giao lại. Cần vì sale không thấy lead của nhau nên có thể thêm trùng.
 - **Giao lead Messenger**: chủ thấy danh sách "Messenger chưa nhận" và giao cho sale. Sale được giao nhận email "Bạn được giao lead mới".
 
-**Không nhắc trùng với bot.** Bot nhắc tư vấn viên trên Telegram khi có tin nhắn **mới** chưa ai trả lời và gửi bản tổng hợp lúc 9h. App nhắc **gọi lại** những phụ huynh đã nhận vào hồ sơ. Quy ước: sau khi chủ giao lead Messenger trong app, người tư vấn reply `/xong` vào thẻ của phụ huynh đó trên Telegram, để bot ghi "Đã liên hệ" và thôi nhắc.
+**Không nhắc trùng với bot.** Bot nhắc tư vấn viên trên Telegram khi có tin nhắn **mới** chưa ai trả lời và gửi bản tổng hợp lúc 9h (bot không đổi theo quy tắc v2, vẫn chạy cả thứ 7 vì thẻ của bot đến từ tin phụ huynh chủ động nhắn). App nhắc **gọi lại** những phụ huynh đã nhận vào hồ sơ. Quy ước: sau khi chủ giao lead Messenger trong app, người tư vấn reply `/xong` vào thẻ của phụ huynh đó trên Telegram, để bot ghi "Đã liên hệ" và thôi nhắc.
 
 ## 7. Quyền
 
@@ -285,5 +374,5 @@ Khi app chạy, plugin `casa-ops` (skill `bao-cao-tuan`) đọc thêm tab `Hồ 
 
 1. Dựng app trên **Sheet mẫu** (dữ liệu giả), theo [huong-dan-appsheet.md](huong-dan-appsheet.md).
 2. Thử với 1 – 2 sale trong một tuần, sửa theo phản hồi.
-3. Thêm 7 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
+3. Thêm 9 tab của app vào file Sheet thật của bot (sao chép tab từ Sheet mẫu, xoá dữ liệu giả), đổi nguồn dữ liệu của app sang file thật, điền email thật vào tab `Sale`.
 4. Mở cho cả 6 sale.

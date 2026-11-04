@@ -2,7 +2,9 @@
 """Quy tắc nhắc chăm sóc lead của Casa dei Bambini, viết bằng Python để kiểm tra và dùng lại.
 
 Đây là bản tham chiếu của các công thức AppSheet trong thiet-ke.md (mục 4): cùng đầu vào thì phải
-ra cùng "Lần thứ" và "Hạn liên hệ tiếp". Script cũng tạo dữ liệu mẫu (giả) cho Sheet mẫu.
+ra cùng "Lần thứ", "Hạn liên hệ tiếp", "Giai đoạn" và cùng danh sách gửi ưu đãi / thông tin.
+Quy tắc theo phản hồi của trường (11/2026); test_quy_tac_nhac.py có một ca cho mỗi dòng quy tắc.
+Script cũng tạo dữ liệu mẫu (giả) cho Sheet mẫu.
 
 Chạy: python3 quy_tac_nhac.py --tao-mau mau/   (ghi các file CSV mẫu)
 """
@@ -15,21 +17,56 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-# Tình trạng sau mỗi lần liên hệ (đúng thứ tự trong file mô tả yêu cầu).
+# Tình trạng sau mỗi lần liên hệ.
 CHUA_LIEN_LAC = "Chưa liên lạc được"
 CAN_NHAC = "Đang cân nhắc"
 GOI_LAI = "Yêu cầu gọi lại sau"
 DA_HEN = "Đã hẹn tham quan / học thử"
+KHONG_DEN = "Hẹn nhưng không đến"
 DA_THAM_QUAN = "Đã tham quan / học thử"
 DAT_COC = "Đã đặt cọc"
 NHAP_HOC = "Đã nhập học"
 TU_CHOI = "Từ chối"
-TINH_TRANG = [CHUA_LIEN_LAC, CAN_NHAC, GOI_LAI, DA_HEN, DA_THAM_QUAN, DAT_COC, NHAP_HOC, TU_CHOI]
+TINH_TRANG = [CHUA_LIEN_LAC, CAN_NHAC, GOI_LAI, DA_HEN, KHONG_DEN, DA_THAM_QUAN, DAT_COC, NHAP_HOC, TU_CHOI]
 
-KET_THUC = {NHAP_HOC, TU_CHOI}  # ngừng nhắc
-MOC = {DA_HEN, DA_THAM_QUAN, DAT_COC}  # tiến triển: đếm lại lần nhắc từ đầu
+# Mốc: đếm lại L1/L2/L3 từ lần này (bản thân mốc là lần 1). Lần "PH chủ động liên hệ" cũng là mốc.
+MOC = {DA_HEN, DA_THAM_QUAN, DAT_COC, TU_CHOI}
 
-CAU_HINH_MAC_DINH = {"L1": 1, "L2": 3, "L3": 7, "Bỏ quên": 3, "Hạn đặt cọc": 7}
+# Lý do từ chối.
+LD_HOC_PHI = "Học phí"
+LD_TRUONG_KHAC = "Chọn trường khác"
+LD_CHUA_NHU_CAU = "Chưa có nhu cầu"
+LD_XA_NHA = "Xa nhà"
+LD_SAI_TUOI = "Sai độ tuổi"
+LD_SAI_SDT = "Sai số điện thoại"
+LD_KHAC = "Khác"
+LY_DO_TU_CHOI = [LD_HOC_PHI, LD_TRUONG_KHAC, LD_CHUA_NHU_CAU, LD_XA_NHA, LD_SAI_TUOI, LD_SAI_SDT, LD_KHAC]
+LY_DO_DUNG = {LD_XA_NHA, LD_SAI_TUOI, LD_SAI_SDT}  # dừng chăm sóc, không nhắc
+
+# Nút chọn nhanh "Hẹn lại sau" (phụ huynh hẹn ngày liên hệ lại).
+HEN_NHANH = {"1 tuần": ("ngày", 7), "2 tuần": ("ngày", 14), "1 tháng": ("tháng", 1), "3 tháng": ("tháng", 3)}
+HEN_CHON_NGAY = "Chọn ngày"
+
+# Giai đoạn của lead.
+GD_DANG = "Đang chăm sóc"
+GD_DAI_HAN = "Dài hạn"
+GD_CHOT = "Đã chốt"
+GD_DUNG = "Dừng"
+
+# Loại thông tin chủ tự gửi cho phụ huynh (không làm đổi lịch nhắc của sale).
+GUI_UU_DAI = "Ưu đãi học phí"
+GUI_THONG_TIN = "Thông tin hoạt động"
+
+CAU_HINH_MAC_DINH = {
+    "L1": 1, "L2": 3, "L3": 7,
+    "Chưa liên lạc tối đa": 3,
+    "Sau tham quan": 1, "Chốt sau tham quan": 3,
+    "Từ chối trường khác": 180, "Từ chối trường khác tối thiểu": 30,
+    "Đầu năm học tháng": 7, "Đầu năm học ngày": 1,
+    "Từ chối chưa nhu cầu": 90, "Từ chối khác": 90,
+    "Ưu đãi lần đầu": 60, "Ưu đãi cách nhau": 60, "Ưu đãi tối đa": 2, "Ưu đãi lần 2 trong vòng": 180,
+    "Thông tin dài hạn": 30,
+}
 
 
 @dataclass
@@ -38,39 +75,173 @@ class LanChamSoc:
     tinh_trang: str
     ngay_hen_goi_lai: date | None = None
     ngay_hen_tham_quan: date | None = None
+    ly_do_tu_choi: str = ""
+    ph_chu_dong: bool = False
+    da_gui_thu_moi: bool = False
 
 
-def lan_thu(truoc: list[LanChamSoc], hien_tai: LanChamSoc) -> int:
-    """Lần chăm sóc thứ mấy kể từ mốc tiến triển gần nhất (mốc tính là lần 1).
+def la_moc(c: LanChamSoc) -> bool:
+    return c.tinh_trang in MOC or c.ph_chu_dong
 
-    `truoc`: các lần chăm sóc TRƯỚC lần hiện tại của cùng lead, thứ tự bất kỳ.
+
+def _truoc(truoc: list[LanChamSoc], c: LanChamSoc) -> list[LanChamSoc]:
+    return sorted((x for x in truoc if x.thoi_gian < c.thoi_gian), key=lambda x: x.thoi_gian)
+
+
+def moc_gan_nhat(truoc: list[LanChamSoc], c: LanChamSoc) -> LanChamSoc | None:
+    """Mốc gần nhất TRƯỚC lần `c` (không tính chính `c`)."""
+    moc = [x for x in _truoc(truoc, c) if la_moc(x)]
+    return moc[-1] if moc else None
+
+
+def lan_thu(truoc: list[LanChamSoc], c: LanChamSoc) -> int:
+    """Lần thứ mấy kể từ mốc gần nhất (mốc là lần 1). Lần "Chưa liên lạc được" không được đếm.
+
+    `truoc`: các lần chăm sóc khác của cùng lead, thứ tự bất kỳ (lần sau `c` bị bỏ qua).
     """
-    if hien_tai.tinh_trang in MOC:
+    if la_moc(c):
         return 1
-    truoc = sorted((c for c in truoc if c.thoi_gian < hien_tai.thoi_gian), key=lambda c: c.thoi_gian)
-    moc = [c for c in truoc if c.tinh_trang in MOC]
-    tu = moc[-1].thoi_gian if moc else None
-    return 1 + sum(1 for c in truoc if tu is None or c.thoi_gian >= tu)
+    m = moc_gan_nhat(truoc, c)
+    return 1 + sum(
+        1 for x in _truoc(truoc, c)
+        if x.tinh_trang != CHUA_LIEN_LAC and (m is None or x.thoi_gian >= m.thoi_gian)
+    )
 
 
-def han_lien_he_tiep(c: LanChamSoc, lan: int, cau_hinh: dict[str, int] = CAU_HINH_MAC_DINH) -> date | None:
-    """Ngày cần liên hệ tiếp sau lần chăm sóc `c`. None: ngừng nhắc (kết thúc, hoặc đề xuất tạm dừng)."""
-    ngay = c.thoi_gian.date()
-    if c.tinh_trang in KET_THUC:
+def chua_lien_lac_lien_tiep(truoc: list[LanChamSoc], c: LanChamSoc) -> int:
+    """Số lần "Chưa liên lạc được" liên tiếp tính tới `c` (gồm cả `c`). 0 nếu `c` liên lạc được."""
+    if c.tinh_trang != CHUA_LIEN_LAC:
+        return 0
+    n = 1
+    for x in reversed(_truoc(truoc, c)):
+        if x.tinh_trang != CHUA_LIEN_LAC:
+            break
+        n += 1
+    return n
+
+
+# ---------------------------------------------------------------- ngày làm việc
+
+def la_ngay_nghi(d: date, nghi: set[date]) -> bool:
+    """Thứ 7, Chủ nhật, hoặc ngày lễ trong tab `Ngày nghỉ`."""
+    return d.weekday() >= 5 or d in nghi
+
+
+def ngay_lam_viec_toi(d: date, nghi: set[date] = frozenset()) -> date:
+    """`d` nếu là ngày làm việc, không thì ngày làm việc kế tiếp. AppSheet: WORKDAY(d - 1, 1, nghỉ)."""
+    while la_ngay_nghi(d, nghi):
+        d += timedelta(days=1)
+    return d
+
+
+def ngay_lam_viec_lui(d: date, nghi: set[date] = frozenset()) -> date:
+    """`d` nếu là ngày làm việc, không thì ngày làm việc liền trước. AppSheet: WORKDAY(d + 1, -1, nghỉ)."""
+    while la_ngay_nghi(d, nghi):
+        d -= timedelta(days=1)
+    return d
+
+
+def cong_thang(d: date, n: int) -> date:
+    """Cùng ngày của n tháng sau, ngày không có (31/4) thì lấy ngày cuối tháng.
+
+    AppSheet không có EDATE: MIN(LIST(EOMONTH(d, n - 1) + DAY(d), EOMONTH(d, n))) cho cùng kết quả.
+    """
+    y, m = divmod(d.month - 1 + n, 12)
+    y, m = d.year + y, m + 1
+    cuoi = (date(y + (m == 12), m % 12 + 1, 1) - timedelta(days=1)).day
+    return date(y, m, min(d.day, cuoi))
+
+
+def ngay_hen_nhanh(lua_chon: str, ngay: date) -> date | None:
+    """Ngày hẹn gọi lại theo nút chọn nhanh. "Chọn ngày" hoặc trống: None (sale tự chọn ngày)."""
+    if lua_chon not in HEN_NHANH:
         return None
+    kieu, n = HEN_NHANH[lua_chon]
+    return ngay + timedelta(days=n) if kieu == "ngày" else cong_thang(ngay, n)
+
+
+def dau_nam_hoc_toi(ngay: date, ch: dict[str, int] = CAU_HINH_MAC_DINH) -> date:
+    """Ngày đầu năm học gần nhất SAU `ngay`."""
+    d = date(ngay.year, ch["Đầu năm học tháng"], ch["Đầu năm học ngày"])
+    return d if d > ngay else date(ngay.year + 1, d.month, d.day)
+
+
+# ---------------------------------------------------------------- hạn liên hệ tiếp
+
+def han_tho(c: LanChamSoc, truoc: list[LanChamSoc], ch: dict[str, int] = CAU_HINH_MAC_DINH,
+            nghi: set[date] = frozenset()) -> date | None:
+    """Ngày nhắc trước khi dời qua ngày nghỉ. None: không nhắc sale.
+
+    Riêng nhắc xác nhận lịch tham quan đã là ngày làm việc liền trước buổi tham quan (lùi qua ngày nghỉ),
+    để không nhắc sau buổi tham quan. AppSheet: WORKDAY([Ngày hẹn tham quan], -1, nghỉ).
+    """
+    ngay = c.thoi_gian.date()
+    d = timedelta
+    if c.tinh_trang == NHAP_HOC:
+        return None
+    if c.tinh_trang == TU_CHOI:
+        ly_do = c.ly_do_tu_choi
+        if ly_do in LY_DO_DUNG or ly_do == LD_HOC_PHI:
+            return None  # học phí: chủ gửi ưu đãi (danh sách "Gửi ưu đãi"), sale không nhắc
+        if ly_do == LD_TRUONG_KHAC:
+            sau_6_thang = ngay + d(days=ch["Từ chối trường khác"])
+            som_nhat = ngay + d(days=ch["Từ chối trường khác tối thiểu"])
+            return max(min(sau_6_thang, dau_nam_hoc_toi(ngay, ch)), som_nhat)
+        if ly_do == LD_CHUA_NHU_CAU:
+            return ngay + d(days=ch["Từ chối chưa nhu cầu"])
+        return ngay + d(days=ch["Từ chối khác"])  # "Khác" hoặc để trống
+    if c.tinh_trang == DAT_COC:
+        return None if c.da_gui_thu_moi else ngay  # nhắc viết thư mời ngay trong ngày
+    if c.tinh_trang == KHONG_DEN:
+        # Đứng trước nhánh ngày hẹn: ô "Hẹn lại sau" bị ẩn nhưng AppSheet vẫn giữ giá trị cũ, phải bỏ qua.
+        return ngay  # hẹn lại ngay trong ngày (hoặc sáng hôm sau nếu ghi ngoài giờ)
     if c.ngay_hen_goi_lai:
         return c.ngay_hen_goi_lai
     if c.tinh_trang == DA_HEN and c.ngay_hen_tham_quan:
-        truoc_1_ngay = c.ngay_hen_tham_quan - timedelta(days=1)
-        # Chưa tới ngày xác nhận lịch: nhắc xác nhận. Đã xác nhận rồi: nhắc hỏi cảm nhận sau buổi tham quan.
-        return truoc_1_ngay if ngay < truoc_1_ngay else c.ngay_hen_tham_quan + timedelta(days=1)
-    if c.tinh_trang == DAT_COC:
-        return ngay + timedelta(days=cau_hinh["Hạn đặt cọc"])
-    if lan > 3:
-        return None  # sau L3 vẫn chưa chốt: đề xuất chủ chuyển "Tạm dừng"
+        xac_nhan = ngay_lam_viec_lui(c.ngay_hen_tham_quan - d(days=1), nghi)
+        if ngay < xac_nhan:
+            return xac_nhan
+        return c.ngay_hen_tham_quan + d(days=ch["Sau tham quan"])
     if c.tinh_trang == CHUA_LIEN_LAC:
-        return ngay + timedelta(days=1)
-    return ngay + timedelta(days=cau_hinh[f"L{lan}"])
+        if chua_lien_lac_lien_tiep(truoc, c) >= ch["Chưa liên lạc tối đa"]:
+            return None  # chuyển dài hạn
+        return ngay + d(days=1)
+    if c.tinh_trang == DA_THAM_QUAN:
+        return ngay + d(days=ch["Sau tham quan"])
+    n = lan_thu(truoc, c)
+    if n > 3:
+        return None  # sau L3 chưa chốt: chuyển dài hạn
+    m = moc_gan_nhat(truoc, c)
+    if n == 2 and m is not None and m.tinh_trang == DA_THAM_QUAN:
+        return ngay + d(days=ch["Chốt sau tham quan"])
+    return ngay + d(days=ch[f"L{n}"])
+
+
+def han_lien_he_tiep(c: LanChamSoc, truoc: list[LanChamSoc], ch: dict[str, int] = CAU_HINH_MAC_DINH,
+                     nghi: set[date] = frozenset()) -> date | None:
+    """Ngày sale cần liên hệ tiếp sau lần `c`, đã dời qua thứ 7, Chủ nhật, ngày lễ. None: không nhắc."""
+    tho = han_tho(c, truoc, ch, nghi)
+    return None if tho is None else ngay_lam_viec_toi(tho, nghi)
+
+
+def han_lead_moi(ngay_nhan: datetime, nghi: set[date] = frozenset()) -> date:
+    """Lead chưa liên hệ lần nào: nhắc ngay ngày nhận (dời tới ngày làm việc)."""
+    return ngay_lam_viec_toi(ngay_nhan.date(), nghi)
+
+
+def giai_doan(cuoi: LanChamSoc | None, han: date | None, tam_dung: bool = False) -> str:
+    """Giai đoạn của lead theo lần chăm sóc mới nhất `cuoi` và hạn liên hệ của lần đó."""
+    if tam_dung:
+        return GD_DUNG
+    if cuoi is None:
+        return GD_DANG
+    if cuoi.tinh_trang == NHAP_HOC or (cuoi.tinh_trang == DAT_COC and cuoi.da_gui_thu_moi):
+        return GD_CHOT
+    if cuoi.tinh_trang == DAT_COC:
+        return GD_DANG  # chờ viết thư mời
+    if cuoi.tinh_trang == TU_CHOI:
+        return GD_DUNG if cuoi.ly_do_tu_choi in LY_DO_DUNG else GD_DAI_HAN
+    return GD_DANG if han is not None else GD_DAI_HAN
 
 
 def muc_khan(han: date | None, hom_nay: date) -> str:
@@ -81,6 +252,61 @@ def muc_khan(han: date | None, hom_nay: date) -> str:
     if han == hom_nay:
         return "Hôm nay"
     return "Sắp tới"
+
+
+def bo_quen(gd: str, khan: str) -> bool:
+    """Chủ cần nhắc sale: lead đang chăm sóc mà quá hạn."""
+    return gd == GD_DANG and khan == "Quá hạn"
+
+
+# ---------------------------------------------------------------- danh sách chủ tự gửi
+
+@dataclass
+class LanGui:
+    thoi_gian: datetime
+    loai: str  # GUI_UU_DAI hoặc GUI_THONG_TIN
+
+
+def bang_khoan_hoc_phi(cuoi: LanChamSoc | None, ly_do_chat_luong: str, phan_hoi: list[str]) -> bool:
+    """Nhóm ưu tiên gửi ưu đãi: từ chối vì học phí, chất lượng lead "Học phí vượt khả năng",
+    hoặc phản hồi của sale có chữ "học phí"."""
+    if cuoi is not None and cuoi.tinh_trang == TU_CHOI and cuoi.ly_do_tu_choi == LD_HOC_PHI:
+        return True
+    if ly_do_chat_luong == "Học phí vượt khả năng":
+        return True
+    return any("học phí" in (p or "").lower() for p in phan_hoi)
+
+
+def nen_gui_uu_dai(gd: str, co_sdt: bool, hoc_phi: bool, lan_cuoi: datetime, gui: list[LanGui],
+                   hom_nay: date, ch: dict[str, int] = CAU_HINH_MAC_DINH, da_dat_coc: bool = False) -> bool:
+    """Lead có vào danh sách "Gửi ưu đãi" của chủ hôm nay không.
+
+    `lan_cuoi`: thời gian lần chăm sóc mới nhất (hoặc ngày nhận nếu chưa có). `gui`: các lần chủ đã gửi.
+    Nhóm băn khoăn học phí: lần đầu sau "Ưu đãi lần đầu" ngày kể từ lần cuối; tối đa "Ưu đãi tối đa" lần;
+    lần 2 cách lần 1 ít nhất "Ưu đãi cách nhau" ngày và trong vòng "Ưu đãi lần 2 trong vòng" ngày.
+    Các lead khác: cách lần gửi trước ít nhất "Ưu đãi cách nhau" ngày.
+    Không gửi cho lead đã chốt, dừng, đã đặt cọc (đang chờ thư mời), hoặc không có SĐT.
+    """
+    if gd not in (GD_DANG, GD_DAI_HAN) or not co_sdt or da_dat_coc:
+        return False
+    ud = sorted(g.thoi_gian.date() for g in gui if g.loai == GUI_UU_DAI)
+    cach = timedelta(days=ch["Ưu đãi cách nhau"])
+    if not hoc_phi:
+        return not ud or hom_nay - ud[-1] >= cach
+    if not ud:
+        return hom_nay - lan_cuoi.date() >= timedelta(days=ch["Ưu đãi lần đầu"])
+    if len(ud) >= ch["Ưu đãi tối đa"]:
+        return False
+    return cach <= hom_nay - ud[-1] <= timedelta(days=ch["Ưu đãi lần 2 trong vòng"])
+
+
+def nen_gui_thong_tin(gd: str, co_sdt: bool, gui: list[LanGui], hom_nay: date,
+                      ch: dict[str, int] = CAU_HINH_MAC_DINH) -> bool:
+    """Lead dài hạn có vào danh sách "Gửi thông tin" (sự kiện, hội thảo, video) của chủ hôm nay không."""
+    if gd != GD_DAI_HAN or not co_sdt:
+        return False
+    tt = [g.thoi_gian.date() for g in gui if g.loai == GUI_THONG_TIN]
+    return not tt or hom_nay - max(tt) >= timedelta(days=ch["Thông tin dài hạn"])
 
 
 # ---------------------------------------------------------------- thống kê theo tháng
@@ -138,7 +364,11 @@ COT_HO_SO = [
 COT_CHAM_SOC = [
     "Mã", "Mã lead", "Thời gian", "Sale", "Phương thức", "Tình trạng", "Mức quan tâm", "Phản hồi",
     "Lý do từ chối", "Ngày hẹn gọi lại", "Ngày hẹn tham quan", "Lần thứ", "Hạn liên hệ tiếp",
+    # thêm ở cuối để công thức tab Thống kê, Tổng hợp lead (dựa vào vị trí cột) không phải sửa
+    "PH chủ động", "Hẹn lại sau", "Đã gửi thư mời", "Ngày nhập học dự kiến",
 ]
+COT_NGAY_NGHI = ["Ngày", "Tên"]
+COT_GUI = ["Mã", "Mã lead", "Thời gian", "Loại", "Người gửi", "Ghi chú"]
 COT_SALE = ["Email", "Tên", "Cơ sở", "Vai trò", "Đang làm"]
 COT_DANH_MUC = ["Loại", "Giá trị"]
 COT_CAU_HINH = ["Khóa", "Giá trị", "Ý nghĩa"]
@@ -162,18 +392,39 @@ DANH_MUC_MAU = (
     [["Cơ sở", x] for x in ["Chùa Láng", "Mỹ Đình", "Kim Mã"]]
     + [["Nguồn", x] for x in ["Facebook Messenger", "Facebook", "Zalo", "Gọi hotline", "Website", "Tự tìm hiểu", "Giới thiệu", "Đến trực tiếp", "Sự kiện", "Khác"]]
     + [["Mối quan tâm", x] for x in ["Học phí", "Chương trình", "Giờ học", "Đưa đón", "Ăn uống", "Cơ sở vật chất", "Giáo viên", "Tiếng Anh", "Khác"]]
-    + [["Lý do từ chối", x] for x in ["Học phí", "Xa nhà", "Chọn trường khác", "Chưa có nhu cầu", "Khác"]]
+    + [["Lý do từ chối", x] for x in LY_DO_TU_CHOI]
     + [["Lý do chất lượng", x] for x in [
         "Sai độ tuổi", "Ở quá xa", "Sai hoặc thiếu SĐT", "Chỉ để lại thông tin xem thử, không có nhu cầu",
         "Học phí vượt khả năng", "Trùng lead", "Khác"]]
 )
 
-CAU_HINH_MAU = [
-    ["L1", 1, "Số ngày nhắc lần 1 sau lần liên hệ trước"],
-    ["L2", 3, "Số ngày nhắc lần 2"],
-    ["L3", 7, "Số ngày nhắc lần 3. Sau lần 3 chưa chốt thì đề xuất tạm dừng"],
-    ["Bỏ quên", 3, "Quá chừng này ngày không cập nhật thì vào danh sách bỏ quên của chủ"],
-    ["Hạn đặt cọc", 7, "Số ngày sau đặt cọc thì nhắc hoàn tất thủ tục nhập học"],
+Y_NGHIA_CAU_HINH = {
+    "L1": "Số ngày nhắc lần 1 (sau lần liên hệ đầu, hoặc sau mốc)",
+    "L2": "Số ngày nhắc lần 2",
+    "L3": "Số ngày nhắc lần 3. Hết L3 chưa chốt thì chuyển dài hạn",
+    "Chưa liên lạc tối đa": "Số lần \"Chưa liên lạc được\" liên tiếp thì chuyển dài hạn",
+    "Sau tham quan": "Số ngày sau buổi tham quan thì nhắc hỏi cảm nhận",
+    "Chốt sau tham quan": "Số ngày sau lần hỏi cảm nhận thì nhắc chốt",
+    "Từ chối trường khác": "Từ chối vì chọn trường khác: nhắc lại sau chừng này ngày (hoặc đầu năm học, mốc nào đến trước)",
+    "Từ chối trường khác tối thiểu": "Nhưng không sớm hơn chừng này ngày sau khi từ chối",
+    "Đầu năm học tháng": "Tháng bắt đầu năm học",
+    "Đầu năm học ngày": "Ngày bắt đầu năm học",
+    "Từ chối chưa nhu cầu": "Từ chối vì chưa có nhu cầu: nhắc lại sau chừng này ngày",
+    "Từ chối khác": "Từ chối vì lý do khác: nhắc lại sau chừng này ngày",
+    "Ưu đãi lần đầu": "Nhóm băn khoăn học phí: gửi ưu đãi lần đầu sau chừng này ngày kể từ lần liên hệ cuối",
+    "Ưu đãi cách nhau": "Hai lần gửi ưu đãi cách nhau ít nhất chừng này ngày",
+    "Ưu đãi tối đa": "Nhóm băn khoăn học phí: gửi ưu đãi tối đa chừng này lần",
+    "Ưu đãi lần 2 trong vòng": "Nhóm băn khoăn học phí: quá chừng này ngày sau lần 1 mà chưa gửi lần 2 thì thôi",
+    "Thông tin dài hạn": "Lead dài hạn: gửi thông tin hoạt động cách nhau chừng này ngày",
+}
+CAU_HINH_MAU = [[k, v, Y_NGHIA_CAU_HINH[k]] for k, v in CAU_HINH_MAC_DINH.items()]
+
+# Ngày lễ dương lịch chắc chắn. Tết, Giỗ Tổ (âm lịch) và ngày nghỉ bù: chủ điền theo thông báo của trường.
+NGAY_NGHI_MAU = [
+    [date(2027, 1, 1), "Tết Dương lịch"],
+    [date(2027, 4, 30), "Giải phóng miền Nam"],
+    [date(2027, 5, 1), "Quốc tế Lao động"],
+    [date(2027, 9, 2), "Quốc khánh"],
 ]
 
 
@@ -200,7 +451,7 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         ["L0002", d(5, 14), "sale1@example.com", "Zalo", GOI_LAI, "Hời hợt", "Bận, hẹn tuần sau", "", hom_nay, None],
         ["L0003", d(4, 16), "sale5@example.com", "Gọi điện", CAN_NHAC, "Quan tâm bình thường", "Hỏi thực đơn, đang so sánh trường khác", "", None, None],
         ["L0004", d(3, 10), "sale4@example.com", "Gặp trực tiếp tại trường", DA_THAM_QUAN, "Rất quan tâm", "Bé thích lớp, phụ huynh hỏi lịch nhập học", "", None, None],
-        ["L0004", d(1, 9), "sale4@example.com", "Gọi điện", DAT_COC, "Rất quan tâm", "Đã chuyển khoản đặt cọc", "", None, None],
+        ["L0004", d(1, 9), "sale4@example.com", "Gọi điện", DAT_COC, "Rất quan tâm", "Đã chuyển khoản đặt cọc", "", None, None, False, "", False, date(2026, 12, 1)],
         ["L0005", d(12, 9), "sale2@example.com", "Gọi điện", TU_CHOI, "", "Thấy học phí cao", "Học phí", None, None],
         ["L0006", d(20, 9), "sale6@example.com", "Gọi điện", CAN_NHAC, "Quan tâm bình thường", "", "", None, None],
         ["L0006", d(19, 9), "sale6@example.com", "Zalo", CAN_NHAC, "Hời hợt", "Chưa trả lời tin", "", None, None],
@@ -208,14 +459,21 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         ["L0006", d(9, 9), "sale6@example.com", "Zalo", CAN_NHAC, "Hời hợt", "Chưa phản hồi", "", None, None],
         ["L0008", d(15, 10), "sale1@example.com", "Messenger (Facebook)", CAN_NHAC, "Quan tâm bình thường", "Hỏi học phí lớp 4 tuổi", "", None, None],
     ]
+    lan = [r + [False, "", False, None][len(r) - 10:] for r in lan]  # mặc định cho 4 cột mới
+    nghi = {r[0] for r in NGAY_NGHI_MAU}
     cham_soc, da_co = [], {}
-    for i, (ma_lead, tg, sale, pt, tt, muc, ph, ly_do, goi_lai, tham_quan) in enumerate(sorted(lan, key=lambda r: r[1]), 1):
-        c = LanChamSoc(tg, tt, goi_lai, tham_quan)
-        n = lan_thu(da_co.get(ma_lead, []), c)
-        han = han_lien_he_tiep(c, n)
+    for i, (ma_lead, tg, sale, pt, tt, muc, ph, ly_do, goi_lai, tham_quan, chu_dong, hen_nhanh, thu_moi, nhap_hoc) in enumerate(sorted(lan, key=lambda r: r[1]), 1):
+        if goi_lai and not hen_nhanh:
+            hen_nhanh = HEN_CHON_NGAY
+        c = LanChamSoc(tg, tt, goi_lai, tham_quan, ly_do, chu_dong, thu_moi)
+        truoc = da_co.get(ma_lead, [])
+        n = lan_thu(truoc, c)
+        han = han_lien_he_tiep(c, truoc, nghi=nghi)
         da_co.setdefault(ma_lead, []).append(c)
+        b = lambda v: "TRUE" if v else "FALSE"  # noqa: E731
         cham_soc.append([
             f"C{i:04d}", ma_lead, tg, sale, pt, tt, muc, ph, ly_do, goi_lai or "", tham_quan or "", n, han or "",
+            b(chu_dong), hen_nhanh, b(thu_moi), nhap_hoc or "",
         ])
     bot = [
         [d(1, 20), "SĐT mới", "Cúc Thử", "GIA-M3", "0900000611", "", "3 tuổi", "FLC", "Nam Từ Liêm", "", "", "QC Cambridge T10", "Đã có SĐT", "0900000611", d(1, 19), d(1, 20)],
@@ -230,6 +488,8 @@ def tao_mau(thu_muc: Path, hom_nay: date) -> None:
         "danh-muc.csv": (COT_DANH_MUC, DANH_MUC_MAU),
         "cau-hinh.csv": (COT_CAU_HINH, CAU_HINH_MAU),
         "leads-bot.csv": (COT_BOT, bot),
+        "ngay-nghi.csv": (COT_NGAY_NGHI, NGAY_NGHI_MAU),
+        "gui-thong-tin.csv": (COT_GUI, []),
     }
     thu_muc.mkdir(parents=True, exist_ok=True)
 
