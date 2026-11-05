@@ -43,30 +43,30 @@ Bấm **SAVE** trước khi sang bước 3 (regenerate mà chưa lưu thì mất
 
 ## Bước 3. Cột ảo mới của `Hồ sơ lead`
 
-**Data → Hồ sơ lead → + Add virtual column**, theo đúng thứ tự dưới. Số 1 – 3 lấy số **thẳng từ ô Tuổi bé**, không qua cột Số tuổi: lấy `INDEX([Số tuổi], 1)` từ cột ảo kiểu List thì AppSheet ra 0 (đã gặp trên app thật). Trong `LIST(...)` không trộn số nguyên với số thập phân (`0.0` chứ không `0`). Mọi cột ở bước này **bỏ tick Show** (chỉ dùng để tính), trừ **Ngày sinh dùng** và **Đủ tuổi nhận học** (để Show, sale thấy app hiểu tuổi bé thế nào).
+**Data → Hồ sơ lead → + Add virtual column**, theo đúng thứ tự dưới. Số 1 – 3 lấy số **thẳng từ ô Tuổi bé**, không qua cột Số tuổi: lấy `INDEX([Số tuổi], 1)` từ cột ảo kiểu List thì AppSheet ra 0 (đã gặp trên app thật). EXTRACTNUMBERS không lấy được số dính chữ ("2t", "18th"), nên công thức chèn dấu cách trước chữ t. Trong `LIST(...)` không trộn số nguyên với số thập phân (`0.0` chứ không `0`). Mọi cột ở bước này **bỏ tick Show** (chỉ dùng để tính), trừ **Ngày sinh dùng** và **Đủ tuổi nhận học** (để Show, sale thấy app hiểu tuổi bé thế nào).
 
 **1. Số tuổi** (cột ảo, kiểu List (Item type Decimal))
 
 ```
-EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))
+EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))
 ```
 
 **2. Số 1** (cột ảo, kiểu Decimal)
 
 ```
-IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))) >= 1, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", ".")), 1)), 0)
+IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 1, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 1)), 0)
 ```
 
 **3. Số 2** (cột ảo, kiểu Decimal)
 
 ```
-IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))) >= 2, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", ".")), 2)), 0)
+IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 2, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 2)), 0)
 ```
 
 **4. Số 3** (cột ảo, kiểu Decimal)
 
 ```
-IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))) >= 3, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", ".")), 3)), 0)
+IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 3, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 3)), 0)
 ```
 
 **5. Năm trong tuổi** (cột ảo, kiểu Number)
