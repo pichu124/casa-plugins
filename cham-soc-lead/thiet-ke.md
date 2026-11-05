@@ -282,7 +282,7 @@ IFS(
 | Giai đoạn | Text | xem **Đợt 2** dưới |
 | Việc cần làm | Text | xem **Đợt 2** dưới |
 | Mức khẩn | Text | `IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")` |
-| Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
+| Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", AND([Mức khẩn] = "Sắp tới", [Giai đoạn] = "Đang chăm sóc"), "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
 | Ngày không cập nhật | Decimal | `HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24` |
 | Đã kết thúc | Yes/No | `IN([Giai đoạn], LIST("Đã chốt", "Dừng"))` |
 | Bỏ quên | Yes/No | `AND([Giai đoạn] = "Đang chăm sóc", [Mức khẩn] = "Quá hạn")` |

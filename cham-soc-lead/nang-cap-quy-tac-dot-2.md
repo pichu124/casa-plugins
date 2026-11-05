@@ -254,7 +254,13 @@ IFS(
 ```
 
 
-Các cột Mức khẩn, Nhóm, Bỏ quên, Nên gửi ưu đãi, Nên gửi thông tin… dùng Hạn liên hệ và Giai đoạn nên tự theo, không phải sửa.
+**21. Nhóm** (sửa cột cũ, Text): lead Dài hạn hay Đã chốt có hạn còn xa (chờ đủ tuổi, nhắc đại sứ) nằm ở nhóm "4 · Dài hạn" / "4 · Đã chốt" của màn Của tôi, không lẫn vào "3 · Sắp tới"; tới hạn thì lên "Hôm nay" như thường.
+
+```
+IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", AND([Mức khẩn] = "Sắp tới", [Giai đoạn] = "Đang chăm sóc"), "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))
+```
+
+Các cột Mức khẩn, Bỏ quên, Nên gửi ưu đãi, Nên gửi thông tin… dùng Hạn liên hệ và Giai đoạn nên tự theo, không phải sửa.
 
 ## Bước 5. Màn hình, nút, email
 

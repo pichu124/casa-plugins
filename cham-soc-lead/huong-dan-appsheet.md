@@ -106,7 +106,7 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | View | Dữ liệu | Kiểu | Vị trí | Ghi chú |
 |---|---|---|---|---|
 | Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Hai màn deck của sale: Primary header `Tên phụ huynh`, Secondary header `Mức khẩn`, Summary column `Lần cuối tóm tắt`. Slice của sale bỏ **Deletes** ở Update mode. Đặt làm **Starting view** (Settings → Views → General) |
-| Của tôi | Lead của tôi | Deck | next | Group by cột ảo `Nhóm` (Hồ sơ lead, Text: `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))`) để Quá hạn lên đầu. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
+| Của tôi | Lead của tôi | Deck | next | Group by cột ảo `Nhóm` (Hồ sơ lead, Text: `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", AND([Mức khẩn] = "Sắp tới", [Giai đoạn] = "Đang chăm sóc"), "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))`) để Quá hạn lên đầu. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
 | Messenger | Messenger chưa nhận | Table | menu | **Chỉ chủ** (Show if như các view của chủ) |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |
