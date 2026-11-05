@@ -322,9 +322,9 @@ AND(
 | Cột ảo | Kiểu | Công thức |
 |---|---|---|
 | Số tuổi | List (Item type Decimal) | `EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))` |
-| Số 1 | Decimal | `IF(COUNT([Số tuổi]) >= 1, ABS(INDEX([Số tuổi], 1)), 0)` |
-| Số 2 | Decimal | `IF(COUNT([Số tuổi]) >= 2, ABS(INDEX([Số tuổi], 2)), 0)` |
-| Số 3 | Decimal | `IF(COUNT([Số tuổi]) >= 3, ABS(INDEX([Số tuổi], 3)), 0)` |
+| Số 1 | Decimal | `IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))) >= 1, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", ".")), 1)), 0)` |
+| Số 2 | Decimal | `IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))) >= 2, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", ".")), 2)), 0)` |
+| Số 3 | Decimal | `IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", "."))) >= 3, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE([Tuổi bé], ",", ".")), 3)), 0)` |
 | Năm trong tuổi | Number | `IF(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)` |
 | Số đếm | Number | `IFS([Năm trong tuổi] = 0, COUNT([Số tuổi]), [Số 1] >= 1900, 0, [Số 2] >= 1900, 1, TRUE, 2)` |
 | Đủ tuổi nhận học | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)")))))` |
