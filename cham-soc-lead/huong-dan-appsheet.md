@@ -2,7 +2,7 @@
 
 Làm trên máy tính, trình duyệt Chrome. Khoảng 2 – 3 giờ cho lần đầu. Mọi tên cột, công thức nằm trong [thiet-ke.md](thiet-ke.md); hướng dẫn này chỉ chỗ bấm.
 
-Quy tắc nhắc hiện tại là **v2** (theo phản hồi của trường, 11/2026). Dựng mới: làm theo hướng dẫn này, các phần mới của v2 (bảng `Ngày nghỉ`, `Gửi thông tin`, 4 cột mới của `Chăm sóc`, danh sách Gửi ưu đãi / Gửi thông tin, nút Đã gửi thư mời, email 8h) làm theo bước 2, 6, 7, 8 của [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md). App đã dựng theo bản cũ: chỉ cần làm theo [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md).
+Quy tắc nhắc hiện tại là **v2** (theo phản hồi của trường, 11/2026). Dựng mới: làm theo hướng dẫn này, các phần mới của v2 (bảng `Ngày nghỉ`, `Gửi thông tin`, 4 cột mới của `Chăm sóc`, danh sách Gửi ưu đãi / Gửi thông tin, nút Đã gửi thư mời, email 8h) làm theo bước 2, 6, 7, 8 của [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md). App đã dựng theo bản cũ: chỉ cần làm theo [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md). Sau đó làm tiếp **đợt 2** (tuổi bé, em nhỏ, sau nhập học: 3 cột mới của `Hồ sơ lead`, nút Tạo lead cho em, cột Việc cần làm) theo [nang-cap-quy-tac-dot-2.md](nang-cap-quy-tac-dot-2.md), cả khi dựng mới.
 
 Tên nút trong AppSheet là tiếng Anh, ghi đúng như trên màn hình. Giao diện AppSheet thay đổi theo thời gian, nên vị trí nút có thể khác một chút.
 
@@ -106,7 +106,7 @@ Vào **Views** (biểu tượng điện thoại bên trái) → **+ New view**. 
 | View | Dữ liệu | Kiểu | Vị trí | Ghi chú |
 |---|---|---|---|---|
 | Hôm nay | Hôm nay của tôi | Deck | first | Sort by `Hạn liên hệ` tăng dần. Hai màn deck của sale: Primary header `Tên phụ huynh`, Secondary header `Mức khẩn`, Summary column `Lần cuối tóm tắt`. Slice của sale bỏ **Deletes** ở Update mode. Đặt làm **Starting view** (Settings → Views → General) |
-| Của tôi | Lead của tôi | Deck | next | Group by cột ảo `Nhóm` (Hồ sơ lead, Text: `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))`) để Quá hạn lên đầu. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
+| Của tôi | Lead của tôi | Deck | next | Group by cột ảo `Nhóm` (Hồ sơ lead, Text: `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", AND([Mức khẩn] = "Sắp tới", [Giai đoạn] = "Đang chăm sóc"), "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))`) để Quá hạn lên đầu. Ô tìm kiếm có sẵn ở góc trên: phụ huynh tự gọi tới thì sale gõ tên hoặc vài số cuối SĐT |
 | Messenger | Messenger chưa nhận | Table | menu | **Chỉ chủ** (Show if như các view của chủ) |
 | Theo sale | Sale | Table | menu | Hiện các cột ảo Đang giữ, Liên hệ hôm nay, Quá hạn, Tỷ lệ chốt, Số lần chăm sóc |
 | Bỏ quên | Bỏ quên | Table | menu | **Group by** `Sale phụ trách`; Sort by `Số ngày quá hạn` giảm dần; cột hiện: Tên phụ huynh, Tên bé, Cơ sở, Số ngày quá hạn, Ngày không cập nhật, Lần cuối tóm tắt, Chủ nhắc lúc |

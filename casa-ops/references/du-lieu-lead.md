@@ -86,6 +86,8 @@ App giúp sale ghi kết quả chăm sóc và giúp chủ xem tổng hợp, làm
 
 **Quy tắc nhắc v2** (ứng dụng làm, plugin không làm; chi tiết ở `cham-soc-lead/thiet-ke.md` mục 4): nhắc đúng ngày hẹn; không hẹn thì L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày, hết L3 chuyển **Dài hạn**; chưa liên lạc được 3 lần liên tiếp cũng chuyển Dài hạn; từ chối thì nhắc lại theo lý do; không nhắc vào thứ 7, Chủ nhật, ngày lễ. Mỗi lead có cột ảo **Giai đoạn**: Đang chăm sóc / Dài hạn / Đã chốt / Dừng. Tab `Gửi thông tin` ghi các lần chủ gửi ưu đãi học phí hoặc thông tin hoạt động.
 
+**Đợt 2:** `Hồ sơ lead` có thêm cột **Ngày sinh bé**, **Em nhỏ** (Có em nhỏ / Sắp sinh em / Không) và **Ngày sinh em**; nguồn mới `Em nhỏ trong gia đình` (lead em tạo từ lead anh/chị, cùng SĐT, không phải lead trùng). Bé chưa đủ 15 tháng thì Dài hạn, nhắc khi gần đủ tuổi; bé đủ 6 tuổi hoặc từ chối vì sai độ tuổi thì nhắc hỏi em nhỏ một lần rồi Dừng; 90 ngày sau ngày nhập học dự kiến nhắc giới thiệu chương trình đại sứ.
+
 **Tình trạng** có thêm `Hẹn nhưng không đến`. **Lý do từ chối** có thêm `Sai độ tuổi`, `Sai số điện thoại`.
 
 **Phễu chủ cần xem:** Lead mới → Đã tư vấn → Đã tham quan → Đặt cọc → Nhập học.

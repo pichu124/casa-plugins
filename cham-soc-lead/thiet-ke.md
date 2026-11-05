@@ -62,6 +62,11 @@ Tên cột là tên tiêu đề trên Sheet. Kiểu là kiểu cần chọn tron
 | Ghi chú | LongText | |
 | Tạm dừng | Yes/No | Chỉ chủ đổi. Bật thì lead chuyển giai đoạn **Dừng**, ngừng nhắc. Giá trị đầu `FALSE`, không bắt buộc |
 | Chủ nhắc lúc | DateTime | Nút **Nhắc sale** của chủ ghi giờ vào đây; app gửi email nhắc sale phụ trách (mục 6). Sale thấy dòng "Chủ đã nhắc lúc…" trong chi tiết lead |
+| Ngày sinh bé | Date | Sale điền khi phụ huynh cho ngày cụ thể. Trống thì app ước tính từ Tuổi bé (mục 4) |
+| Em nhỏ | Enum | Có em nhỏ / Sắp sinh em / Không. Trống là chưa hỏi. Sale điền khi app nhắc hỏi em nhỏ |
+| Ngày sinh em | Date | Ngày sinh hoặc dự sinh của em. Chỉ hiện và bắt buộc khi Có em nhỏ / Sắp sinh em. Nút **Tạo lead cho em** chép sang Ngày sinh bé của lead em |
+
+3 cột cuối (đợt 2) nằm ở cột R – T trên Sheet, sau các cột mà tab `Tổng hợp lead` đọc (A – Q).
 
 ### `Chăm sóc`
 
@@ -120,6 +125,10 @@ Form chỉ có **3 chỗ bắt buộc phải bấm**: Phương thức, Tình tr�
 | Ưu đãi tối đa | 2 (lần) | Nhóm băn khoăn học phí |
 | Ưu đãi lần 2 trong vòng | 180 | Nhóm băn khoăn học phí: quá chừng này ngày sau lần 1 mà chưa gửi lần 2 thì thôi |
 | Thông tin dài hạn | 30 | Lead dài hạn: gửi thông tin hoạt động cách nhau chừng này ngày |
+| Tuổi nhận học (tháng) | 15 (tháng) | Bé nhỏ hơn tuổi này thì chờ, nhắc khi bé sắp đủ tuổi |
+| Nhắc trước tuổi nhận học | 30 | Nhắc trước ngày bé đủ tuổi nhận học chừng này ngày |
+| Tuổi tối đa (tháng) | 72 (tháng) | Bé đủ tuổi này thì nhắc sale hỏi phụ huynh về em nhỏ |
+| Sau nhập học | 90 | Chừng này ngày sau ngày bé vào học thì nhắc giới thiệu chương trình đại sứ |
 
   Giờ gửi email buổi sáng (8h) đặt trong AppSheet (Automation), không đặt được từ Sheet.
 - `Ngày nghỉ`: cột **Ngày** (Date, Key), **Tên**. Chỉ ghi ngày lễ, nghỉ bù, nghỉ Tết của trường; thứ 7 và Chủ nhật app tự coi là ngày nghỉ. Sheet mẫu có sẵn các ngày lễ dương lịch 2027; Tết và Giỗ Tổ chủ điền theo thông báo của trường.
@@ -158,10 +167,13 @@ Mỗi lần sale lưu một lần chăm sóc, app tính **Hạn liên hệ tiế
 
 **Ngày nghỉ.** Thứ 7, Chủ nhật và các ngày trong tab `Ngày nghỉ` không nhắc sale chủ động liên hệ (sale vẫn trả lời khi phụ huynh tự nhắn). Nhắc rơi vào ngày nghỉ thì **dời tới ngày làm việc kế tiếp**. Riêng nhắc **xác nhận lịch tham quan** là **ngày làm việc liền trước buổi tham quan** (tham quan thứ 2 thì xác nhận thứ 6), để không nhắc sau buổi tham quan; gọi xác nhận vào hoặc sau ngày đó thì chuyển sang nhắc hỏi cảm nhận. Số ngày trong quy tắc là ngày lịch, dời sau khi cộng.
 
-Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`):
+Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`). Ba dòng **0a – 0c** (đợt 2) tính ở mức **lead** (cột ảo của `Hồ sơ lead`), đứng trước mọi dòng khác, trừ Tạm dừng; các dòng 1 – 14 là hạn của từng lần chăm sóc.
 
 | # | Tình huống | Hạn liên hệ tiếp | Giai đoạn |
 |---|---|---|---|
+| 0a | Bé đủ 6 tuổi (Tuổi tối đa) vào ngày cần nhắc (hoặc lead dài hạn, không còn hạn, tới ngày bé đủ 6 tuổi), hoặc lần cuối là Từ chối vì Sai độ tuổi. Không áp dụng khi đã chốt, hay từ chối vì Xa nhà / Sai số điện thoại | Ngày bé đủ 6 tuổi (hoặc ngày liên hệ cuối nếu muộn hơn; Sai độ tuổi: ngày từ chối): **hỏi phụ huynh có em nhỏ / sắp sinh em**. Sale điền ô Em nhỏ → không nhắc | Đang chăm sóc → Dừng khi đã điền Em nhỏ |
+| 0b | Đã chốt (Đã nhập học, hoặc đặt cọc đã gửi thư mời) và có ngày vào học: Ngày nhập học dự kiến (muộn nhất, ghi lúc đặt cọc), không có thì ngày ghi Đã nhập học lần đầu | Ngày vào học + 90 ngày (Sau nhập học): **giới thiệu chương trình đại sứ phụ huynh**. Có lần chăm sóc vào hoặc sau ngày đó → không nhắc | Đã chốt |
+| 0c | Bé chưa đủ 15 tháng (Tuổi nhận học) vào lần liên hệ cuối, lần đó là Đang cân nhắc không hẹn ngày, hoặc Từ chối vì Chưa có nhu cầu / Khác. Hoặc lead em nhỏ (Nguồn "Em nhỏ trong gia đình") chưa liên hệ | 30 ngày trước ngày bé đủ tuổi (Nhắc trước tuổi nhận học); liên hệ rồi mà vẫn chưa tới ngày đủ tuổi: đúng ngày đủ tuổi | Dài hạn |
 | 1 | Đã nhập học | Không nhắc | Đã chốt |
 | 2 | Từ chối vì Học phí | Không nhắc sale. Lead vào danh sách **Gửi ưu đãi** của chủ | Dài hạn |
 | 3 | Từ chối vì Xa nhà, Sai độ tuổi, Sai số điện thoại | Không nhắc | Dừng |
@@ -178,9 +190,13 @@ Theo thứ tự ưu tiên (giá trị trong ngoặc là khoá ở `Cấu hình`)
 | 13 | Lần thứ 2 ngay sau "Đã tham quan" (lần hỏi cảm nhận) | Sau 3 ngày, nhắc chốt (Chốt sau tham quan) | Đang chăm sóc |
 | 14 | Còn lại (Đang cân nhắc, Yêu cầu gọi lại không hẹn ngày…) | L1 sau 1 ngày, L2 sau 3 ngày, L3 sau 7 ngày | Đang chăm sóc |
 
+**Tuổi bé** (dòng 0a, 0c). Có Ngày sinh bé thì dùng. Không có thì ước tính từ chữ ở ô Tuổi bé, tại ngày nhận lead, lấy điểm giữa: "2 tuổi" là 30 tháng, "3-4 tuổi" 48, "dưới 2 tuổi" 18, "2 tuổi rưỡi" 30, "2 tuổi 8 tháng" 32, "1,5 tuổi" 18, "18 tháng" 18, "dưới 18 tháng" 15, số trần ≤ 7 là tuổi ("2t" 30), lớn hơn là tháng ("18th" 18); ngày sinh = ngày nhận − tháng × 30,44 ngày. "N tháng tuổi" là N tháng; "dưới N tháng" là N − 3, không dưới 0. Có năm sinh (số ≥ 1900 trong 3 số đầu): ngày/tháng/năm có "/" hoặc "-" ("02/12/2025") thì lấy đúng ngày; tháng/năm ("3/2023", "tháng 4 năm 2024") thì ngày 15 của tháng đó; có tuổi đứng trước năm ("8 tháng, sinh 2026", "2 tuổi 3 tháng, sinh 2024") thì dùng tuổi, chỉ đọc các số trước năm; chỉ có năm ("sinh năm 2022") thì giữa năm (01/07). Chữ không có số thì không đoán. Lệch vài tuần, trường đã đồng ý.
+
+**Việc cần làm** (cột ảo của lead, hiện trên thẻ và trong email 8h): Hỏi phụ huynh có em nhỏ hoặc sắp sinh em / Giới thiệu chương trình đại sứ phụ huynh / Bé sắp đủ tuổi nhận học / Bé đủ tuổi nhận học / Liên hệ lần đầu / Viết thư mời tuyển sinh / Xác nhận lịch tham quan / Hỏi cảm nhận sau buổi tham quan / Hẹn lại lịch tham quan / Liên hệ lại sau khi từ chối / Gọi lại.
+
 **Mốc và Lần thứ.** Mốc là lần chăm sóc có tình trạng Đã hẹn tham quan, Đã tham quan, Đã đặt cọc, Từ chối, hoặc lần có **PH chủ động** bật. Lần thứ đếm các lần chăm sóc kể từ mốc gần nhất, mốc tính là lần 1; lần **Chưa liên lạc được không được đếm**. Ví dụ: gọi không được, gọi không được, gọi được và phụ huynh cân nhắc → L1. Hết L3 vẫn chưa chốt → dài hạn. Phụ huynh tự liên hệ lại → sale bật PH chủ động khi ghi nhận → nhắc cũ bỏ, đếm lại từ L1. Sau một lần Từ chối, lần liên hệ lại tiếp theo là lần 2.
 
-**Giai đoạn** của lead: Tạm dừng bật → Dừng; chưa có lần chăm sóc nào → Đang chăm sóc; còn lại theo bảng trên (lần mới nhất có hạn → Đang chăm sóc, không hạn → Dài hạn).
+**Giai đoạn** của lead: Tạm dừng bật → Dừng; dòng 0a – 0c như bảng; chưa có lần chăm sóc nào → Đang chăm sóc; còn lại theo bảng trên (lần mới nhất có hạn → Đang chăm sóc, không hạn → Dài hạn).
 
 **Mức khẩn** của lead: hạn trước hôm nay là **Quá hạn** (đỏ), hạn hôm nay là **Hôm nay** (cam), sau hôm nay là **Sắp tới**.
 
@@ -262,10 +278,11 @@ IFS(
 | Lần cuối | Ref → `Chăm sóc` | `ANY(ORDERBY([Related Chăm sócs], [Thời gian], TRUE))` |
 | Tình trạng hiện tại | Text | `IF(ISBLANK([Lần cuối]), "Mới", [Lần cuối].[Tình trạng])` |
 | Mức quan tâm hiện tại | Text | `[Lần cuối].[Mức quan tâm]` |
-| Hạn liên hệ | Date | `IFS([Tạm dừng], "", ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), TRUE, [Lần cuối].[Hạn liên hệ tiếp])` |
-| Giai đoạn | Text | `IFS([Tạm dừng], "Dừng", ISBLANK([Lần cuối]), "Đang chăm sóc", OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời])), "Đã chốt", [Lần cuối].[Tình trạng] = "Đã đặt cọc", "Đang chăm sóc", [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"), ISNOTBLANK([Hạn liên hệ]), "Đang chăm sóc", TRUE, "Dài hạn")` |
+| Hạn liên hệ | Date | xem **Đợt 2** dưới |
+| Giai đoạn | Text | xem **Đợt 2** dưới |
+| Việc cần làm | Text | xem **Đợt 2** dưới |
 | Mức khẩn | Text | `IFS(ISBLANK([Hạn liên hệ]), "", [Hạn liên hệ] < TODAY(), "Quá hạn", [Hạn liên hệ] = TODAY(), "Hôm nay", TRUE, "Sắp tới")` |
-| Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", [Mức khẩn] = "Sắp tới", "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
+| Nhóm | Text | `IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", AND([Mức khẩn] = "Sắp tới", [Giai đoạn] = "Đang chăm sóc"), "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))` |
 | Ngày không cập nhật | Decimal | `HOUR(NOW() - IF(ISBLANK([Lần cuối]), [Ngày nhận], [Lần cuối].[Thời gian])) / 24` |
 | Đã kết thúc | Yes/No | `IN([Giai đoạn], LIST("Đã chốt", "Dừng"))` |
 | Bỏ quên | Yes/No | `AND([Giai đoạn] = "Đang chăm sóc", [Mức khẩn] = "Quá hạn")` |
@@ -300,6 +317,155 @@ AND(
 )
 ```
 
+**Đợt 2: tuổi bé, em nhỏ, sau nhập học** (cột ảo của `Hồ sơ lead`, ẩn trừ Ngày sinh dùng, Đủ tuổi nhận học, Việc cần làm; bản dán sẵn ở `nang-cap-quy-tac-dot-2.md`). `Hạn cơ bản` là Hạn liên hệ của đợt 1 bỏ phần Tạm dừng.
+
+| Cột ảo | Kiểu | Công thức |
+|---|---|---|
+| Tuổi bé chuẩn | Text | `SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "năm", " "), "Năm", " "), "t", " t"), "T", " T")` |
+| Số tuổi | List (Item type Decimal) | `EXTRACTNUMBERS([Tuổi bé chuẩn])` |
+| Số 1 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 1, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 1)), 0)` |
+| Số 2 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 2, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 2)), 0)` |
+| Số 3 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 3, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 3)), 0)` |
+| Năm trong tuổi | Number | `IF(AND(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, MAX(LIST([Số 1], [Số 2], [Số 3])) <= 2100), ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)` |
+| Số đếm | Number | `IFS([Năm trong tuổi] = 0, COUNT([Số tuổi]), [Số 1] >= 1900, 0, [Số 2] >= 1900, 1, TRUE, 2)` |
+| Đủ tuổi nhận học | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)")))))` |
+| Hết tuổi | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi tối đa (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi tối đa (tháng)")))))` |
+| Hạn cơ bản | Date | `IF(ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), [Lần cuối].[Hạn liên hệ tiếp])` |
+| Chốt rồi | Yes/No | `OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời]))` |
+| Hạn chờ tuổi | Date | `IF(DATE([Liên hệ cuối lúc]) < [Đủ tuổi nhận học] - CH("Nhắc trước tuổi nhận học"), [Đủ tuổi nhận học] - CH("Nhắc trước tuổi nhận học"), [Đủ tuổi nhận học])` |
+| Hạn đại sứ | Date | `IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày vào học] + CH("Sau nhập học")), [Ngày vào học] + CH("Sau nhập học"), "")` |
+
+**Tháng tuổi lúc nhận** (Decimal):
+
+```
+IFS(
+  [Số đếm] = 0, "",
+  AND(OR(CONTAINS([Tuổi bé], "tuổi"), CONTAINS([Tuổi bé], "tuoi")), NOT(AND([Số đếm] = 1, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))))),
+    IFS(
+      AND([Số đếm] >= 2, OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang"))), [Số 1] * 12 + [Số 2],
+      OR(CONTAINS([Tuổi bé], "rưỡi"), CONTAINS([Tuổi bé], "ruoi")), [Số 1] * 12 + 6,
+      [Số đếm] >= 2, ([Số 1] + [Số 2] + 1) * 6,
+      OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), [Số 1] * 12 - 6,
+      [Số 1] <> FLOOR([Số 1]), [Số 1] * 12,
+      TRUE, [Số 1] * 12 + 6
+    ),
+  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), MAX(LIST(0.0, [Số 1] - 3)), [Số 1]),
+  [Số 1] <= 7, [Số 1] * 12 + 6,
+  TRUE, [Số 1]
+)
+```
+
+**Ngày sinh dùng** (Date):
+
+```
+IFS(
+  ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
+  AND([Năm trong tuổi] > 0, [Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
+    MIN(LIST(
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + MIN(LIST(12, MAX(LIST(1, ROUND([Số 2]))))) - 1) + MIN(LIST(31, MAX(LIST(1, ROUND([Số 1]))))),
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + MIN(LIST(12, MAX(LIST(1, ROUND([Số 2])))))))),
+  AND([Năm trong tuổi] > 0, [Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
+    EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + MIN(LIST(12, MAX(LIST(1, ROUND([Số 1]))))) - 1) + 15,
+  AND(ISNOTBLANK([Tháng tuổi lúc nhận]), [Tháng tuổi lúc nhận] <= 240), DATE([Ngày nhận]) - ROUND(MIN(LIST(240.0, [Tháng tuổi lúc nhận])) * 30.44),
+  [Năm trong tuổi] > 0,
+    EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
+  TRUE, ""
+)
+```
+
+**Mốc hỏi em** (Date):
+
+```
+IFS(
+  [Chốt rồi], "",
+  AND([Lần cuối].[Tình trạng] = "Từ chối", [Lần cuối].[Lý do từ chối] = "Sai độ tuổi"), DATE([Lần cuối].[Thời gian]),
+  AND([Lần cuối].[Tình trạng] = "Từ chối", IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai số điện thoại"))), "",
+  ISBLANK([Hết tuổi]), "",
+  IF(ISBLANK([Hạn cơ bản]), TODAY() >= [Hết tuổi], [Hạn cơ bản] >= [Hết tuổi]),
+    MAX(LIST([Hết tuổi], DATE([Liên hệ cuối lúc]))),
+  TRUE, ""
+)
+```
+
+**Chờ đủ tuổi** (Yes/No):
+
+```
+AND(
+  ISNOTBLANK([Đủ tuổi nhận học]),
+  NOT([Chốt rồi]),
+  ISBLANK([Mốc hỏi em]),
+  IF(ISBLANK([Lần cuối]),
+    AND([Nguồn] = "Em nhỏ trong gia đình", DATE([Ngày nhận]) < [Đủ tuổi nhận học]),
+    AND(
+      DATE([Lần cuối].[Thời gian]) < [Đủ tuổi nhận học],
+      OR(
+        AND([Lần cuối].[Tình trạng] = "Đang cân nhắc", ISBLANK([Lần cuối].[Ngày hẹn])),
+        AND([Lần cuối].[Tình trạng] = "Từ chối", IN([Lần cuối].[Lý do từ chối], LIST("Chưa có nhu cầu", "Khác")))
+      )
+    )
+  )
+)
+```
+
+**Ngày vào học** (Date):
+
+```
+IFS(
+  NOT([Chốt rồi]), "",
+  COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã đặt cọc", ISNOTBLANK([Ngày nhập học dự kiến])))) > 0,
+    MAX(SELECT(Chăm sóc[Ngày nhập học dự kiến], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã đặt cọc", ISNOTBLANK([Ngày nhập học dự kiến])))),
+  COUNT(SELECT(Chăm sóc[Mã], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã nhập học"))) > 0,
+    DATE(MIN(SELECT(Chăm sóc[Thời gian], AND([Mã lead] = [_THISROW].[Mã lead], [Tình trạng] = "Đã nhập học")))),
+  TRUE, ""
+)
+```
+
+**Hạn liên hệ** (Date):
+
+```
+IFS(
+  [Tạm dừng], "",
+  ISNOTBLANK([Mốc hỏi em]), IF(ISBLANK([Em nhỏ]), WORKDAY([Mốc hỏi em] - 1, 1, Ngày nghỉ[Ngày]), ""),
+  ISNOTBLANK([Hạn đại sứ]), WORKDAY([Hạn đại sứ] - 1, 1, Ngày nghỉ[Ngày]),
+  [Chờ đủ tuổi], WORKDAY([Hạn chờ tuổi] - 1, 1, Ngày nghỉ[Ngày]),
+  TRUE, [Hạn cơ bản]
+)
+```
+
+**Giai đoạn** (Text):
+
+```
+IFS(
+  [Tạm dừng], "Dừng",
+  ISNOTBLANK([Mốc hỏi em]), IF(ISBLANK([Em nhỏ]), "Đang chăm sóc", "Dừng"),
+  [Chốt rồi], "Đã chốt",
+  [Chờ đủ tuổi], "Dài hạn",
+  ISBLANK([Lần cuối]), "Đang chăm sóc",
+  [Lần cuối].[Tình trạng] = "Đã đặt cọc", "Đang chăm sóc",
+  [Lần cuối].[Tình trạng] = "Từ chối", IF(IN([Lần cuối].[Lý do từ chối], LIST("Xa nhà", "Sai độ tuổi", "Sai số điện thoại")), "Dừng", "Dài hạn"),
+  ISNOTBLANK([Hạn cơ bản]), "Đang chăm sóc",
+  TRUE, "Dài hạn"
+)
+```
+
+**Việc cần làm** (Text):
+
+```
+IFS(
+  ISBLANK([Hạn liên hệ]), "",
+  ISNOTBLANK([Mốc hỏi em]), "Hỏi phụ huynh có em nhỏ hoặc sắp sinh em",
+  ISNOTBLANK([Hạn đại sứ]), "Giới thiệu chương trình đại sứ phụ huynh",
+  [Chờ đủ tuổi], IF([Hạn chờ tuổi] < [Đủ tuổi nhận học], "Bé sắp đủ tuổi nhận học", "Bé đủ tuổi nhận học"),
+  ISBLANK([Lần cuối]), "Liên hệ lần đầu",
+  [Lần cuối].[Tình trạng] = "Đã đặt cọc", "Viết thư mời tuyển sinh",
+  AND([Lần cuối].[Tình trạng] = "Đã hẹn tham quan / học thử", ISNOTBLANK([Lần cuối].[Ngày hẹn tham quan]), [Hạn liên hệ] < [Lần cuối].[Ngày hẹn tham quan]), "Xác nhận lịch tham quan",
+  IN([Lần cuối].[Tình trạng], LIST("Đã hẹn tham quan / học thử", "Đã tham quan / học thử")), "Hỏi cảm nhận sau buổi tham quan",
+  [Lần cuối].[Tình trạng] = "Hẹn nhưng không đến", "Hẹn lại lịch tham quan",
+  [Lần cuối].[Tình trạng] = "Từ chối", "Liên hệ lại sau khi từ chối",
+  TRUE, "Gọi lại"
+)
+```
+
 **`Sale`**, các cột ảo cho màn hình của chủ:
 
 | Cột ảo | Công thức |
@@ -324,7 +490,7 @@ LOOKUP(USEREMAIL(), "Sale", "Email", "Vai trò") = "Chủ"
 
 1. **Hôm nay cần liên hệ** (màn hình mở đầu): lead của tôi có Mức khẩn là Quá hạn hoặc Hôm nay, xếp theo Hạn liên hệ (cũ nhất trước). Quá hạn tô đỏ. Từ thứ 2 đến thứ 6; nhắc rơi vào thứ 7, Chủ nhật, ngày lễ đã được dời.
 2. **Của tôi**: **chỉ lead mình phụ trách** (sale không thấy lead của người khác), có **ô tìm kiếm** (tên phụ huynh, tên bé, vài số cuối SĐT), nhóm theo Mức khẩn. Khi phụ huynh tự gọi hoặc nhắn tới, sale gõ tìm, mở ra là bấm **Ghi nhận lần chăm sóc**. Không thấy thì bấm **Thêm lead**: nếu SĐT đó đã có trong hệ thống (do sale khác phụ trách), app báo chủ để chủ quyết định giao cho ai (mục 6).
-3. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc và các lần chủ đã gửi ưu đãi / thông tin; nút **Ghi nhận lần chăm sóc**; nút **Đã gửi thư mời** (chỉ hiện khi lần cuối là Đã đặt cọc mà chưa gửi thư mời).
+3. **Chi tiết lead**: thông tin phụ huynh và bé; nút **Gọi**, **SMS**, **Mở Zalo**; lịch sử các lần chăm sóc và các lần chủ đã gửi ưu đãi / thông tin; nút **Ghi nhận lần chăm sóc**; nút **Đã gửi thư mời** (chỉ hiện khi lần cuối là Đã đặt cọc mà chưa gửi thư mời); dòng **Việc cần làm**; ô **Gia đình có em nhỏ?** và nút **Tạo lead cho em** (mở form lead mới điền sẵn tên phụ huynh, SĐT, cơ sở, nguồn "Em nhỏ trong gia đình", ngày sinh em; hiện khi đã chọn Có em nhỏ / Sắp sinh em và chưa tạo lead em).
 4. **Form ghi nhận**: các lựa chọn ở mục 3, nút bấm thay vì gõ chữ.
 5. **Thêm lead** (lead tự tìm được: Zalo, hotline, đến trực tiếp…). Sale phụ trách tự điền là chính mình.
 
@@ -351,7 +517,7 @@ Phân tích sâu hơn (chất lượng theo chiến dịch, hiệu quả từng 
 
 - **Chủ nhắc sale**: chủ bấm **Nhắc sale** ở danh sách bỏ quên hoặc rất quan tâm chưa chốt → app gửi ngay email cho sale phụ trách: tên phụ huynh, bé, cơ sở, quá hạn bao lâu, lần cuối liên hệ, kèm link mở lead trong app. Không ghi SĐT trong email.
 
-- **Lead trùng**: khi một lead mới được thêm mà SĐT đã có ở lead khác, app gửi email cho chủ (tên hai lead, hai sale phụ trách) để chủ gộp hoặc giao lại. Cần vì sale không thấy lead của nhau nên có thể thêm trùng.
+- **Lead trùng**: khi một lead mới được thêm (trừ lead em nhỏ tạo bằng nút **Tạo lead cho em**, cùng SĐT với anh/chị) mà SĐT đã có ở lead khác, app gửi email cho chủ (tên hai lead, hai sale phụ trách) để chủ gộp hoặc giao lại. Cần vì sale không thấy lead của nhau nên có thể thêm trùng.
 - **Giao lead Messenger**: chủ thấy danh sách "Messenger chưa nhận" và giao cho sale. Sale được giao nhận email "Bạn được giao lead mới".
 
 **Không nhắc trùng với bot.** Bot nhắc tư vấn viên trên Telegram khi có tin nhắn **mới** chưa ai trả lời và gửi bản tổng hợp lúc 9h (bot không đổi theo quy tắc v2, vẫn chạy cả thứ 7 vì thẻ của bot đến từ tin phụ huynh chủ động nhắn). App nhắc **gọi lại** những phụ huynh đã nhận vào hồ sơ. Quy ước: sau khi chủ giao lead Messenger trong app, người tư vấn reply `/xong` vào thẻ của phụ huynh đó trên Telegram, để bot ghi "Đã liên hệ" và thôi nhắc.
