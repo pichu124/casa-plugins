@@ -43,12 +43,12 @@ Bấm **SAVE** trước khi sang bước 3 (regenerate mà chưa lưu thì mất
 
 ## Bước 3. Cột ảo mới của `Hồ sơ lead`
 
-**Data → Hồ sơ lead → + Add virtual column**, theo đúng thứ tự dưới. Số 1 – 3 lấy số **thẳng từ ô Tuổi bé**, không qua cột Số tuổi: lấy `INDEX([Số tuổi], 1)` từ cột ảo kiểu List thì AppSheet ra 0 (đã gặp trên app thật). Cột **Tuổi bé chuẩn** chuẩn bị chữ trước khi lấy số: EXTRACTNUMBERS không lấy được số dính chữ ("2t", "18th"), và đọc "02/12/2025" thành một số khổng lồ. Số đó bị coi là năm sinh, làm hàm EOMONTH lỗi và **sập cả app** (đã gặp trên app thật). Vì vậy công thức đổi "/", "-" thành dấu cách, chèn dấu cách trước chữ t, chỉ nhận năm từ 1900 đến 2100, và bỏ qua tuổi trên 240 tháng (ví dụ khi gõ nhầm SĐT vào ô Tuổi bé). AppSheet **tính mọi nhánh của IFS** kể cả nhánh không được chọn, nên số đưa vào EOMONTH còn được kẹp tại chỗ (tháng 1–12, ngày 1–31, tối đa 240 tháng tuổi). Trong `LIST(...)` không trộn số nguyên với số thập phân (`0.0` chứ không `0`). Mọi cột ở bước này **bỏ tick Show** (chỉ dùng để tính), trừ **Ngày sinh dùng** và **Đủ tuổi nhận học** (để Show, sale thấy app hiểu tuổi bé thế nào).
+**Data → Hồ sơ lead → + Add virtual column**, theo đúng thứ tự dưới. Số 1 – 3 lấy số **thẳng từ ô Tuổi bé**, không qua cột Số tuổi: lấy `INDEX([Số tuổi], 1)` từ cột ảo kiểu List thì AppSheet ra 0 (đã gặp trên app thật). Cột **Tuổi bé chuẩn** chuẩn bị chữ trước khi lấy số: EXTRACTNUMBERS không lấy được số dính chữ ("2t", "18th"), và đọc "02/12/2025" thành một số khổng lồ. Số đó bị coi là năm sinh, làm hàm EOMONTH lỗi và **sập cả app** (đã gặp trên app thật). Trên app thật, EXTRACTNUMBERS("tháng 4 năm 2024") ra 42024, nên chữ "năm" cũng bị bỏ. Vì vậy công thức đổi "/", "-", "năm" thành dấu cách, chèn dấu cách trước chữ t, chỉ nhận năm từ 1900 đến 2100, và bỏ qua tuổi trên 240 tháng (ví dụ khi gõ nhầm SĐT vào ô Tuổi bé). AppSheet **tính mọi nhánh của IFS** kể cả nhánh không được chọn, nên số đưa vào EOMONTH còn được kẹp tại chỗ (tháng 1–12, ngày 1–31, tối đa 240 tháng tuổi). Trong `LIST(...)` không trộn số nguyên với số thập phân (`0.0` chứ không `0`). Mọi cột ở bước này **bỏ tick Show** (chỉ dùng để tính), trừ **Ngày sinh dùng** và **Đủ tuổi nhận học** (để Show, sale thấy app hiểu tuổi bé thế nào).
 
 **1. Tuổi bé chuẩn** (cột ảo, kiểu Text)
 
 ```
-SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "t", " t"), "T", " T")
+SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "năm", " "), "Năm", " "), "t", " t"), "T", " T")
 ```
 
 **2. Số tuổi** (cột ảo, kiểu List (Item type Decimal))

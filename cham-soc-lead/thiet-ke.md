@@ -321,7 +321,7 @@ AND(
 
 | Cột ảo | Kiểu | Công thức |
 |---|---|---|
-| Tuổi bé chuẩn | Text | `SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "t", " t"), "T", " T")` |
+| Tuổi bé chuẩn | Text | `SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "năm", " "), "Năm", " "), "t", " t"), "T", " T")` |
 | Số tuổi | List (Item type Decimal) | `EXTRACTNUMBERS([Tuổi bé chuẩn])` |
 | Số 1 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 1, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 1)), 0)` |
 | Số 2 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 2, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 2)), 0)` |
