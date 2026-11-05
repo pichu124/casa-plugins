@@ -95,7 +95,7 @@ IFS(
       [Số 1] <> FLOOR([Số 1]), [Số 1] * 12,
       TRUE, [Số 1] * 12 + 6
     ),
-  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), MAX(LIST(0, [Số 1] - 3)), [Số 1]),
+  OR(CONTAINS([Tuổi bé], "tháng"), CONTAINS([Tuổi bé], "thang")), IF(OR(CONTAINS([Tuổi bé], "dưới"), CONTAINS([Tuổi bé], "duoi")), MAX(LIST(0.0, [Số 1] - 3)), [Số 1]),
   [Số 1] <= 7, [Số 1] * 12 + 6,
   TRUE, [Số 1]
 )
