@@ -375,6 +375,14 @@ class E_TuoiBe(unittest.TestCase):
             with self.subTest(chu=chu):
                 self.assertEqual(q.ngay_sinh_uoc_tinh(chu, nhan), nhan - timedelta(days=round(thang * 30.44 + 1e-9)))
 
+    def test_chu_vo_ly_khong_lam_sap(self):
+        """Gõ nhầm SĐT hay số lạ vào Tuổi bé: không đoán, không lỗi (trên AppSheet lỗi EOMONTH làm sập cả app)."""
+        for chu in ["0912345678", "sinh 2150", "12345 tháng", "999 tuổi", "300"]:
+            with self.subTest(chu=chu):
+                self.assertIsNone(q.ngay_sinh_uoc_tinh(chu, D(2026, 11, 5)))
+        r = q.trang_thai_lead(q.Lead(datetime(2026, 11, 5, 9), "0912345678"), [], D(2026, 11, 5))
+        self.assertEqual((r.han, r.viec), (D(2026, 11, 5), "Liên hệ lần đầu"))  # chạy như đợt 1
+
     def test_khong_ra_ngay_sinh_tuong_lai(self):
         self.assertEqual(q.ngay_sinh_uoc_tinh("dưới 2 tháng", D(2026, 11, 2)), D(2026, 11, 2))
 

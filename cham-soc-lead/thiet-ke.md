@@ -321,11 +321,12 @@ AND(
 
 | Cột ảo | Kiểu | Công thức |
 |---|---|---|
-| Số tuổi | List (Item type Decimal) | `EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))` |
-| Số 1 | Decimal | `IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 1, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 1)), 0)` |
-| Số 2 | Decimal | `IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 2, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 2)), 0)` |
-| Số 3 | Decimal | `IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 3, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 3)), 0)` |
-| Năm trong tuổi | Number | `IF(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)` |
+| Tuổi bé chuẩn | Text | `SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "t", " t"), "T", " T")` |
+| Số tuổi | List (Item type Decimal) | `EXTRACTNUMBERS([Tuổi bé chuẩn])` |
+| Số 1 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 1, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 1)), 0)` |
+| Số 2 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 2, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 2)), 0)` |
+| Số 3 | Decimal | `IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 3, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 3)), 0)` |
+| Năm trong tuổi | Number | `IF(AND(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, MAX(LIST([Số 1], [Số 2], [Số 3])) <= 2100), ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)` |
 | Số đếm | Number | `IFS([Năm trong tuổi] = 0, COUNT([Số tuổi]), [Số 1] >= 1900, 0, [Số 2] >= 1900, 1, TRUE, 2)` |
 | Đủ tuổi nhận học | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi nhận học (tháng)")))))` |
 | Hết tuổi | Date | `IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], CH("Tuổi tối đa (tháng)") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], CH("Tuổi tối đa (tháng)")))))` |
@@ -359,13 +360,13 @@ IFS(
 ```
 IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
-  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
+  AND([Năm trong tuổi] > 0, [Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     MIN(LIST(
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
-  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
+  AND([Năm trong tuổi] > 0, [Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
-  ISNOTBLANK([Tháng tuổi lúc nhận]), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
+  AND(ISNOTBLANK([Tháng tuổi lúc nhận]), [Tháng tuổi lúc nhận] <= 240), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
   TRUE, ""

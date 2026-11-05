@@ -43,45 +43,51 @@ Bấm **SAVE** trước khi sang bước 3 (regenerate mà chưa lưu thì mất
 
 ## Bước 3. Cột ảo mới của `Hồ sơ lead`
 
-**Data → Hồ sơ lead → + Add virtual column**, theo đúng thứ tự dưới. Số 1 – 3 lấy số **thẳng từ ô Tuổi bé**, không qua cột Số tuổi: lấy `INDEX([Số tuổi], 1)` từ cột ảo kiểu List thì AppSheet ra 0 (đã gặp trên app thật). EXTRACTNUMBERS không lấy được số dính chữ ("2t", "18th"), nên công thức chèn dấu cách trước chữ t. Trong `LIST(...)` không trộn số nguyên với số thập phân (`0.0` chứ không `0`). Mọi cột ở bước này **bỏ tick Show** (chỉ dùng để tính), trừ **Ngày sinh dùng** và **Đủ tuổi nhận học** (để Show, sale thấy app hiểu tuổi bé thế nào).
+**Data → Hồ sơ lead → + Add virtual column**, theo đúng thứ tự dưới. Số 1 – 3 lấy số **thẳng từ ô Tuổi bé**, không qua cột Số tuổi: lấy `INDEX([Số tuổi], 1)` từ cột ảo kiểu List thì AppSheet ra 0 (đã gặp trên app thật). Cột **Tuổi bé chuẩn** chuẩn bị chữ trước khi lấy số: EXTRACTNUMBERS không lấy được số dính chữ ("2t", "18th"), và đọc "02/12/2025" thành một số khổng lồ. Số đó bị coi là năm sinh, làm hàm EOMONTH lỗi và **sập cả app** (đã gặp trên app thật). Vì vậy công thức đổi "/", "-" thành dấu cách, chèn dấu cách trước chữ t, chỉ nhận năm từ 1900 đến 2100, và bỏ qua tuổi trên 240 tháng (ví dụ khi gõ nhầm SĐT vào ô Tuổi bé). Trong `LIST(...)` không trộn số nguyên với số thập phân (`0.0` chứ không `0`). Mọi cột ở bước này **bỏ tick Show** (chỉ dùng để tính), trừ **Ngày sinh dùng** và **Đủ tuổi nhận học** (để Show, sale thấy app hiểu tuổi bé thế nào).
 
-**1. Số tuổi** (cột ảo, kiểu List (Item type Decimal))
-
-```
-EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))
-```
-
-**2. Số 1** (cột ảo, kiểu Decimal)
+**1. Tuổi bé chuẩn** (cột ảo, kiểu Text)
 
 ```
-IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 1, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 1)), 0)
+SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "/", " "), "-", " "), "t", " t"), "T", " T")
 ```
 
-**3. Số 2** (cột ảo, kiểu Decimal)
+**2. Số tuổi** (cột ảo, kiểu List (Item type Decimal))
 
 ```
-IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 2, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 2)), 0)
+EXTRACTNUMBERS([Tuổi bé chuẩn])
 ```
 
-**4. Số 3** (cột ảo, kiểu Decimal)
+**3. Số 1** (cột ảo, kiểu Decimal)
 
 ```
-IF(COUNT(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T"))) >= 3, ABS(INDEX(EXTRACTNUMBERS(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([Tuổi bé], ",", "."), "t", " t"), "T", " T")), 3)), 0)
+IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 1, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 1)), 0)
 ```
 
-**5. Năm trong tuổi** (cột ảo, kiểu Number)
+**4. Số 2** (cột ảo, kiểu Decimal)
 
 ```
-IF(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)
+IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 2, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 2)), 0)
 ```
 
-**6. Số đếm** (cột ảo, kiểu Number)
+**5. Số 3** (cột ảo, kiểu Decimal)
+
+```
+IF(COUNT(EXTRACTNUMBERS([Tuổi bé chuẩn])) >= 3, ABS(INDEX(EXTRACTNUMBERS([Tuổi bé chuẩn]), 3)), 0)
+```
+
+**6. Năm trong tuổi** (cột ảo, kiểu Number)
+
+```
+IF(AND(MAX(LIST([Số 1], [Số 2], [Số 3])) >= 1900, MAX(LIST([Số 1], [Số 2], [Số 3])) <= 2100), ROUND(MAX(LIST([Số 1], [Số 2], [Số 3]))), 0)
+```
+
+**7. Số đếm** (cột ảo, kiểu Number)
 
 ```
 IFS([Năm trong tuổi] = 0, COUNT([Số tuổi]), [Số 1] >= 1900, 0, [Số 2] >= 1900, 1, TRUE, 2)
 ```
 
-**7. Tháng tuổi lúc nhận** (cột ảo, kiểu Decimal)
+**8. Tháng tuổi lúc nhận** (cột ảo, kiểu Decimal)
 
 ```
 IFS(
@@ -101,49 +107,49 @@ IFS(
 )
 ```
 
-**8. Ngày sinh dùng** (cột ảo, kiểu Date)
+**9. Ngày sinh dùng** (cột ảo, kiểu Date)
 
 ```
 IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
-  AND([Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
+  AND([Năm trong tuổi] > 0, [Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     MIN(LIST(
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
       EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
-  AND([Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
+  AND([Năm trong tuổi] > 0, [Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
-  ISNOTBLANK([Tháng tuổi lúc nhận]), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
+  AND(ISNOTBLANK([Tháng tuổi lúc nhận]), [Tháng tuổi lúc nhận] <= 240), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
   TRUE, ""
 )
 ```
 
-**9. Đủ tuổi nhận học** (cột ảo, kiểu Date)
+**10. Đủ tuổi nhận học** (cột ảo, kiểu Date)
 
 ```
 IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi nhận học (tháng)", "Cấu hình", "Khóa", "Giá trị") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi nhận học (tháng)", "Cấu hình", "Khóa", "Giá trị")))))
 ```
 
-**10. Hết tuổi** (cột ảo, kiểu Date)
+**11. Hết tuổi** (cột ảo, kiểu Date)
 
 ```
 IF(ISBLANK([Ngày sinh dùng]), "", MIN(LIST(EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi tối đa (tháng)", "Cấu hình", "Khóa", "Giá trị") - 1) + DAY([Ngày sinh dùng]), EOMONTH([Ngày sinh dùng], LOOKUP("Tuổi tối đa (tháng)", "Cấu hình", "Khóa", "Giá trị")))))
 ```
 
-**11. Hạn cơ bản** (cột ảo, kiểu Date)
+**12. Hạn cơ bản** (cột ảo, kiểu Date)
 
 ```
 IF(ISBLANK([Lần cuối]), WORKDAY(DATE([Ngày nhận]) - 1, 1, Ngày nghỉ[Ngày]), [Lần cuối].[Hạn liên hệ tiếp])
 ```
 
-**12. Chốt rồi** (cột ảo, kiểu Yes/No)
+**13. Chốt rồi** (cột ảo, kiểu Yes/No)
 
 ```
 OR([Lần cuối].[Tình trạng] = "Đã nhập học", AND([Lần cuối].[Tình trạng] = "Đã đặt cọc", [Lần cuối].[Đã gửi thư mời]))
 ```
 
-**13. Mốc hỏi em** (cột ảo, kiểu Date)
+**14. Mốc hỏi em** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -157,7 +163,7 @@ IFS(
 )
 ```
 
-**14. Chờ đủ tuổi** (cột ảo, kiểu Yes/No)
+**15. Chờ đủ tuổi** (cột ảo, kiểu Yes/No)
 
 ```
 AND(
@@ -177,13 +183,13 @@ AND(
 )
 ```
 
-**15. Hạn chờ tuổi** (cột ảo, kiểu Date)
+**16. Hạn chờ tuổi** (cột ảo, kiểu Date)
 
 ```
 IF(DATE([Liên hệ cuối lúc]) < [Đủ tuổi nhận học] - LOOKUP("Nhắc trước tuổi nhận học", "Cấu hình", "Khóa", "Giá trị"), [Đủ tuổi nhận học] - LOOKUP("Nhắc trước tuổi nhận học", "Cấu hình", "Khóa", "Giá trị"), [Đủ tuổi nhận học])
 ```
 
-**16. Ngày vào học** (cột ảo, kiểu Date)
+**17. Ngày vào học** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -196,7 +202,7 @@ IFS(
 )
 ```
 
-**17. Hạn đại sứ** (cột ảo, kiểu Date)
+**18. Hạn đại sứ** (cột ảo, kiểu Date)
 
 ```
 IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày vào học] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị")), [Ngày vào học] + LOOKUP("Sau nhập học", "Cấu hình", "Khóa", "Giá trị"), "")
@@ -207,7 +213,7 @@ IF(AND(ISNOTBLANK([Ngày vào học]), DATE([Liên hệ cuối lúc]) < [Ngày v
 
 **Hạn liên hệ** và **Giai đoạn** đã có: mở từng cột, xoá công thức cũ, dán công thức mới. **Việc cần làm** là cột ảo mới (Show bật).
 
-**18. Hạn liên hệ** (cột ảo, kiểu Date)
+**19. Hạn liên hệ** (cột ảo, kiểu Date)
 
 ```
 IFS(
@@ -219,7 +225,7 @@ IFS(
 )
 ```
 
-**19. Giai đoạn** (cột ảo, kiểu Text)
+**20. Giai đoạn** (cột ảo, kiểu Text)
 
 ```
 IFS(
@@ -235,7 +241,7 @@ IFS(
 )
 ```
 
-**20. Việc cần làm** (cột ảo, kiểu Text)
+**21. Việc cần làm** (cột ảo, kiểu Text)
 
 ```
 IFS(
@@ -254,7 +260,7 @@ IFS(
 ```
 
 
-**21. Nhóm** (sửa cột cũ, Text): lead Dài hạn hay Đã chốt có hạn còn xa (chờ đủ tuổi, nhắc đại sứ) nằm ở nhóm "4 · Dài hạn" / "4 · Đã chốt" của màn Của tôi, không lẫn vào "3 · Sắp tới"; tới hạn thì lên "Hôm nay" như thường.
+**22. Nhóm** (sửa cột cũ, Text): lead Dài hạn hay Đã chốt có hạn còn xa (chờ đủ tuổi, nhắc đại sứ) nằm ở nhóm "4 · Dài hạn" / "4 · Đã chốt" của màn Của tôi, không lẫn vào "3 · Sắp tới"; tới hạn thì lên "Hôm nay" như thường.
 
 ```
 IFS([Mức khẩn] = "Quá hạn", "1 · Quá hạn", [Mức khẩn] = "Hôm nay", "2 · Hôm nay", AND([Mức khẩn] = "Sắp tới", [Giai đoạn] = "Đang chăm sóc"), "3 · Sắp tới", TRUE, CONCATENATE("4 · ", [Giai đoạn]))

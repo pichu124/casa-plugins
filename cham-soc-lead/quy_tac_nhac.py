@@ -278,11 +278,19 @@ def _co(chu: str, *tu: str) -> bool:
     return any(t in c for t in tu)
 
 
+NAM_MIN, NAM_MAX = 1900, 2100
+THANG_TUOI_MAX = 240  # lớn hơn 20 tuổi là chữ vô lý (gõ nhầm SĐT…): không đoán
+
+
+def la_nam(x: float) -> bool:
+    return NAM_MIN <= x <= NAM_MAX
+
+
 def _so_dem(so: list[float]) -> int:
     """Số con số nói về tuổi: mọi số nếu không có năm sinh, còn có năm thì chỉ các số đứng trước năm
     (trong 3 số đầu). Như cột AppSheet "Số đếm"."""
     s1, s2, s3 = (so + [0, 0, 0])[:3]
-    if max(s1, s2, s3) < 1900:
+    if not la_nam(max(s1, s2, s3)):
         return len(so)
     return 0 if s1 >= 1900 else 1 if s2 >= 1900 else 2
 
@@ -327,7 +335,7 @@ def ngay_sinh_uoc_tinh(tuoi_be: str, ngay_nhan: date) -> date | None:
     if not so:
         return None
     s1, s2, s3 = (so + [0, 0, 0])[:3]  # AppSheet chỉ xét 3 số đầu
-    if max(s1, s2, s3) >= 1900:  # "sinh năm 2022", "sinh tháng 3/2023", "02/12/2025"
+    if la_nam(max(s1, s2, s3)):  # "sinh năm 2022", "sinh tháng 3/2023", "02/12/2025"
         nam = round(max(s1, s2, s3))
         lech = (nam - ngay_nhan.year) * 12 - ngay_nhan.month
         if s3 >= 1900 and 1 <= s2 <= 12 and 1 <= s1 <= 31 and _co(tuoi_be, "/", "-"):  # ngày/tháng/năm
@@ -336,11 +344,11 @@ def ngay_sinh_uoc_tinh(tuoi_be: str, ngay_nhan: date) -> date | None:
         if s2 >= 1900 and 1 <= s1 <= 12 and _co(tuoi_be, "/", "-", f"tháng {round(s1)}", f"thang {round(s1)}"):
             return _eomonth(ngay_nhan, lech + round(s1) - 1) + timedelta(days=15)  # tháng/năm
         thang = thang_tuoi_luc_nhan(tuoi_be)  # "8 tháng, sinh 2026": tuổi chính xác hơn năm
-        if thang is not None:
+        if thang is not None and thang <= THANG_TUOI_MAX:
             return ngay_nhan - timedelta(days=int(thang * 30.44 + 0.5))
         return _eomonth(ngay_nhan, lech + 6) + timedelta(days=1)  # chỉ có năm: giữa năm, 01/07
     thang = thang_tuoi_luc_nhan(tuoi_be)
-    if thang is None:
+    if thang is None or thang > THANG_TUOI_MAX:
         return None
     return ngay_nhan - timedelta(days=int(thang * 30.44 + 0.5))  # ROUND của AppSheet (làm tròn lên ở .5)
 
