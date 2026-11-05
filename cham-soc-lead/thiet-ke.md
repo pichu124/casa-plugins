@@ -362,11 +362,11 @@ IFS(
   ISNOTBLANK([Ngày sinh bé]), [Ngày sinh bé],
   AND([Năm trong tuổi] > 0, [Số 3] >= 1900, [Số 2] >= 1, [Số 2] <= 12, [Số 1] >= 1, [Số 1] <= 31, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"))),
     MIN(LIST(
-      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2]) - 1) + ROUND([Số 1]),
-      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 2])))),
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + MIN(LIST(12, MAX(LIST(1, ROUND([Số 2]))))) - 1) + MIN(LIST(31, MAX(LIST(1, ROUND([Số 1]))))),
+      EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + MIN(LIST(12, MAX(LIST(1, ROUND([Số 2])))))))),
   AND([Năm trong tuổi] > 0, [Số 2] >= 1900, [Số 1] >= 1, [Số 1] <= 12, OR(CONTAINS([Tuổi bé], "/"), CONTAINS([Tuổi bé], "-"), CONTAINS([Tuổi bé], CONCATENATE("tháng ", ROUND([Số 1]))), CONTAINS([Tuổi bé], CONCATENATE("thang ", ROUND([Số 1]))))),
-    EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + ROUND([Số 1]) - 1) + 15,
-  AND(ISNOTBLANK([Tháng tuổi lúc nhận]), [Tháng tuổi lúc nhận] <= 240), DATE([Ngày nhận]) - ROUND([Tháng tuổi lúc nhận] * 30.44),
+    EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + MIN(LIST(12, MAX(LIST(1, ROUND([Số 1]))))) - 1) + 15,
+  AND(ISNOTBLANK([Tháng tuổi lúc nhận]), [Tháng tuổi lúc nhận] <= 240), DATE([Ngày nhận]) - ROUND(MIN(LIST(240.0, [Tháng tuổi lúc nhận])) * 30.44),
   [Năm trong tuổi] > 0,
     EOMONTH(DATE([Ngày nhận]), ([Năm trong tuổi] - YEAR([Ngày nhận])) * 12 - MONTH([Ngày nhận]) + 6) + 1,
   TRUE, ""
