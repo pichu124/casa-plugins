@@ -66,7 +66,7 @@ Trong **Data** → chọn bảng → **Columns**. Với mỗi cột, chỉnh **T
 
 **`Messenger`** (tab `Leads`): Key là `Customer ID` (AppSheet hay tự chọn `Thời gian`, phải đổi); Label là `Tên Facebook`; `SĐT` đổi Type thành **Phone** (AppSheet đoán Number, làm mất số 0 đầu); bỏ Require ở `Thời gian`, `SĐT`. Nếu AppSheet báo tên cột có dấu `/` (như `Cơ sở/hệ`) không hợp lệ, nó sẽ tự đổi tên hiển thị; ghi lại tên mới để dùng ở bước 6.
 
-Mỗi bảng chỉ để **một** cột tick Label (AppSheet có khi tick sẵn nhiều cột). Ngày trong app hiển thị theo ngôn ngữ của trình duyệt hoặc điện thoại (máy tiếng Anh hiện 10/19/2026, máy tiếng Việt hiện 19/10/2026); không có ô chỉnh trong AppSheet. Đừng đổi **Data locale** của bảng nếu ngày đang đọc đúng.
+Mỗi bảng chỉ để **một** cột tick Label (AppSheet có khi tick sẵn nhiều cột). Ngày trong app hiện kiểu **tháng/ngày/năm** (11/2/2026). Đã thử và **không** đổi được bằng Data locale của bảng (English (UK)), ngôn ngữ Chrome hay ngôn ngữ điện thoại. Cách chắc chắn: cột ảo dạng chữ dùng `TEXT()`, xem mục "Việc để sau" cuối [nang-cap-quy-tac-v2.md](nang-cap-quy-tac-v2.md).
 
 Sau đó thêm các **cột ảo** của `Hồ sơ lead` và `Sale` đúng như bảng ở thiet-ke.md mục 4. Thêm theo thứ tự trong bảng, vì cột sau dùng cột trước.
 
